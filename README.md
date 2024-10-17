@@ -32,3 +32,7 @@ This project implements a Distributed Network Monitoring System (NMS) capable of
    git clone https://github.com/your-username/distributed-network-monitoring.git
    cd distributed-network-monitoring
 
+## Group Members
+- [Edgar Ferreira](https://www.github.com/Edgare)
+- [Eduardo Faria](https://www.github.com/2101dudu)
+- [Nuno Siva](https://www.github.com/NunoMRS7)
