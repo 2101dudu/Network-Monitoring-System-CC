@@ -33,6 +33,6 @@ This project implements a Distributed Network Monitoring System (NMS) capable of
    cd distributed-network-monitoring
 
 ## Group Members
-- [Edgar Ferreira](https://www.github.com/Edgare)
+- [Edgar Ferreira](https://www.github.com/Edegare)
 - [Eduardo Faria](https://www.github.com/2101dudu)
 - [Nuno Siva](https://www.github.com/NunoMRS7)
