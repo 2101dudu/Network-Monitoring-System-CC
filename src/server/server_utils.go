@@ -7,7 +7,7 @@ import (
     "bufio"
 )
 
-func openServer() {
+func open_server() {
     // Escutar numa porta específica
     listener, err := net.Listen("tcp", ":8080")
     if err != nil {
@@ -25,11 +25,11 @@ func openServer() {
             fmt.Println("Erro ao aceitar conexão:", err)
             continue
         }
-        go handleConnection(conn) // Lidar com a conexão numa goroutine separada
+        go handle_connection(conn) // Lidar com a conexão numa goroutine separada
     }
 }
 
-func handleConnection(conn net.Conn) {
+func handle_connection(conn net.Conn) {
 	defer conn.Close()
 
 	fmt.Println("Cliente conectado:", conn.RemoteAddr())

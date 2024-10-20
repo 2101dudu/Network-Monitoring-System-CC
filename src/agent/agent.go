@@ -1,6 +1,6 @@
 package agent
 
 func main() {
-    openAgent()
+    open_agent()
 }
 

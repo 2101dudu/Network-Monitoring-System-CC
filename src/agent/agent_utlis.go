@@ -7,7 +7,7 @@ import (
     "bufio"
 )
 
-func openAgent() {
+func open_agent() {
     // Conectar ao servidor
     conn, err := net.Dial("tcp", "localhost:8080")
     if err != nil {

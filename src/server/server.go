@@ -1,5 +1,5 @@
 package server
 
 func main() {
-    openServer()
+    open_server()
 }
