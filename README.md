@@ -12,6 +12,7 @@ This project implements a Distributed Network Monitoring System (NMS) capable of
 - **JSON Task Configuration**: Tasks are assigned to agents via a JSON configuration file.
 
 ## Project Structure
+```
 .
 ├── CC Enunciado TP2 24-25.pdf
 ├── README.md
@@ -28,6 +29,8 @@ This project implements a Distributed Network Monitoring System (NMS) capable of
     │   └── server_utils.go
     └── utils
         └── ack.go
+```
+
 
 ## Requirements
 - Python (or your chosen programming language)
