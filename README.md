@@ -12,8 +12,22 @@ This project implements a Distributed Network Monitoring System (NMS) capable of
 - **JSON Task Configuration**: Tasks are assigned to agents via a JSON configuration file.
 
 ## Project Structure
-- **NMS_Agent**: Collects metrics and sends them to the NMS_Server.
-- **NMS_Server**: Receives data from agents and generates alerts based on network conditions.
+.
+├── CC Enunciado TP2 24-25.pdf
+├── README.md
+├── LICENSE
+├── go.mod
+└── src
+    ├── agent
+    │   ├── agent.go
+    │   └── agent_utils.go
+    ├── main
+    │   └── main.go
+    ├── server
+    │   ├── server.go
+    │   └── server_utils.go
+    └── utils
+        └── ack.go
 
 ## Requirements
 - Python (or your chosen programming language)
