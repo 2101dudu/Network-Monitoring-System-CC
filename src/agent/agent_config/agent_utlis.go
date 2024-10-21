@@ -5,38 +5,32 @@ import (
 	"fmt"
 	"net"
 	"os"
+    a "nms/src/utils"
 )
 
 func Open_agent() {
-	// Conectar ao servidor
 	conn, err := net.Dial("tcp", "localhost:8080")
 	if err != nil {
-		fmt.Println("Erro ao conectar ao servidor:", err)
+		fmt.Println("[ERROR 4]: Unable to connect to server", err)
 		os.Exit(1)
 	}
 	defer conn.Close()
 
-	fmt.Println("Conectado ao servidor. Escreve uma mensagem:")
+	fmt.Println("Established connection with the server")
 
-	// Ler e enviar mensagens ao servidor
 	for {
-		reader := bufio.NewReader(os.Stdin)
-		fmt.Print("-> ")
-		message, _ := reader.ReadString('\n')
+        buf := make([]byte, 1024)   
+        n, err := bufio.NewReader(conn).Read(buf)
 
-		// Enviar mensagem ao servidor
-		_, err = conn.Write([]byte(message))
-		if err != nil {
-			fmt.Println("Erro ao enviar mensagem:", err)
-			return
-		}
+        if err != nil {
+			fmt.Println("[ERROR 5] Unable to read message", err)
+        }
 
-		// Ler a resposta do servidor
-		response, err := bufio.NewReader(conn).ReadString('\n')
-		if err != nil {
-			fmt.Println("Erro ao receber resposta:", err)
-			return
-		}
-		fmt.Print("Resposta do servidor: ", response)
+        ack, err := a.Decode_ack(buf[:n])
+        if err != nil {
+			fmt.Println("[ERRO 6] Unable to decode message:", err)
+        }
+
+        fmt.Print("Message recieved:", ack)
 	}
 }
