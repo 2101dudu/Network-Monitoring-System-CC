@@ -7,7 +7,7 @@ import (
     a "nms/src/utils"
 )
 
-func Open_server() {
+func OpenServer() {
 	listener, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		fmt.Println("[ERROR 1] Uninitialized server:", err)
@@ -23,17 +23,17 @@ func Open_server() {
 		os.Exit(1)
     }
 
-    handle_connection(conn)
+    handleConnection(conn)
 }
 
-func handle_connection(conn net.Conn) {
+func handleConnection(conn net.Conn) {
 	defer conn.Close()
 
 	fmt.Println("Established connection with an Agent", conn.RemoteAddr())
 
-    test_ack := a.New_ack_builder().Has_ackowledged().Is_server().Set_sender_id(0).Build()
+    test_ack := a.NewAckBuilder().HasAcknowledged().IsServer().SetSenderId(0).Build()
 
-    data, err := a.Encode_ack(test_ack)
+    data, err := a.EncodeAck(test_ack)
     if err != nil {
         fmt.Println("[ERROR 3] Unable to enconde message", err)
         return
