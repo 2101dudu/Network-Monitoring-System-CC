@@ -31,7 +31,7 @@ func handle_connection(conn net.Conn) {
 
 	fmt.Println("Established connection with an Agent", conn.RemoteAddr())
 
-	test_ack := a.New_ack_builder().Has_ackowledged().Is_server().Set_sender_id(0).Build() // porquê a. antes de New_ack_builder
+	test_ack := a.New_ack_builder().Has_ackowledged().Is_server().Set_sender_id(0).Build()
 
 	data, err := a.Encode_ack(test_ack)
 	if err != nil {

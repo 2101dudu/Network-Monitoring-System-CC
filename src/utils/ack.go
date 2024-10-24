@@ -78,7 +78,7 @@ func Encode_ack(ack Ack) ([]byte, error) {
 	var buffer bytes.Buffer
 	encoder := gob.NewEncoder(&buffer)
 	err := encoder.Encode(ack)
-	if err != nil { // porquê if neste caso de Encode mas não no Decode? Não é possível dar return de um array de bytes que não foi "carregado" com nada?
+	if err != nil {
 		return nil, err
 	}
 	return buffer.Bytes(), nil

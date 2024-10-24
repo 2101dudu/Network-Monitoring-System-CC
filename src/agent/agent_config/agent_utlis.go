@@ -18,14 +18,14 @@ func Open_agent() {
 
 	fmt.Println("Established connection with the server")
 
-	buf := make([]byte, 1024) // porque não: var buf []byte?
+	buf := make([]byte, 1024)
 	n, err := bufio.NewReader(conn).Read(buf)
 
 	if err != nil {
 		fmt.Println("[ERROR 6] Unable to read message", err)
 	}
 
-	ack, err := a.Decode_ack(buf[:n]) // é mesmo necessário fornecer o tamanho do buffer?
+	ack, err := a.Decode_ack(buf[:n])
 	if err != nil {
 		fmt.Println("[ERROR 7] Unable to decode message:", err)
 	}
