@@ -14,21 +14,27 @@ This project implements a Distributed Network Monitoring System (NMS) capable of
 ## Project Structure
 ```
 .
-├── CC Enunciado TP2 24-25.pdf
-├── README.md
 ├── LICENSE
+├── README.md
 ├── go.mod
-└── src
-    ├── agent
-    │   ├── agent.go
-    │   └── agent_utils.go
-    ├── main
-    │   └── main.go
-    ├── server
-    │   ├── server.go
-    │   └── server_utils.go
-    └── utils
-        └── ack.go
+├── cmd/
+│   └── nms/
+│       └── main.go
+├── internal/
+│   ├── agent/
+│   │   ├── config.go
+│   │   └── runner.go
+│   └── server/
+│       ├── config.go
+│       └── runner.go
+├── pkg/
+│   └── utils/
+│       └── ack.go
+├── configs/
+│   └── settings.json
+├── docs/
+    └── CC Enunciado TP2 24-25.pdf
+
 ```
 
 
