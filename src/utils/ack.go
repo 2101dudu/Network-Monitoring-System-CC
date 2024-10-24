@@ -67,19 +67,19 @@ func (a *ack_builder) Build() Ack {
 }
 
 func Decode_ack(message []byte) (Ack, error) {
-    var ack Ack
-    buffer := bytes.NewBuffer(message)
-    decoder := gob.NewDecoder(buffer)
-    err := decoder.Decode(&ack)
-    return ack, err
+	var ack Ack
+	buffer := bytes.NewBuffer(message)
+	decoder := gob.NewDecoder(buffer)
+	err := decoder.Decode(&ack)
+	return ack, err
 }
 
 func Encode_ack(ack Ack) ([]byte, error) {
-    var buffer bytes.Buffer
-    err := gob.NewEncoder(&buffer).Encode(ack)
-    if err != nil {
-        return nil, err
-    }
-    return buffer.Bytes(), nil
+	var buffer bytes.Buffer
+	encoder := gob.NewEncoder(&buffer)
+	err := encoder.Encode(ack)
+	if err != nil {
+		return nil, err
+	}
+	return buffer.Bytes(), nil
 }
-
