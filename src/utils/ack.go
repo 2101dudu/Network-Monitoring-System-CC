@@ -5,77 +5,77 @@ import (
 	"encoding/gob"
 )
 
-type request_type byte
+type RequestType byte
 
 const (
-	AGENT_REGISTRATION request_type = iota // iota = 0
-	TASK_REQUEST                           // iota = 1
-	METRICS_GATHERING                      // iota = 2
-	ERROR                                  // iota = 3
+	AgentRegistration RequestType = iota  // iota = 0
+	TaskRequest                           // iota = 1
+	MetricsGathering                      // iota = 2
+	Error                                 // iota = 3
 )
 
 type Ack struct {
-	Acknowledged     bool
-	Sender_id        byte // [0, 255]
-	Sender_is_server bool
-	Request_id       byte         // [0, 255]
-	Request_type     request_type //(AGENT_REGISTRATION, TASK_DELEGATION, DATA_COLLECTION)
+	Acknowledged    bool
+	SenderID        byte // [0, 255]
+	SenderIsServer  bool
+	RequestID       byte // [0, 255]
+	RequestType     RequestType //(AGENT_REGISTRATION, TASK_REQUEST, METRICS_GATHERING)
 }
 
-type ack_builder struct {
+type AckBuilder struct {
 	Ack Ack
 }
 
-func New_ack_builder() *ack_builder {
-	return &ack_builder{
+func NewAckBuilder() *AckBuilder {
+	return &AckBuilder{
 		Ack: Ack{
-			Acknowledged:     false,
-			Sender_id:        0,
-			Sender_is_server: false,
-			Request_id:       0,
-			Request_type:     ERROR},
+			Acknowledged:   false,
+			SenderID:       0,
+			SenderIsServer: false,
+			RequestID:      0,
+			RequestType:    Error},
 	}
 }
 
-func (a *ack_builder) Has_ackowledged() *ack_builder {
+func (a *AckBuilder) HasAcknowledged() *AckBuilder {
 	a.Ack.Acknowledged = true
 	return a
 }
 
-func (a *ack_builder) Set_sender_id(id byte) *ack_builder {
-	a.Ack.Sender_id = id
+func (a *AckBuilder) SetSenderId(id byte) *AckBuilder {
+	a.Ack.SenderID = id
 	return a
 }
 
-func (a *ack_builder) Is_server() *ack_builder {
-	a.Ack.Sender_is_server = true
+func (a *AckBuilder) IsServer() *AckBuilder {
+	a.Ack.SenderIsServer = true
 	return a
 }
 
-func (a *ack_builder) Set_request_id(id byte) *ack_builder {
-	a.Ack.Request_id = id
+func (a *AckBuilder) SetRequestID(id byte) *AckBuilder {
+	a.Ack.RequestID = id
 	return a
 }
 
-func (a *ack_builder) Set_request_type(request request_type) *ack_builder {
-	a.Ack.Request_type = request
+func (a *AckBuilder) SetRequestType(request RequestType) *AckBuilder {
+	a.Ack.RequestType = request
 	return a
 }
 
-func (a *ack_builder) Build() Ack {
+func (a *AckBuilder) Build() Ack {
 	return a.Ack
 }
 
-func Decode_ack(message []byte) (Ack, error) {
-	var ack Ack
-	buffer := bytes.NewBuffer(message)
-	decoder := gob.NewDecoder(buffer)
-	err := decoder.Decode(&ack)
-	return ack, err
+func DecodeAck(message []byte) (Ack, error) {
+    var ack Ack
+    buffer := bytes.NewBuffer(message)
+    decoder := gob.NewDecoder(buffer)
+    err := decoder.Decode(&ack)
+    return ack, err
 }
 
-func Encode_ack(ack Ack) ([]byte, error) {
-	var buffer bytes.Buffer
+func EncodeAck(ack Ack) ([]byte, error) {
+    var buffer bytes.Buffer
 	encoder := gob.NewEncoder(&buffer)
 	err := encoder.Encode(ack)
 	if err != nil {

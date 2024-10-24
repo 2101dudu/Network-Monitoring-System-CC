@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-func Open_agent() {
+func OpenAgent() {
 	conn, err := net.Dial("tcp", "localhost:8080")
 	if err != nil {
 		fmt.Println("[ERROR 5]: Unable to connect to server", err)
@@ -25,7 +25,7 @@ func Open_agent() {
 		fmt.Println("[ERROR 6] Unable to read message", err)
 	}
 
-	ack, err := a.Decode_ack(buf[:n])
+	ack, err := a.DecodeAck(buf[:n])
 	if err != nil {
 		fmt.Println("[ERROR 7] Unable to decode message:", err)
 	}
