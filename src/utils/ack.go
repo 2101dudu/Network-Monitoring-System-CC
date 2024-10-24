@@ -76,10 +76,10 @@ func DecodeAck(message []byte) (Ack, error) {
 
 func EncodeAck(ack Ack) ([]byte, error) {
     var buffer bytes.Buffer
-    err := gob.NewEncoder(&buffer).Encode(ack)
-    if err != nil {
-        return nil, err
-    }
-    return buffer.Bytes(), nil
+	encoder := gob.NewEncoder(&buffer)
+	err := encoder.Encode(ack)
+	if err != nil {
+		return nil, err
+	}
+	return buffer.Bytes(), nil
 }
-

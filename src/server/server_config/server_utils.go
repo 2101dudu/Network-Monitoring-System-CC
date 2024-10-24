@@ -3,8 +3,8 @@ package server
 import (
 	"fmt"
 	"net"
+	a "nms/src/utils"
 	"os"
-    a "nms/src/utils"
 )
 
 func OpenServer() {
@@ -13,15 +13,15 @@ func OpenServer() {
 		fmt.Println("[ERROR 1] Uninitialized server:", err)
 		os.Exit(1)
 	}
-    defer listener.Close()
+	defer listener.Close()
 
 	fmt.Println("Server listenning on port 8080...")
 
-    conn, err := listener.Accept()
-    if err != nil {
-        fmt.Println("[ERROR 2] Unable to accept connection:", err)
+	conn, err := listener.Accept()
+	if err != nil {
+		fmt.Println("[ERROR 2] Unable to accept connection:", err)
 		os.Exit(1)
-    }
+	}
 
     handleConnection(conn)
 }
@@ -38,6 +38,11 @@ func handleConnection(conn net.Conn) {
         fmt.Println("[ERROR 3] Unable to enconde message", err)
         return
     }
-    _, err = conn.Write(data) 
-    fmt.Println("Message sent")
+  
+	_, err = conn.Write(data)
+	if err != nil {
+		fmt.Println("[ERROR 4] Unable to send message", err)
+	}
+
+	fmt.Println("Message sent")
 }
