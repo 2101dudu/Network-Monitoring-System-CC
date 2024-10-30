@@ -1,9 +1,9 @@
-package server
+package server_config
 
 import (
 	"fmt"
 	"net"
-	a "nms/src/utils"
+	a "nms/pkg/utils"
 	"os"
 )
 
@@ -17,13 +17,15 @@ func OpenServer() {
 
 	fmt.Println("Server listenning on port 8080...")
 
-	conn, err := listener.Accept()
-	if err != nil {
-		fmt.Println("[ERROR 2] Unable to accept connection:", err)
-		os.Exit(1)
-	}
+	for {
+		conn, err := listener.Accept()
+		if err != nil {
+			fmt.Println("[ERROR 2] Unable to accept connection:", err)
+			os.Exit(1)
+		}
 
-    handleConnection(conn)
+		go handleConnection(conn)
+	}
 }
 
 func handleConnection(conn net.Conn) {
@@ -31,14 +33,14 @@ func handleConnection(conn net.Conn) {
 
 	fmt.Println("Established connection with an Agent", conn.RemoteAddr())
 
-    test_ack := a.NewAckBuilder().HasAcknowledged().IsServer().SetSenderId(0).Build()
+	test_ack := a.NewAckBuilder().HasAcknowledged().IsServer().SetSenderId(0).Build()
 
-    data, err := a.EncodeAck(test_ack)
-    if err != nil {
-        fmt.Println("[ERROR 3] Unable to enconde message", err)
-        return
-    }
-  
+	data, err := a.EncodeAck(test_ack)
+	if err != nil {
+		fmt.Println("[ERROR 3] Unable to enconde message", err)
+		return
+	}
+
 	_, err = conn.Write(data)
 	if err != nil {
 		fmt.Println("[ERROR 4] Unable to send message", err)

@@ -8,18 +8,18 @@ import (
 type RequestType byte
 
 const (
-	AgentRegistration RequestType = iota  // iota = 0
-	TaskRequest                           // iota = 1
-	MetricsGathering                      // iota = 2
-	Error                                 // iota = 3
+	AgentRegistration RequestType = iota // iota = 0
+	TaskRequest                          // iota = 1
+	MetricsGathering                     // iota = 2
+	Error                                // iota = 3
 )
 
 type Ack struct {
-	Acknowledged    bool
-	SenderID        byte // [0, 255]
-	SenderIsServer  bool
-	RequestID       byte // [0, 255]
-	RequestType     RequestType //(AGENT_REGISTRATION, TASK_REQUEST, METRICS_GATHERING)
+	Acknowledged   bool
+	SenderID       byte // [0, 255]
+	SenderIsServer bool
+	RequestID      byte        // [0, 255]
+	RequestType    RequestType //(AGENT_REGISTRATION, TASK_REQUEST, METRICS_GATHERING)
 }
 
 type AckBuilder struct {
@@ -67,15 +67,15 @@ func (a *AckBuilder) Build() Ack {
 }
 
 func DecodeAck(message []byte) (Ack, error) {
-    var ack Ack
-    buffer := bytes.NewBuffer(message)
-    decoder := gob.NewDecoder(buffer)
-    err := decoder.Decode(&ack)
-    return ack, err
+	var ack Ack
+	buffer := bytes.NewBuffer(message)
+	decoder := gob.NewDecoder(buffer)
+	err := decoder.Decode(&ack)
+	return ack, err
 }
 
 func EncodeAck(ack Ack) ([]byte, error) {
-    var buffer bytes.Buffer
+	var buffer bytes.Buffer
 	encoder := gob.NewEncoder(&buffer)
 	err := encoder.Encode(ack)
 	if err != nil {
