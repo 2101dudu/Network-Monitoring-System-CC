@@ -16,31 +16,32 @@
                     "test_duration": 42,
                     "bandwidth": {
                         "enabled": true,
-                        "agrs": 100
+                        "args": "ola"
                     },
                     "jitter": { 
                         "enabled": true,
-                        "agrs": 
+                        "args": "ola"
                     },
                     "packet_loss": { 
                         "enabled": false,
-                        "agrs": 
+                        "args": "ola"
                     },
                     "latency": { 
                         "enabled": true,
-                        "args": ,
+                        "args": "ola",
                         "destination": [192,168,1,2],
                         "packet_count": 50,
                         "frequency": 20
+                    },
+                    "alertflow_conditions": {
+                        "cpu_usage": 80,
+                        "ram_usage": 90,
+                        "interface_stats": 2000,
+                        "packet_loss": 5,
+                        "jitter": 100
                     }
-                },
-                "alertflow_conditions": {
-                    "cpu_usage": 80,
-                    "ram_usage": 90,
-                    "interface_stats": 2000,
-                    "packet_loss": 5,
-                    "jitter": 100
                 }
-        ]
             }
+        ]
+    }    
 ]

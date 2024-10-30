@@ -1,15 +1,15 @@
-package agent
+package agent_config
 
 import (
 	"bufio"
 	"fmt"
 	"net"
-	a "nms/src/utils"
+	a "nms/pkg/utils"
 	"os"
 )
 
 func OpenAgent() {
-	conn, err := net.Dial("udp", "localhost:8080")
+	conn, err := net.Dial("tcp", "localhost:8080")
 	if err != nil {
 		fmt.Println("[ERROR 5]: Unable to connect to server", err)
 		os.Exit(1)
