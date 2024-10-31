@@ -1,25 +1,11 @@
 package utils
 
-import (
-	"bytes"
-	"encoding/gob"
-)
-
-type RequestType byte
-
-const (
-	AgentRegistration RequestType = iota // iota = 0
-	TaskRequest                          // iota = 1
-	MetricsGathering                     // iota = 2
-	Error                                // iota = 3
-)
-
 type Ack struct {
 	Acknowledged   bool
 	SenderID       byte // [0, 255]
 	SenderIsServer bool
 	RequestID      byte        // [0, 255]
-	RequestType    RequestType //(AgentRegistration, TaskRequest, MetricsGathering, Error)
+	RequestType    MessageType //(AgentRegistration, TaskRequest, MetricsGathering, Error)
 }
 
 type AckBuilder struct {
@@ -33,7 +19,7 @@ func NewAckBuilder() *AckBuilder {
 			SenderID:       0,
 			SenderIsServer: false,
 			RequestID:      0,
-			RequestType:    Error},
+			RequestType:    ERROR},
 	}
 }
 
@@ -57,7 +43,7 @@ func (a *AckBuilder) SetRequestID(id byte) *AckBuilder {
 	return a
 }
 
-func (a *AckBuilder) SetRequestType(request RequestType) *AckBuilder {
+func (a *AckBuilder) SetRequestType(request MessageType) *AckBuilder {
 	a.Ack.RequestType = request
 	return a
 }
@@ -66,20 +52,25 @@ func (a *AckBuilder) Build() Ack {
 	return a.Ack
 }
 
-func DecodeAck(message []byte) (Ack, error) {
-	var ack Ack
-	buffer := bytes.NewBuffer(message)
-	decoder := gob.NewDecoder(buffer)
-	err := decoder.Decode(&ack)
-	return ack, err
+// receives the data without the header
+func DecodeAck(message [4]byte) (Ack, error) {
+	ack := Ack{
+		Acknowledged:   message[0] == 1,         // Decode boolean from byte
+		SenderID:       message[1],              // SenderID is the 3rd byte
+		SenderIsServer: message[2] == 1,         // Decode boolean from byte
+		RequestType:    MessageType(message[3]), // RequestType is the 5th byte
+	}
+
+	return ack, nil
 }
 
-func EncodeAck(ack Ack) ([]byte, error) {
-	var buffer bytes.Buffer
-	encoder := gob.NewEncoder(&buffer)
-	err := encoder.Encode(ack)
-	if err != nil {
-		return nil, err
+// receives the data the header
+func EncodeAck(ack Ack) [5]byte {
+	return [5]byte{
+		byte(ACK),
+		BoolToByte(ack.Acknowledged),
+		ack.SenderID,
+		BoolToByte(ack.SenderIsServer),
+		byte(ack.RequestType),
 	}
-	return buffer.Bytes(), nil
 }
