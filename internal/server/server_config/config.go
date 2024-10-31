@@ -3,6 +3,7 @@ package server_config
 import (
 	"fmt"
 	"net"
+	m "nms/pkg/message"
 	u "nms/pkg/utils"
 	"os"
 )
@@ -40,15 +41,11 @@ func handleConnection(conn net.Conn) {
 
 	fmt.Println("Established connection with an Agent", conn.RemoteAddr())
 
-	test_ack := u.NewAckBuilder().HasAcknowledged().IsServer().SetSenderId(0).Build()
+	test_ack := m.NewAckBuilder().HasAcknowledged().IsServer().SetSenderId(0).Build()
 
-	data, err := u.EncodeAck(test_ack)
-	if err != nil {
-		fmt.Println("[ERROR 3] Unable to enconde message", err)
-		return
-	}
+	data := m.EncodeAck(test_ack)
 
-	_, err = conn.Write(data)
+	_, err := conn.Write(data)
 	if err != nil {
 		fmt.Println("[ERROR 4] Unable to send message", err)
 	}

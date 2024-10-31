@@ -1,6 +1,7 @@
 package message
 
 import (
+	"errors"
 	u "nms/pkg/utils"
 )
 
@@ -57,7 +58,11 @@ func (a *AckBuilder) Build() Ack {
 }
 
 // receives the data without the header
-func DecodeAck(message [4]byte) Ack {
+func DecodeAck(message []byte) (Ack, error) {
+	if len(message) != 4 {
+		return Ack{}, errors.New("invalid message length")
+	}
+
 	ack := Ack{
 		Acknowledged:   message[0] == 1,
 		SenderID:       message[1],
@@ -65,12 +70,12 @@ func DecodeAck(message [4]byte) Ack {
 		RequestType:    u.MessageType(message[3]),
 	}
 
-	return ack
+	return ack, nil
 }
 
 // receives the data the header
-func EncodeAck(ack Ack) [5]byte {
-	return [5]byte{
+func EncodeAck(ack Ack) []byte {
+	return []byte{
 		byte(u.ACK),
 		u.BoolToByte(ack.Acknowledged),
 		ack.SenderID,
