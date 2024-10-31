@@ -21,7 +21,7 @@ func main() {
 	}
 
 	// Parse do JSON
-	tasks := a.JsonParse(data)
+	tasks := a.ParseDataFromJson(data)
 
 	// Exemplo de uso dos dados parseados
 	for _, task := range tasks {

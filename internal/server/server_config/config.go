@@ -3,11 +3,18 @@ package server_config
 import (
 	"fmt"
 	"net"
-	a "nms/pkg/utils"
+	u "nms/pkg/utils"
 	"os"
 )
 
-func OpenServer() {
+func OpenServer(tasksList []u.Task) {
+
+	// ---------- Uso temporário da lista de tasks ----------
+	for _, task := range tasksList {
+		fmt.Println("Task: ", task)
+	}
+	// ------------------------------------------------------
+
 	listener, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		fmt.Println("[ERROR 1] Uninitialized server:", err)
@@ -15,7 +22,7 @@ func OpenServer() {
 	}
 	defer listener.Close()
 
-	fmt.Println("Server listenning on port 8080...")
+	fmt.Println("Server listening on port 8080...")
 
 	for {
 		conn, err := listener.Accept()
@@ -33,9 +40,9 @@ func handleConnection(conn net.Conn) {
 
 	fmt.Println("Established connection with an Agent", conn.RemoteAddr())
 
-	test_ack := a.NewAckBuilder().HasAcknowledged().IsServer().SetSenderId(0).Build()
+	test_ack := u.NewAckBuilder().HasAcknowledged().IsServer().SetSenderId(0).Build()
 
-	data, err := a.EncodeAck(test_ack)
+	data, err := u.EncodeAck(test_ack)
 	if err != nil {
 		fmt.Println("[ERROR 3] Unable to enconde message", err)
 		return

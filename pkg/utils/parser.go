@@ -66,11 +66,21 @@ type AlertFlowConditions struct {
 	Jitter         int `json:"jitter"`
 }
 
-func JsonParse(data []byte) []Task {
+func GetDataFromJson(filePath string) []byte {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		fmt.Println("[ERROR 8] Unable to read file: ", err)
+		os.Exit(1)
+	}
+
+	return data
+}
+
+func ParseDataFromJson(data []byte) []Task {
 	var tasks []Task
 	err := json.Unmarshal(data, &tasks)
 	if err != nil {
-		fmt.Println("[ERROR 8] Unable to parse data", err)
+		fmt.Println("[ERROR 9] Unable to parse data", err)
 		os.Exit(1)
 	}
 
