@@ -1,8 +1,8 @@
-package utils
+package message
 
 import (
-	"bytes"
-	"encoding/gob"
+	u "nms/pkg/utils"
+	// u "nms/pkg/utils"
 )
 
 type Registration struct {
@@ -36,20 +36,20 @@ func (r *RegistrationBuilder) Build() Registration {
 	return r.Registration
 }
 
-func DecodeRegistration(message []byte) (Registration, error) {
-	var reg Registration
-	buffer := bytes.NewBuffer(message)
-	decoder := gob.NewDecoder(buffer)
-	err := decoder.Decode(&reg)
-	return reg, err
+// receives the data without the header
+func DecodeRegistration(message [2]byte) Registration {
+	reg := Registration{
+		SenderIsServer: message[0] == 1,
+		NewID:          message[1],
+	}
+
+	return reg
 }
 
-func EncodeRegistration(reg Registration) ([]byte, error) {
-	var buffer bytes.Buffer
-	encoder := gob.NewEncoder(&buffer)
-	err := encoder.Encode(reg)
-	if err != nil {
-		return nil, err
+func EncodeRegistration(reg Registration) [3]byte {
+	return [3]byte{
+		byte(u.REGSITRATION),
+		u.BoolToByte(reg.SenderIsServer),
+		reg.NewID,
 	}
-	return buffer.Bytes(), nil
 }
