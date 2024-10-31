@@ -19,7 +19,7 @@ type Ack struct {
 	SenderID       byte // [0, 255]
 	SenderIsServer bool
 	RequestID      byte        // [0, 255]
-	RequestType    RequestType //(AGENT_REGISTRATION, TASK_REQUEST, METRICS_GATHERING)
+	RequestType    RequestType //(AgentRegistration, TaskRequest, MetricsGathering, Error)
 }
 
 type AckBuilder struct {
