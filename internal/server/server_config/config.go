@@ -1,9 +1,10 @@
 package server_config
 
 import (
+	"bufio"
 	"fmt"
 	"net"
-	a "nms/pkg/utils"
+	u "nms/pkg/utils"
 	"os"
 )
 
@@ -33,11 +34,30 @@ func handleConnection(conn net.Conn) {
 
 	fmt.Println("Established connection with an Agent", conn.RemoteAddr())
 
-	test_ack := a.NewAckBuilder().HasAcknowledged().IsServer().SetSenderId(0).Build()
+	buf := make([]byte, 1024)
+	n, err := bufio.NewReader(conn).Read(buf)
 
-	data, err := a.EncodeAck(test_ack)
 	if err != nil {
-		fmt.Println("[ERROR 3] Unable to enconde message", err)
+		fmt.Println("[ERROR 6] Unable to read message", err)
+	}
+
+	reg, err := u.DecodeRegistration(buf[:n])
+	if err != nil {
+		fmt.Println("[ERROR 7] Unable to decode message into registration request:", err)
+	}
+
+	fmt.Println("Registration request recieved:", reg)
+
+	if reg.NewID != 0 || reg.SenderIsServer {
+		fmt.Println("[ERROR 10] Incorrect registration parameters:", reg)
+		os.Exit(1)
+	}
+
+	regitrationToSend := u.NewRegistrationBuilder().SetNewID(1).IsServer().Build()
+
+	data, err := u.EncodeRegistration(regitrationToSend)
+	if err != nil {
+		fmt.Println("[ERROR 3] Unable to enconde registration request into message", err)
 		return
 	}
 
