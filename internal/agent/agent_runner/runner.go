@@ -3,19 +3,22 @@ package main
 import (
 	"fmt"
 	ac "nms/internal/agent/agent_config"
-	"os"
 )
 
 func main() {
-	args := os.Args[1:]
-	if len(args) < 1 {
-		fmt.Println("Usage: ./agent.go -<option>")
-		os.Exit(1)
-	}
+	fmt.Print("Escolha o protocolo (tcp/udp): ")
+	var protocol string
+	fmt.Scanln(&protocol)
 
-	switch args[0] {
-	case "-udp":
-	case "-tcp":
-		ac.OpenAgent()
+	fmt.Print("Digite o endereço do servidor (e.g., localhost:8080): ")
+	var serverAddr string
+	fmt.Scanln(&serverAddr)
+
+	if protocol == "tcp" {
+		ac.ConnectTCP(serverAddr)
+	} else if protocol == "udp" {
+		ac.ConnectUDP(serverAddr)
+	} else {
+		fmt.Println("Protocolo desconhecido!")
 	}
 }

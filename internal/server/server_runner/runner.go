@@ -1,20 +1,10 @@
 package main
 
-import (
-	sc "nms/internal/server/server_config"
-	u "nms/pkg/utils"
-	"path/filepath"
-)
+import sc "nms/internal/server/server_config"
 
 func main() {
-	// get path to json file
-	filePath := filepath.Join("configs", "settings.json")
+	go sc.StartTCPServer("8080")
+	go sc.StartUDPServer("8081")
 
-	// get []byte structure corresponding to json data
-	jsonData := u.GetDataFromJson(filePath)
-
-	// get []Task from json data
-	tasksList := u.ParseDataFromJson(jsonData)
-
-	sc.OpenServer(tasksList)
+	select {} // Bloqueio para manter o servidor rodando
 }
