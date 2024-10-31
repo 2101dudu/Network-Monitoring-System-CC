@@ -1,6 +1,7 @@
 package message
 
 import (
+	"errors"
 	u "nms/pkg/utils"
 	// u "nms/pkg/utils"
 )
@@ -37,17 +38,21 @@ func (r *RegistrationBuilder) Build() Registration {
 }
 
 // receives the data without the header
-func DecodeRegistration(message [2]byte) Registration {
+func DecodeRegistration(message []byte) (Registration, error) {
+	if len(message) != 2 {
+		return Registration{}, errors.New("invalid message length")
+	}
+
 	reg := Registration{
 		SenderIsServer: message[0] == 1,
 		NewID:          message[1],
 	}
 
-	return reg
+	return reg, nil
 }
 
-func EncodeRegistration(reg Registration) [3]byte {
-	return [3]byte{
+func EncodeRegistration(reg Registration) []byte {
+	return []byte{
 		byte(u.REGSITRATION),
 		u.BoolToByte(reg.SenderIsServer),
 		reg.NewID,

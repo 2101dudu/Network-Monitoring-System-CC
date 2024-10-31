@@ -1,9 +1,9 @@
 package agent_config
 
 import (
-	"bufio"
 	"fmt"
 	"net"
+	m "nms/pkg/message"
 	"os"
 )
 
@@ -15,13 +15,36 @@ func ConnectTCP(serverAddr string) {
 	}
 	defer conn.Close()
 
-	reader := bufio.NewReader(os.Stdin)
-	for {
-		fmt.Print("Digite uma mensagem TCP: ")
-		message, _ := reader.ReadString('\n')
-		conn.Write([]byte(message))
+	// create, encode and send registration request to server
 
-		reply, _ := bufio.NewReader(conn).ReadString('\n')
-		fmt.Printf("Resposta TCP: %s", reply)
+	reg := m.NewRegistrationBuilder().Build()
+	regData := m.EncodeRegistration(reg)
+
+	_, err = conn.Write(regData)
+	if err != nil {
+		fmt.Println("Unable to send registration request")
 	}
+
+	fmt.Print("Registration request sent")
+
+	// decode new registration request from server and update registration
+
+	newRegData := make([]byte, 1024)
+	n, err := conn.Read(newRegData)
+	if err != nil {
+		fmt.Println("Error reading TCP data:", err)
+		os.Exit(1)
+	}
+
+	newReg, err := m.DecodeRegistration(newRegData[1:n])
+	if err != nil {
+		fmt.Println("Error decoding new registration data:", err)
+	}
+
+	if newReg.NewID == 0 || !newReg.SenderIsServer {
+		fmt.Println("Invalid registration request parameters")
+		os.Exit(1)
+	}
+
+	fmt.Println(newReg)
 }

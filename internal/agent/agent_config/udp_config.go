@@ -1,9 +1,9 @@
 package agent_config
 
 import (
-	"bufio"
 	"fmt"
 	"net"
+	m "nms/pkg/message"
 	"os"
 )
 
@@ -21,14 +21,37 @@ func ConnectUDP(serverAddr string) {
 	}
 	defer conn.Close()
 
-	reader := bufio.NewReader(os.Stdin)
-	for {
-		fmt.Print("Digite uma mensagem UDP: ")
-		message, _ := reader.ReadString('\n')
-		conn.Write([]byte(message))
+	// create, encode and send registration request to server
 
-		buffer := make([]byte, 1024)
-		n, _, _ := conn.ReadFromUDP(buffer)
-		fmt.Printf("Resposta UDP: %s\n", string(buffer[:n]))
+	reg := m.NewRegistrationBuilder().Build()
+	regData := m.EncodeRegistration(reg)
+
+	_, err = conn.Write(regData)
+	if err != nil {
+		fmt.Println("Unable to send registration request")
 	}
+
+	fmt.Print("Registration request sent")
+
+	// decode new registration request from server and update registration
+
+	newRegData := make([]byte, 1024)
+	n, _, err := conn.ReadFromUDP(newRegData)
+	if err != nil {
+		fmt.Println("Error reading UDP data:", err)
+		os.Exit(1)
+	}
+
+	newReg, err := m.DecodeRegistration(newRegData[:n])
+	if err != nil {
+		fmt.Println("Error decoding new registration data:", err)
+	}
+
+	if reg.NewID == 0 || !reg.SenderIsServer {
+		fmt.Println("Invalid registration request parameters")
+		os.Exit(1)
+	}
+
+	fmt.Println(newReg)
+
 }
