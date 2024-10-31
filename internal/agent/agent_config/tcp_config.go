@@ -10,18 +10,18 @@ import (
 func ConnectTCP(serverAddr string) {
 	conn, err := net.Dial("tcp", serverAddr)
 	if err != nil {
-		fmt.Println("Erro ao conectar via TCP:", err)
+		fmt.Println("[ERROR] Unable to connect via TCP:", err)
 		return
 	}
 	defer conn.Close()
 
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		fmt.Print("Digite uma mensagem TCP: ")
+		fmt.Print("Write a TCP message: ")
 		message, _ := reader.ReadString('\n')
 		conn.Write([]byte(message))
 
 		reply, _ := bufio.NewReader(conn).ReadString('\n')
-		fmt.Printf("Resposta TCP: %s", reply)
+		fmt.Printf("TCP response from the server: %s", reply)
 	}
 }

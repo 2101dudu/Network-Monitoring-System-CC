@@ -6,11 +6,11 @@ import (
 )
 
 func main() {
-	fmt.Print("Escolha o protocolo (tcp/udp): ")
+	fmt.Print("Choose the protocol (tcp/udp): ")
 	var protocol string
 	fmt.Scanln(&protocol)
 
-	fmt.Print("Digite o endereço do servidor (e.g., localhost:8080): ")
+	fmt.Print("Write the server's address (e.g., localhost:8080): ")
 	var serverAddr string
 	fmt.Scanln(&serverAddr)
 
@@ -19,6 +19,6 @@ func main() {
 	} else if protocol == "udp" {
 		ac.ConnectUDP(serverAddr)
 	} else {
-		fmt.Println("Protocolo desconhecido!")
+		fmt.Println("[ERROR] Unknown protocol")
 	}
 }

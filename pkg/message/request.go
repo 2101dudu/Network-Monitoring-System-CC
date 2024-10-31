@@ -1,9 +1,6 @@
 package message
 
-import (
-	u "nms/pkg/utils"
-	// u "nms/pkg/utils"
-)
+import u "nms/pkg/utils"
 
 type Registration struct {
 	SenderIsServer bool

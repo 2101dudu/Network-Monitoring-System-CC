@@ -16,7 +16,7 @@ func main() {
 	// Leitura do ficheiro JSON
 	data, err := os.ReadFile(filePath)
 	if err != nil {
-		fmt.Println("[ERROR] Unable to read file: ", err)
+		fmt.Println("[ERROR] Unable to read file:", err)
 		os.Exit(1)
 	}
 

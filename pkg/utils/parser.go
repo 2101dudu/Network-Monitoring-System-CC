@@ -69,7 +69,7 @@ type AlertFlowConditions struct {
 func GetDataFromJson(filePath string) []byte {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
-		fmt.Println("[ERROR 8] Unable to read file: ", err)
+		fmt.Println("[ERROR 8] Unable to read file:", err)
 		os.Exit(1)
 	}
 
@@ -80,7 +80,7 @@ func ParseDataFromJson(data []byte) []Task {
 	var tasks []Task
 	err := json.Unmarshal(data, &tasks)
 	if err != nil {
-		fmt.Println("[ERROR 9] Unable to parse data", err)
+        fmt.Println("[ERROR 9] Unable to parse data:", err)
 		os.Exit(1)
 	}
 

@@ -8,8 +8,8 @@ import (
 	"os"
 )
 
-func OpenServer(tasksList []u.Task) {
 
+func OpenServer(tasksList []u.Task) {
 	// ---------- Uso temporário da lista de tasks ----------
 	for _, task := range tasksList {
 		fmt.Println("Task: ", task)
@@ -47,7 +47,7 @@ func handleConnection(conn net.Conn) {
 
 	_, err := conn.Write(data)
 	if err != nil {
-		fmt.Println("[ERROR 4] Unable to send message", err)
+        fmt.Println("[ERROR 4] Unable to send message:", err)
 	}
 
 	fmt.Println("Message sent")

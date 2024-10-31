@@ -9,24 +9,23 @@ import (
 func StartTCPServer(port string) {
 	listener, err := net.Listen("tcp", ":"+port)
 	if err != nil {
-		fmt.Println("Erro ao iniciar o servidor TCP:", err)
+		fmt.Println("[ERROR] Unable to start TCP server:", err)
 		return
 	}
 	defer listener.Close()
 
-	fmt.Println("Servidor TCP escutando na porta", port)
+	fmt.Println("TCP server listening on port", port)
 
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			fmt.Println("Erro ao aceitar conexão TCP:", err)
+			fmt.Println("[ERROR] unable to accept TCP connection:", err)
 			continue
 		}
 		go handleTCPConnection(conn)
 	}
 }
 
-// Função para tratar conexões TCP
 func handleTCPConnection(conn net.Conn) {
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
@@ -34,10 +33,10 @@ func handleTCPConnection(conn net.Conn) {
 	for {
 		message, err := reader.ReadString('\n')
 		if err != nil {
-			fmt.Println("Erro ao ler dados TCP:", err)
+			fmt.Println("[ERROR] Unable to read TCP data:", err)
 			break
 		}
-		fmt.Printf("Mensagem recebida (TCP): %s", message)
+		fmt.Printf("TCP Message received: %s", message)
 		conn.Write([]byte(message))
 	}
 }
