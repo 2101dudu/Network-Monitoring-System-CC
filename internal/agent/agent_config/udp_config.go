@@ -10,14 +10,14 @@ import (
 func ConnectUDP(serverAddr string) {
 	udpAddr, err := net.ResolveUDPAddr("udp", serverAddr)
 	if err != nil {
-		fmt.Println("[UDP] Erro ao resolver endereço UDP:", err)
-		return
+		fmt.Println("[UDP] [ERROR] Unable to resolve address:", err)
+		os.Exit(1)
 	}
 
 	conn, err := net.DialUDP("udp", nil, udpAddr)
 	if err != nil {
-		fmt.Println("[UDP] Erro ao conectar via UDP:", err)
-		return
+		fmt.Println("[UDP] [ERROR] Unable to connect:", err)
+		os.Exit(1)
 	}
 	defer conn.Close()
 
@@ -28,7 +28,8 @@ func ConnectUDP(serverAddr string) {
 
 	_, err = conn.Write(regData)
 	if err != nil {
-		fmt.Println("[UDP] Unable to send registration request")
+		fmt.Println("[UDP] [ERROR] Unable to send registration request:", err)
+		os.Exit(1)
 	}
 
 	fmt.Println("[UDP] Registration request sent")
@@ -38,20 +39,22 @@ func ConnectUDP(serverAddr string) {
 	newRegData := make([]byte, 1024)
 	n, _, err := conn.ReadFromUDP(newRegData)
 	if err != nil {
-		fmt.Println("[UDP] Error reading UDP data:", err)
+		fmt.Println("[UDP] [ERROR] Unable to read data:", err)
 		os.Exit(1)
 	}
 
 	newReg, err := m.DecodeRegistration(newRegData[1:n])
 	if err != nil {
-		fmt.Println("[UDP] Error decoding new registration data:", err)
-	}
-
-	if newReg.NewID == 0 || !newReg.SenderIsServer {
-		fmt.Println("[UDP] Invalid registration request parameters")
+		fmt.Println("[UDP] [ERROR] Unable to decode new registration data:", err)
 		os.Exit(1)
 	}
 
+	if newReg.NewID == 0 || !newReg.SenderIsServer {
+		fmt.Println("[UDP] [ERROR] Invalid registration request parameters")
+		// send NO_ACK
+	}
+
+	// send ACK
 	fmt.Println(newReg)
 
 }
