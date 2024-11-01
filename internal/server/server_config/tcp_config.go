@@ -1,9 +1,10 @@
 package server_config
 
 import (
-	"bufio"
 	"fmt"
 	"net"
+	m "nms/pkg/message"
+	"os"
 )
 
 func StartTCPServer(port string) {
@@ -29,15 +30,38 @@ func StartTCPServer(port string) {
 // Função para tratar conexões TCP
 func handleTCPConnection(conn net.Conn) {
 	defer conn.Close()
-	reader := bufio.NewReader(conn)
 
-	for {
-		message, err := reader.ReadString('\n')
-		if err != nil {
-			fmt.Println("Erro ao ler dados TCP:", err)
-			break
-		}
-		fmt.Printf("Mensagem recebida (TCP): %s", message)
-		conn.Write([]byte(message))
+	fmt.Println("Established connection with Agent", conn.RemoteAddr())
+
+	// decode and process registration request from agent
+
+	regData := make([]byte, 1024)
+	n, err := conn.Read(regData)
+	if err != nil {
+		fmt.Println("Error reading TCP data:", err)
+		os.Exit(1)
 	}
+
+	reg, err := m.DecodeRegistration(regData[:n])
+	if err != nil {
+		fmt.Println("Error decoding registration data:", err)
+	}
+
+	if reg.NewID != 0 || reg.SenderIsServer {
+		fmt.Println("Invalid registration request parameters")
+		os.Exit(1)
+	}
+
+	// create, encode and send new registration request to agent
+
+	newReg := m.NewRegistrationBuilder().IsServer().SetNewID(1).Build()
+	newRegData := m.EncodeRegistration(newReg)
+
+	_, err = conn.Write(newRegData)
+	if err != nil {
+		fmt.Println("Unable to send new registration request")
+	}
+
+	fmt.Print("New registration request sent")
+
 }

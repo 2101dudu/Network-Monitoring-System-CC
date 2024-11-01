@@ -3,7 +3,8 @@ package server_config
 import (
 	"fmt"
 	"net"
-	"strings"
+	m "nms/pkg/message"
+	"os"
 )
 
 func StartUDPServer(port string) {
@@ -13,24 +14,51 @@ func StartUDPServer(port string) {
 		return
 	}
 
-	conn, err := net.ListenUDP("udp", addr)
-	if err != nil {
-		fmt.Println("Erro ao iniciar o servidor UDP:", err)
-		return
+	for {
+		conn, err := net.ListenUDP("udp", addr)
+		if err != nil {
+			fmt.Println("Erro ao iniciar o servidor UDP:", err)
+			os.Exit(1)
+		}
+
+		go handleUDPConnection(*conn)
 	}
+}
+
+func handleUDPConnection(conn net.UDPConn) {
 	defer conn.Close()
 
-	fmt.Println("Servidor UDP escutando na porta", port)
+	fmt.Println("Established connection with Agent", conn.RemoteAddr())
 
-	buffer := make([]byte, 1024)
-	for {
-		n, clientAddr, err := conn.ReadFromUDP(buffer)
-		if err != nil {
-			fmt.Println("Erro ao ler dados UDP:", err)
-			continue
-		}
-		message := strings.TrimSpace(string(buffer[:n]))
-		fmt.Printf("Mensagem recebida (UDP): %s\n", message)
-		conn.WriteToUDP([]byte(message), clientAddr)
+	// decode and process registration request from agent
+
+	regData := make([]byte, 1024)
+	n, _, err := conn.ReadFromUDP(regData)
+	if err != nil {
+		fmt.Println("Error reading UDP data:", err)
+		os.Exit(1)
 	}
+
+	reg, err := m.DecodeRegistration(regData[:n])
+	if err != nil {
+		fmt.Println("Error decoding registration data:", err)
+	}
+
+	if reg.NewID != 0 || reg.SenderIsServer {
+		fmt.Println("Invalid registration request parameters")
+		os.Exit(1)
+	}
+
+	// create, encode and send new registration request to agent
+
+	newReg := m.NewRegistrationBuilder().IsServer().SetNewID(1).Build()
+	newRegData := m.EncodeRegistration(newReg)
+
+	_, err = conn.Write(newRegData)
+	if err != nil {
+		fmt.Println("Unable to send new registration request")
+	}
+
+	fmt.Print("New registration request sent")
+
 }
