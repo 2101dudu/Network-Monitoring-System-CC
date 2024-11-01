@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"net"
 	m "nms/pkg/message"
+	u "nms/pkg/utils"
 	"os"
 )
 
-func ConnectUDP(serverAddr string) {
+func getUDPConnection(serverAddr string) *net.UDPConn {
 	udpAddr, err := net.ResolveUDPAddr("udp", serverAddr)
 	if err != nil {
 		fmt.Println("[UDP] [ERROR] Unable to resolve address:", err)
@@ -19,30 +20,27 @@ func ConnectUDP(serverAddr string) {
 		fmt.Println("[UDP] [ERROR] Unable to connect:", err)
 		os.Exit(1)
 	}
+	return conn
+}
+
+func ConnectUDP(serverAddr string) {
+	conn := getUDPConnection(serverAddr)
+
 	defer conn.Close()
 
-	// create, encode and send registration request to server
-
+	// create registration
 	reg := m.NewRegistrationBuilder().Build()
+
+	// encode registration
 	regData := m.EncodeRegistration(reg)
 
-	_, err = conn.Write(regData)
-	if err != nil {
-		fmt.Println("[UDP] [ERROR] Unable to send registration request:", err)
-		os.Exit(1)
-	}
+	// send registration
+	u.WriteUDP(conn, regData, "[UDP] Registration request sent", "[UDP] [ERROR] Unable to send registration request")
 
-	fmt.Println("[UDP] Registration request sent")
+	// read data
+	n, newRegData := u.ReadUDP(conn, "[UDP] Data sent", "[UDP] [ERROR] Unable to read data")
 
-	// decode new registration request from server and update registration
-
-	newRegData := make([]byte, 1024)
-	n, _, err := conn.ReadFromUDP(newRegData)
-	if err != nil {
-		fmt.Println("[UDP] [ERROR] Unable to read data:", err)
-		os.Exit(1)
-	}
-
+	// decode data (ignore the header, for now)
 	newReg, err := m.DecodeRegistration(newRegData[1:n])
 	if err != nil {
 		fmt.Println("[UDP] [ERROR] Unable to decode new registration data:", err)
@@ -51,7 +49,7 @@ func ConnectUDP(serverAddr string) {
 
 	if newReg.NewID == 0 || !newReg.SenderIsServer {
 		fmt.Println("[UDP] [ERROR] Invalid registration request parameters")
-		// send NO_ACK
+		// sendNO_ACK()
 	}
 
 	// send ACK
