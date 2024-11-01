@@ -7,58 +7,64 @@ import (
 	"os"
 )
 
+var agentCounter byte = 1
+
 func StartUDPServer(port string) {
 	addr, err := net.ResolveUDPAddr("udp", ":"+port)
 	if err != nil {
-		fmt.Println("Erro ao resolver endereço UDP:", err)
-		return
+		fmt.Println("[UDP] [ERROR] Unable to resolve address:", err)
+		os.Exit(1)
 	}
 
-	for {
-		conn, err := net.ListenUDP("udp", addr)
-		if err != nil {
-			fmt.Println("Erro ao iniciar o servidor UDP:", err)
-			os.Exit(1)
-		}
+	conn, err := net.ListenUDP("udp", addr)
+	if err != nil {
+		fmt.Println("[UDP] [ERROR] Unable to initialize the server:", err)
+		os.Exit(1)
+	}
+	defer conn.Close()
 
-		go handleUDPConnection(*conn)
+	fmt.Println("[UDP] Server listening on port", port)
+
+	for {
+		handleUDPConnection(*conn)
+		agentCounter++
 	}
 }
 
 func handleUDPConnection(conn net.UDPConn) {
-	defer conn.Close()
 
-	fmt.Println("Established connection with Agent", conn.RemoteAddr())
-
-	// decode and process registration request from agent
+	fmt.Println("[UDP] Waiting for data from an agent")
 
 	regData := make([]byte, 1024)
-	n, _, err := conn.ReadFromUDP(regData)
+	n, addr, err := conn.ReadFromUDP(regData)
 	if err != nil {
-		fmt.Println("Error reading UDP data:", err)
+		fmt.Println("[UDP] [ERROR] Unable to read data:", err)
 		os.Exit(1)
 	}
 
-	reg, err := m.DecodeRegistration(regData[:n])
+	reg, err := m.DecodeRegistration(regData[1:n])
 	if err != nil {
-		fmt.Println("Error decoding registration data:", err)
+		fmt.Println("[UDP] [ERROR] Unbale to decode registration data:", err)
+		os.Exit(1)
 	}
 
 	if reg.NewID != 0 || reg.SenderIsServer {
-		fmt.Println("Invalid registration request parameters")
-		os.Exit(1)
+		fmt.Println("[UDP] [ERROR] Invalid registration request parameters")
+		// send NO_ACK
 	}
 
 	// create, encode and send new registration request to agent
 
-	newReg := m.NewRegistrationBuilder().IsServer().SetNewID(1).Build()
+	newReg := m.NewRegistrationBuilder().IsServer().SetNewID(agentCounter).Build()
 	newRegData := m.EncodeRegistration(newReg)
 
-	_, err = conn.Write(newRegData)
+	_, err = conn.WriteToUDP(newRegData, addr)
 	if err != nil {
-		fmt.Println("Unable to send new registration request")
+		fmt.Println("[UDP] [ERROR] Unable to send new registration request", err)
+		os.Exit(1)
 	}
 
-	fmt.Print("New registration request sent")
+	// send ACK
+	fmt.Println("[UDP] New registration request sent")
 
 }
