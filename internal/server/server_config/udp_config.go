@@ -10,42 +10,43 @@ import (
 func StartUDPServer(port string) {
 	addr, err := net.ResolveUDPAddr("udp", ":"+port)
 	if err != nil {
-		fmt.Println("Erro ao resolver endereço UDP:", err)
+		fmt.Println("[UDP] Erro ao resolver endereço UDP:", err)
 		return
 	}
 
-	for {
-		conn, err := net.ListenUDP("udp", addr)
-		if err != nil {
-			fmt.Println("Erro ao iniciar o servidor UDP:", err)
-			os.Exit(1)
-		}
+	conn, err := net.ListenUDP("udp", addr)
+	if err != nil {
+		fmt.Println("[UDP] Erro ao iniciar o servidor UDP:", err)
+		os.Exit(1)
+	}
+	defer conn.Close()
 
-		go handleUDPConnection(*conn)
+	fmt.Println("[UDP] Servidor UDP escutando na porta", port)
+
+	for {
+		handleUDPConnection(*conn)
 	}
 }
 
 func handleUDPConnection(conn net.UDPConn) {
-	defer conn.Close()
-
-	fmt.Println("Established connection with Agent", conn.RemoteAddr())
+	fmt.Println("[UDP] Waiting for connection with a new agent")
 
 	// decode and process registration request from agent
 
 	regData := make([]byte, 1024)
-	n, _, err := conn.ReadFromUDP(regData)
+	n, addr, err := conn.ReadFromUDP(regData)
 	if err != nil {
-		fmt.Println("Error reading UDP data:", err)
+		fmt.Println("[UDP] Error reading UDP data:", err)
 		os.Exit(1)
 	}
 
-	reg, err := m.DecodeRegistration(regData[:n])
+	reg, err := m.DecodeRegistration(regData[1:n])
 	if err != nil {
-		fmt.Println("Error decoding registration data:", err)
+		fmt.Println("[UDP] Error decoding registration data:", err)
 	}
 
 	if reg.NewID != 0 || reg.SenderIsServer {
-		fmt.Println("Invalid registration request parameters")
+		fmt.Println("[UDP] Invalid registration request parameters")
 		os.Exit(1)
 	}
 
@@ -54,11 +55,12 @@ func handleUDPConnection(conn net.UDPConn) {
 	newReg := m.NewRegistrationBuilder().IsServer().SetNewID(1).Build()
 	newRegData := m.EncodeRegistration(newReg)
 
-	_, err = conn.Write(newRegData)
+	_, err = conn.WriteToUDP(newRegData, addr)
 	if err != nil {
-		fmt.Println("Unable to send new registration request")
+		fmt.Println("[UDP] Unable to send new registration request")
+		os.Exit(1)
 	}
 
-	fmt.Print("New registration request sent")
+	fmt.Println("[UDP] New registration request sent")
 
 }

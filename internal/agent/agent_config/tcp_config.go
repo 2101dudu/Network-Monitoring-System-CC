@@ -10,7 +10,7 @@ import (
 func ConnectTCP(serverAddr string) {
 	conn, err := net.Dial("tcp", serverAddr)
 	if err != nil {
-		fmt.Println("Erro ao conectar via TCP:", err)
+		fmt.Println("[TCP] Erro ao conectar via TCP:", err)
 		return
 	}
 	defer conn.Close()
@@ -22,27 +22,27 @@ func ConnectTCP(serverAddr string) {
 
 	_, err = conn.Write(regData)
 	if err != nil {
-		fmt.Println("Unable to send registration request")
+		fmt.Println("[TCP] Unable to send registration request")
 	}
 
-	fmt.Print("Registration request sent")
+	fmt.Println("[TCP] Registration request sent")
 
 	// decode new registration request from server and update registration
 
 	newRegData := make([]byte, 1024)
 	n, err := conn.Read(newRegData)
 	if err != nil {
-		fmt.Println("Error reading TCP data:", err)
+		fmt.Println("[TCP] Error reading TCP data:", err)
 		os.Exit(1)
 	}
 
 	newReg, err := m.DecodeRegistration(newRegData[1:n])
 	if err != nil {
-		fmt.Println("Error decoding new registration data:", err)
+		fmt.Println("[TCP] Error decoding new registration data:", err)
 	}
 
 	if newReg.NewID == 0 || !newReg.SenderIsServer {
-		fmt.Println("Invalid registration request parameters")
+		fmt.Println("[TCP] Invalid registration request parameters")
 		os.Exit(1)
 	}
 
