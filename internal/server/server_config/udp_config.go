@@ -7,6 +7,8 @@ import (
 	"os"
 )
 
+var agentCounter byte = 1
+
 func StartUDPServer(port string) {
 	addr, err := net.ResolveUDPAddr("udp", ":"+port)
 	if err != nil {
@@ -25,6 +27,7 @@ func StartUDPServer(port string) {
 
 	for {
 		handleUDPConnection(*conn)
+		agentCounter++
 	}
 }
 
@@ -52,7 +55,7 @@ func handleUDPConnection(conn net.UDPConn) {
 
 	// create, encode and send new registration request to agent
 
-	newReg := m.NewRegistrationBuilder().IsServer().SetNewID(1).Build()
+	newReg := m.NewRegistrationBuilder().IsServer().SetNewID(agentCounter).Build()
 	newRegData := m.EncodeRegistration(newReg)
 
 	_, err = conn.WriteToUDP(newRegData, addr)
