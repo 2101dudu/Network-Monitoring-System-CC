@@ -4,7 +4,7 @@ import sc "nms/internal/server/server_config"
 
 func main() {
 	go sc.StartTCPServer("8080")
-	go sc.StartUDPServer("8081")
+    sc.StartUDPServer("8081")
 
 	select {} // Bloqueio para manter o servidor rodando
 }

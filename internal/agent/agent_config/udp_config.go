@@ -28,31 +28,32 @@ func ConnectUDP(serverAddr string) {
 
 	defer conn.Close()
 
-	// create registration
+	// create registration request
 	reg := m.NewRegistrationBuilder().Build()
 
-	// encode registration
+	// encode registration request
 	regData := m.EncodeRegistration(reg)
 
-	// send registration
-	u.WriteUDP(conn, regData, "[UDP] Registration request sent", "[UDP] [ERROR] Unable to send registration request")
+	// send registration request
+	u.WriteUDP(conn, nil, regData, "[UDP] Registration request sent", "[UDP] [ERROR] Unable to send registration request")
 
-	// read data
-	n, newRegData := u.ReadUDP(conn, "[UDP] Data sent", "[UDP] [ERROR] Unable to read data")
+	// read new registration request
+	n, _, newRegData := u.ReadUDP(conn, "[UDP] New registration request received", "[UDP] [ERROR] Unable to read new registration request")
 
-	// decode data (ignore the header, for now)
+	// decode new registration request (ignore the header, for now)
 	newReg, err := m.DecodeRegistration(newRegData[1:n])
 	if err != nil {
-		fmt.Println("[UDP] [ERROR] Unable to decode new registration data:", err)
+		fmt.Println("[UDP] [ERROR] Unable to decode new registration request:", err)
 		os.Exit(1)
 	}
 
+	// validate new registration request
 	if newReg.NewID == 0 || !newReg.SenderIsServer {
 		fmt.Println("[UDP] [ERROR] Invalid registration request parameters")
-		// sendNO_ACK()
+		// ****** SEND NOACK ******
 	}
 
-	// send ACK
+	// ****** SEND ACK ******
 	fmt.Println(newReg)
 
 }
