@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	m "nms/pkg/message"
+	u "nms/pkg/utils"
 	"os"
 )
 
@@ -26,45 +27,40 @@ func StartUDPServer(port string) {
 	fmt.Println("[UDP] Server listening on port", port)
 
 	for {
-		handleUDPConnection(*conn)
+		handleUDPConnection(conn)
 		agentCounter++
 	}
 }
 
-func handleUDPConnection(conn net.UDPConn) {
+func handleUDPConnection(conn *net.UDPConn) {
 
 	fmt.Println("[UDP] Waiting for data from an agent")
 
-	regData := make([]byte, 1024)
-	n, addr, err := conn.ReadFromUDP(regData)
-	if err != nil {
-		fmt.Println("[UDP] [ERROR] Unable to read data:", err)
-		os.Exit(1)
-	}
+	// read registration request
+	n, udpAddr, regData := u.ReadUDP(conn, "[UDP] Registration request received", "[UDP] [ERROR] Unable to read registration request")
 
+	// decode registration request
 	reg, err := m.DecodeRegistration(regData[1:n])
 	if err != nil {
 		fmt.Println("[UDP] [ERROR] Unbale to decode registration data:", err)
 		os.Exit(1)
 	}
 
+	// validate registration request
 	if reg.NewID != 0 || reg.SenderIsServer {
 		fmt.Println("[UDP] [ERROR] Invalid registration request parameters")
-		// send NO_ACK
+		// ****** SEND NOACK ******
 	}
 
-	// create, encode and send new registration request to agent
-
+	// create new registration request
 	newReg := m.NewRegistrationBuilder().IsServer().SetNewID(agentCounter).Build()
+
+	// encode new registration request
 	newRegData := m.EncodeRegistration(newReg)
 
-	_, err = conn.WriteToUDP(newRegData, addr)
-	if err != nil {
-		fmt.Println("[UDP] [ERROR] Unable to send new registration request", err)
-		os.Exit(1)
-	}
+	// send new registration request
+	u.WriteUDP(conn, udpAddr, newRegData, "[UDP] New registration request sent", "[UDP] [ERROR] Unable to send new registration request")
 
-	// send ACK
-	fmt.Println("[UDP] New registration request sent")
+	// ****** SEND ACK ******
 
 }

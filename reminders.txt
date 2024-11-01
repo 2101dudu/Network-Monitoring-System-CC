@@ -1,1 +1,13 @@
-o ID de um router irá vir do output do comando "whoami", no CORE.(?)
+Perguntas ao professor:
+	- como delegar tarefas aos router? Podemos ter um json com formato de dicionáro? Ou fazemos pré-processamento do json para o formato desejado? Ou fazemos processamento em run time?
+    - o ID de um router irá vir do output do comando "whoami", no CORE.(?)
+
+
+
+A fazer:
+	- separar Tasks de parser
+
+
+
+A referir no relatório:
+	- uso cuidadoso de variáveis com espaço de memória reduzido
