@@ -37,23 +37,54 @@ func ConnectUDP(serverAddr string) {
 	// send registration request
 	u.WriteUDP(conn, nil, regData, "[UDP] Registration request sent", "[UDP] [ERROR] Unable to send registration request")
 
-	// read new registration request
-	n, _, newRegData := u.ReadUDP(conn, "[UDP] New registration request received", "[UDP] [ERROR] Unable to read new registration request")
+	// for cycle - to do
+	handleUDPConnection(conn)
 
-	// decode new registration request (ignore the header, for now)
-	newReg, err := m.DecodeRegistration(newRegData[1:n])
-	if err != nil {
-		fmt.Println("[UDP] [ERROR] Unable to decode new registration request:", err)
-		os.Exit(1)
+}
+
+func handleUDPConnection(conn *net.UDPConn) {
+	fmt.Println("[UDP] Waiting for response from server")
+
+	// read message from server
+	n, _, responseData := u.ReadUDP(conn, "[UDP] Response received", "[UDP] [ERROR] Unable to read response")
+
+	// Check if data is received
+	if n == 0 {
+		fmt.Println("[UDP] [ERROR] No data received")
+		return
 	}
 
-	// validate new registration request
-	if newReg.NewID == 0 || !newReg.SenderIsServer {
-		fmt.Println("[UDP] [ERROR] Invalid registration request parameters")
-		// ****** SEND NOACK ******
+	// Check message type
+	msgType := u.MessageType(responseData[0])
+	switch msgType {
+	case u.ACK:
+		fmt.Println("[UDP] Acknowledgement received from server")
+
+	case u.ERROR:
+		fmt.Println("[UDP] Error message received from server")
+
+	case u.REGISTRATION:
+
+		// decode new registration request (ignore the header, for now)
+		newReg, err := m.DecodeRegistration(responseData[1:n])
+		if err != nil {
+			fmt.Println("[UDP] [ERROR] Unable to decode new registration request:", err)
+			os.Exit(1)
+		}
+
+		// validate new registration request
+		if newReg.NewID == 0 || !newReg.SenderIsServer {
+			fmt.Println("[UDP] [ERROR] Invalid registration request parameters")
+			// ****** SEND NOACK ******
+		}
+
+		// ****** SEND ACK ******
+		fmt.Println(newReg)
+
+	case u.METRICSGATHERING:
+		fmt.Println("[UDP] Metrics received from server")
+
+	default:
+		fmt.Println("[UDP] [ERROR] Unknown message type received from server")
 	}
-
-	// ****** SEND ACK ******
-	fmt.Println(newReg)
-
 }

@@ -53,7 +53,7 @@ func DecodeRegistration(message []byte) (Registration, error) {
 
 func EncodeRegistration(reg Registration) []byte {
 	return []byte{
-		byte(u.REGSITRATION),
+		byte(u.REGISTRATION),
 		u.BoolToByte(reg.SenderIsServer),
 		reg.NewID,
 	}
