@@ -36,31 +36,55 @@ func handleUDPConnection(conn *net.UDPConn) {
 
 	fmt.Println("[UDP] Waiting for data from an agent")
 
-	// read registration request
-	n, udpAddr, regData := u.ReadUDP(conn, "[UDP] Registration request received", "[UDP] [ERROR] Unable to read registration request")
+	// Read registration request
+	n, udpAddr, responseData := u.ReadUDP(conn, "[UDP] Registration request received", "[UDP] [ERROR] Unable to read registration request")
 
-	// decode registration request
-	reg, err := m.DecodeRegistration(regData[1:n])
-	if err != nil {
-		fmt.Println("[UDP] [ERROR] Unbale to decode registration data:", err)
-		os.Exit(1)
+	// Check if there is data
+	if n == 0 {
+		fmt.Println("[UDP] [ERROR] No data received")
+		return
 	}
 
-	// validate registration request
-	if reg.NewID != 0 || reg.SenderIsServer {
-		fmt.Println("[UDP] [ERROR] Invalid registration request parameters")
-		// ****** SEND NOACK ******
+	// Check message type
+	msgType := u.MessageType(responseData[0])
+	switch msgType {
+	case u.REGISTRATION:
+		// CHANGE TO THREAD
+		fmt.Println("[UDP] Processing registration request...")
+
+		// Decode registration request
+		reg, err := m.DecodeRegistration(responseData[1:n])
+		if err != nil {
+			fmt.Println("[UDP] [ERROR] Unable to decode registration data:", err)
+			os.Exit(1)
+		}
+
+		// Validate registration request
+		if reg.NewID != 0 || reg.SenderIsServer {
+			fmt.Println("[UDP] [ERROR] Invalid registration request parameters")
+			// ****** SEND NOACK ******
+			return
+		}
+
+		// Create new registration request
+		newReg := m.NewRegistrationBuilder().IsServer().SetNewID(agentCounter).Build()
+
+		// Encode new registration request
+		newRegData := m.EncodeRegistration(newReg)
+
+		// Send new registration request
+		u.WriteUDP(conn, udpAddr, newRegData, "[UDP] New registration request sent", "[UDP] [ERROR] Unable to send new registration request")
+
+		// ****** SEND ACK ******
+
+	case u.ACK:
+		fmt.Println("[UDP] Acknowledgement received")
+
+	case u.ERROR:
+		fmt.Println("[UDP] Error message received")
+
+	default:
+		fmt.Println("[UDP] [ERROR] Unknown message type")
+
 	}
-
-	// create new registration request
-	newReg := m.NewRegistrationBuilder().IsServer().SetNewID(agentCounter).Build()
-
-	// encode new registration request
-	newRegData := m.EncodeRegistration(newReg)
-
-	// send new registration request
-	u.WriteUDP(conn, udpAddr, newRegData, "[UDP] New registration request sent", "[UDP] [ERROR] Unable to send new registration request")
-
-	// ****** SEND ACK ******
-
 }

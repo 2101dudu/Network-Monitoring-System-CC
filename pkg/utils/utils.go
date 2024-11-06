@@ -4,7 +4,7 @@ type MessageType byte
 
 const (
 	ACK              MessageType = iota // iota = 0
-	REGSITRATION                        // iota = 1
+	REGISTRATION                        // iota = 1
 	METRICSGATHERING                    // iota = 2
 	ERROR                               // iota = 3
 )
