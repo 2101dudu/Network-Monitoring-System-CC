@@ -3,7 +3,7 @@ package agent_config
 import (
 	"fmt"
 	"net"
-	m "nms/pkg/message"
+	p "nms/pkg/packet"
 	u "nms/pkg/utils"
 	"os"
 )
@@ -28,11 +28,17 @@ func ConnectUDP(serverAddr string) {
 
 	defer conn.Close()
 
+	id, err := u.GetAgentID()
+	if err != nil {
+		fmt.Println("[UDP] [ERROR] Unable to get agent ID:", err)
+		os.Exit(1)
+	}
+
 	// create registration request
-	reg := m.NewRegistrationBuilder().Build()
+	reg := p.NewRegistrationBuilder().SetPacketID(1).SetAgentID(id).Build()
 
 	// encode registration request
-	regData := m.EncodeRegistration(reg)
+	regData := p.EncodeRegistration(reg)
 
 	// send registration request
 	u.WriteUDP(conn, nil, regData, "[UDP] Registration request sent", "[UDP] [ERROR] Unable to send registration request")
@@ -62,24 +68,6 @@ func handleUDPConnection(conn *net.UDPConn) {
 
 	case u.ERROR:
 		fmt.Println("[UDP] Error message received from server")
-
-	case u.REGISTRATION:
-
-		// decode new registration request (ignore the header, for now)
-		newReg, err := m.DecodeRegistration(responseData[1:n])
-		if err != nil {
-			fmt.Println("[UDP] [ERROR] Unable to decode new registration request:", err)
-			os.Exit(1)
-		}
-
-		// validate new registration request
-		if newReg.NewID == 0 || !newReg.SenderIsServer {
-			fmt.Println("[UDP] [ERROR] Invalid registration request parameters")
-			// ****** SEND NOACK ******
-		}
-
-		// ****** SEND ACK ******
-		fmt.Println(newReg)
 
 	case u.METRICSGATHERING:
 		fmt.Println("[UDP] Metrics received from server")

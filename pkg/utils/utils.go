@@ -1,5 +1,9 @@
 package utils
 
+import (
+	"os/exec"
+)
+
 type MessageType byte
 
 const (
@@ -14,4 +18,13 @@ func BoolToByte(b bool) byte {
 		return 1
 	}
 	return 0
+}
+
+func GetAgentID() (byte, error) {
+	cmd := exec.Command("whoami")
+	_, err := cmd.Output()
+
+	// requires string parsing ignoring all characters (e.g.: "PC1" -> 1; "router2" -> 2)
+	//id := whoami
+	return byte(1), err
 }

@@ -3,7 +3,7 @@ package agent_config
 import (
 	"fmt"
 	"net"
-	m "nms/pkg/message"
+	p "nms/pkg/packet"
 	"os"
 )
 
@@ -17,8 +17,8 @@ func ConnectTCP(serverAddr string) {
 
 	// create, encode and send registration request to server
 
-	reg := m.NewRegistrationBuilder().Build()
-	regData := m.EncodeRegistration(reg)
+	reg := p.NewRegistrationBuilder().Build()
+	regData := p.EncodeRegistration(reg)
 
 	_, err = conn.Write(regData)
 	if err != nil {
@@ -37,16 +37,16 @@ func ConnectTCP(serverAddr string) {
 		os.Exit(1)
 	}
 
-	newReg, err := m.DecodeRegistration(newRegData[1:n])
+	newReg, err := p.DecodeRegistration(newRegData[1:n])
 	if err != nil {
 		fmt.Println("[TCP] [ERROR] Unable to decode new registration data:", err)
 		os.Exit(1)
 	}
 
-	if newReg.NewID == 0 || !newReg.SenderIsServer {
-		fmt.Println("[TCP] [ERROR] Invalid registration request parameters")
-		// send NO_ACK
-	}
+	//if newReg.NewID == 0 || !newReg.SenderIsServer {
+	//	fmt.Println("[TCP] [ERROR] Invalid registration request parameters")
+	//	// send NO_ACK
+	//}
 
 	// send ACK
 	fmt.Println(newReg)
