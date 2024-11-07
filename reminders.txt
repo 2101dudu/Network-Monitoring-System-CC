@@ -1,6 +1,11 @@
 Perguntas ao professor:
-	- como delegar tarefas aos router? Podemos ter um json com formato de dicionáro? Ou fazemos pré-processamento do json para o formato desejado? Ou fazemos processamento em run time?
-    - o ID de um router irá vir do output do comando "whoami", no CORE.(?)
+	- como delegar tarefas aos router? Podemos ter um json com formato 
+    de dicionáro? Ou fazemos pré-processamento do json para o formato desejado?
+    Ou fazemos processamento em run time?
+    R: podemos fazer pré-processamento do json para o formato desejado.
+
+    - o ID de um router irá vir do output do comando "whoami", no CORE?
+    R: sim
 
 
 

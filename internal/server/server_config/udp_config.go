@@ -3,14 +3,17 @@ package server_config
 import (
 	"fmt"
 	"net"
-	m "nms/pkg/message"
+	p "nms/pkg/packet"
 	u "nms/pkg/utils"
 	"os"
 )
 
-var agentCounter byte = 1
+var mapOfAgents map[byte]bool
 
 func StartUDPServer(port string) {
+	// Initialize the map
+	mapOfAgents = make(map[byte]bool)
+
 	addr, err := net.ResolveUDPAddr("udp", ":"+port)
 	if err != nil {
 		fmt.Println("[UDP] [ERROR] Unable to resolve address:", err)
@@ -28,12 +31,10 @@ func StartUDPServer(port string) {
 
 	for {
 		handleUDPConnection(conn)
-		agentCounter++
 	}
 }
 
 func handleUDPConnection(conn *net.UDPConn) {
-
 	fmt.Println("[UDP] Waiting for data from an agent")
 
 	// Read registration request
@@ -53,30 +54,18 @@ func handleUDPConnection(conn *net.UDPConn) {
 		fmt.Println("[UDP] Processing registration request...")
 
 		// Decode registration request
-		reg, err := m.DecodeRegistration(responseData[1:n])
+		reg, err := p.DecodeRegistration(responseData[1:n])
 		if err != nil {
 			fmt.Println("[UDP] [ERROR] Unable to decode registration data:", err)
-			os.Exit(1)
-		}
-
-		// Validate registration request
-		if reg.NewID != 0 || reg.SenderIsServer {
-			fmt.Println("[UDP] [ERROR] Invalid registration request parameters")
 			// ****** SEND NOACK ******
 			return
 		}
 
-		// Create new registration request
-		newReg := m.NewRegistrationBuilder().IsServer().SetNewID(agentCounter).Build()
-
-		// Encode new registration request
-		newRegData := m.EncodeRegistration(newReg)
-
-		// Send new registration request
-		u.WriteUDP(conn, udpAddr, newRegData, "[UDP] New registration request sent", "[UDP] [ERROR] Unable to send new registration request")
+		// Register agent
+		mapOfAgents[reg.AgentID] = true
 
 		// ****** SEND ACK ******
-
+		p.SendAck(conn, udpAddr, reg.PacketID, reg.AgentID, true)
 	case u.ACK:
 		fmt.Println("[UDP] Acknowledgement received")
 

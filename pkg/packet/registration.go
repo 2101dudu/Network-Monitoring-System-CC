@@ -1,14 +1,13 @@
-package message
+package packet
 
 import (
 	"errors"
 	u "nms/pkg/utils"
-	// u "nms/pkg/utils"
 )
 
 type Registration struct {
-	SenderIsServer bool
-	NewID          byte // [0, 255]
+	PacketID byte
+	AgentID  byte // [0, 255]
 }
 
 type RegistrationBuilder struct {
@@ -18,18 +17,18 @@ type RegistrationBuilder struct {
 func NewRegistrationBuilder() *RegistrationBuilder {
 	return &RegistrationBuilder{
 		Registration: Registration{
-			SenderIsServer: false,
-			NewID:          0},
+			PacketID: 0,
+			AgentID:  0},
 	}
 }
 
-func (r *RegistrationBuilder) IsServer() *RegistrationBuilder {
-	r.Registration.SenderIsServer = true
+func (r *RegistrationBuilder) SetPacketID(packetID byte) *RegistrationBuilder {
+	r.Registration.PacketID = packetID
 	return r
 }
 
-func (r *RegistrationBuilder) SetNewID(id byte) *RegistrationBuilder {
-	r.Registration.NewID = id
+func (r *RegistrationBuilder) SetAgentID(id byte) *RegistrationBuilder {
+	r.Registration.AgentID = id
 	return r
 }
 
@@ -44,8 +43,8 @@ func DecodeRegistration(message []byte) (Registration, error) {
 	}
 
 	reg := Registration{
-		SenderIsServer: message[0] == 1,
-		NewID:          message[1],
+		PacketID: message[0],
+		AgentID:  message[1],
 	}
 
 	return reg, nil
@@ -54,7 +53,7 @@ func DecodeRegistration(message []byte) (Registration, error) {
 func EncodeRegistration(reg Registration) []byte {
 	return []byte{
 		byte(u.REGISTRATION),
-		u.BoolToByte(reg.SenderIsServer),
-		reg.NewID,
+		reg.PacketID,
+		reg.AgentID,
 	}
 }
