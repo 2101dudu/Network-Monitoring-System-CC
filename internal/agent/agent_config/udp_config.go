@@ -32,45 +32,63 @@ func getUDPConnection(serverAddr string) *net.UDPConn {
 }
 
 func handleUDPConnection(conn *net.UDPConn) {
+	packetsWaitingAck := make(map[byte]bool)
 
 	// generate Agent ID
-	id, err := u.GetAgentID()
+	agentID, err := u.GetAgentID()
 	if err != nil {
 		fmt.Println("[UDP] [ERROR] Unable to get agent ID:", err)
 		os.Exit(1)
 	}
 	// create registration request
-	reg := p.NewRegistrationBuilder().SetPacketID(1).SetAgentID(id).Build()
+	reg := p.NewRegistrationBuilder().SetPacketID(1).SetAgentID(agentID).Build()
 	// encode registration request
 	regData := p.EncodeRegistration(reg)
-	// send registration request
-	u.WriteUDP(conn, nil, regData, "[UDP] Registration request sent", "[UDP] [ERROR] Unable to send registration request")
 
-	// for loop - to do
-	fmt.Println("[UDP] Waiting for response from server")
+	packetsWaitingAck[reg.PacketID] = false
+	go func() {
+		for {
+			waiting, exists := packetsWaitingAck[reg.PacketID]
 
-	// read message from server
-	n, _, responseData := u.ReadUDP(conn, "[UDP] Response received", "[UDP] [ERROR] Unable to read response")
+			if !exists { // registration packet has been removed from map
+				break
+			}
+			if !waiting { // [CAUTION] TIMEOUT REQUIRED
+				u.WriteUDP(conn, nil, regData, "[UDP] Registration request sent", "[UDP] [ERROR] Unable to send registration request")
+				packetsWaitingAck[reg.PacketID] = true
+			}
+		}
+	}()
 
-	// Check if data is received
-	if n == 0 {
-		fmt.Println("[UDP] [ERROR] No data received")
-		return
-	}
+	for {
+		fmt.Println("[UDP] Waiting for response from server")
 
-	// Check message type
-	msgType := u.MessageType(responseData[0])
-	switch msgType {
-	case u.ACK:
-		fmt.Println("[UDP] Acknowledgement received from server")
+		// read message from server
+		n, _, responseData := u.ReadUDP(conn, "[UDP] Response received", "[UDP] [ERROR] Unable to read response")
 
-	case u.ERROR:
-		fmt.Println("[UDP] Error message received from server")
+		// Check if data is received
+		if n == 0 {
+			fmt.Println("[UDP] [ERROR] No data received")
+			return
+		}
 
-	case u.METRICSGATHERING:
-		fmt.Println("[UDP] Metrics received from server")
+		// Check message type
+		msgType := u.MessageType(responseData[0])
+		msgPayload := responseData[1:n]
 
-	default:
-		fmt.Println("[UDP] [ERROR] Unknown message type received from server")
+		go func() {
+			switch msgType {
+			case u.ACK:
+				p.HandleAck(msgPayload, packetsWaitingAck, agentID)
+				return
+			case u.TASK:
+				fmt.Println("[UDP] Metrics received from server")
+				// HandleTask method - TO DO
+				return
+			default:
+				fmt.Println("[UDP] [ERROR] Unknown message type received from server")
+				return
+			}
+		}()
 	}
 }

@@ -10,7 +10,7 @@ const (
 	ACK              MessageType = iota // iota = 0
 	REGISTRATION                        // iota = 1
 	METRICSGATHERING                    // iota = 2
-	ERROR                               // iota = 3
+	TASK
 )
 
 func BoolToByte(b bool) byte {

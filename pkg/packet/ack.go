@@ -2,6 +2,7 @@ package packet
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	u "nms/pkg/utils"
 )
@@ -82,4 +83,24 @@ func SendAck(conn *net.UDPConn, udpAddr *net.UDPAddr, packetID byte, senderId by
 
 	// send registration request
 	u.WriteUDP(conn, udpAddr, ackData, "[UDP] Message sent", "[UDP] [ERROR] Unable to send message")
+}
+
+func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, agentID byte) {
+	ack, err := DecodeAck(ackPayload)
+	if err != nil {
+		fmt.Println("[UDP] [ERROR] Unable to decode Ack")
+		return
+	}
+	if _, ok := packetsWaitingAck[ack.PacketID]; !ok || ack.SenderID != agentID {
+		fmt.Println("[UDP] [ERROR] Invalid acknowledgement")
+		return
+	}
+
+	if !ack.Acknowledged {
+		packetsWaitingAck[ack.PacketID] = false
+		fmt.Println("[UDP] Server didn't acknowledge packet", ack.PacketID)
+	} else {
+		delete(packetsWaitingAck, ack.PacketID)
+		fmt.Println("[UDP] Server acknowledged packet", ack.PacketID)
+	}
 }
