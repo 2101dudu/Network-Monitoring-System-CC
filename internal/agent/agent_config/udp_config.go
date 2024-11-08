@@ -8,6 +8,14 @@ import (
 	"os"
 )
 
+func ConnectUDP(serverAddr string) {
+	conn := getUDPConnection(serverAddr)
+
+	defer conn.Close()
+
+	handleUDPConnection(conn)
+}
+
 func getUDPConnection(serverAddr string) *net.UDPConn {
 	udpAddr, err := net.ResolveUDPAddr("udp", serverAddr)
 	if err != nil {
@@ -23,32 +31,22 @@ func getUDPConnection(serverAddr string) *net.UDPConn {
 	return conn
 }
 
-func ConnectUDP(serverAddr string) {
-	conn := getUDPConnection(serverAddr)
+func handleUDPConnection(conn *net.UDPConn) {
 
-	defer conn.Close()
-
+	// generate Agent ID
 	id, err := u.GetAgentID()
 	if err != nil {
 		fmt.Println("[UDP] [ERROR] Unable to get agent ID:", err)
 		os.Exit(1)
 	}
-
 	// create registration request
 	reg := p.NewRegistrationBuilder().SetPacketID(1).SetAgentID(id).Build()
-
 	// encode registration request
 	regData := p.EncodeRegistration(reg)
-
 	// send registration request
 	u.WriteUDP(conn, nil, regData, "[UDP] Registration request sent", "[UDP] [ERROR] Unable to send registration request")
 
-	// for cycle - to do
-	handleUDPConnection(conn)
-
-}
-
-func handleUDPConnection(conn *net.UDPConn) {
+	// for loop - to do
 	fmt.Println("[UDP] Waiting for response from server")
 
 	// read message from server
