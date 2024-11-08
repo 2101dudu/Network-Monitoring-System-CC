@@ -6,6 +6,8 @@ import (
 	p "nms/pkg/packet"
 	u "nms/pkg/utils"
 	"os"
+	"sync"
+	"time"
 )
 
 func ConnectUDP(serverAddr string) {
@@ -32,7 +34,10 @@ func getUDPConnection(serverAddr string) *net.UDPConn {
 }
 
 func handleUDPConnection(conn *net.UDPConn) {
-	packetsWaitingAck := make(map[byte]bool)
+	var (
+		packetsWaitingAck = make(map[byte]bool)
+		pMutex            sync.Mutex
+	)
 
 	// generate Agent ID
 	agentID, err := u.GetAgentID()
@@ -45,17 +50,26 @@ func handleUDPConnection(conn *net.UDPConn) {
 	// encode registration request
 	regData := p.EncodeRegistration(reg)
 
+	pMutex.Lock()
 	packetsWaitingAck[reg.PacketID] = false
+	pMutex.Unlock()
+
+	timeStarted := time.Now()
 	go func() {
 		for {
+			pMutex.Lock()
 			waiting, exists := packetsWaitingAck[reg.PacketID]
+			pMutex.Unlock()
 
 			if !exists { // registration packet has been removed from map
 				break
 			}
-			if !waiting { // [CAUTION] TIMEOUT REQUIRED
+			if !waiting || time.Since(timeStarted) >= u.TIMEOUTSECONDS*time.Second {
 				u.WriteUDP(conn, nil, regData, "[UDP] Registration request sent", "[UDP] [ERROR] Unable to send registration request")
+				pMutex.Lock()
 				packetsWaitingAck[reg.PacketID] = true
+				pMutex.Unlock()
+				timeStarted = time.Now()
 			}
 		}
 	}()
@@ -79,7 +93,7 @@ func handleUDPConnection(conn *net.UDPConn) {
 		go func() {
 			switch msgType {
 			case u.ACK:
-				p.HandleAck(msgPayload, packetsWaitingAck, agentID)
+				p.HandleAck(msgPayload, packetsWaitingAck, &pMutex, agentID)
 				return
 			case u.TASK:
 				fmt.Println("[UDP] Metrics received from server")

@@ -13,6 +13,10 @@ const (
 	TASK
 )
 
+const (
+	TIMEOUTSECONDS = 2
+)
+
 func BoolToByte(b bool) byte {
 	if b {
 		return 1
