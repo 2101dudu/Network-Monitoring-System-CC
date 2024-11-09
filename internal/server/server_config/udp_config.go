@@ -49,6 +49,12 @@ func handleUDPConnection(conn *net.UDPConn) {
 	// Check message type
 	msgType := u.MessageType(responseData[0])
 	switch msgType {
+	case u.ACK:
+		fmt.Println("[UDP] Acknowledgement received")
+		return
+	case u.METRICSGATHERING:
+		fmt.Println("[UDP] Metrics received")
+		return
 	case u.REGISTRATION:
 		// CHANGE TO THREAD
 		fmt.Println("[UDP] Processing registration request...")
@@ -66,14 +72,9 @@ func handleUDPConnection(conn *net.UDPConn) {
 
 		// ****** SEND ACK ******
 		p.SendAck(conn, udpAddr, reg.PacketID, reg.AgentID, true)
-	case u.ACK:
-		fmt.Println("[UDP] Acknowledgement received")
-
-	case u.ERROR:
-		fmt.Println("[UDP] Error message received")
-
+		return
 	default:
 		fmt.Println("[UDP] [ERROR] Unknown message type")
-
+		return
 	}
 }

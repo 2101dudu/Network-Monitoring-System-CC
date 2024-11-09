@@ -6,7 +6,17 @@ import (
 	p "nms/pkg/packet"
 	u "nms/pkg/utils"
 	"os"
+	"sync"
+	"time"
 )
+
+func ConnectUDP(serverAddr string) {
+	conn := getUDPConnection(serverAddr)
+
+	defer conn.Close()
+
+	handleUDPConnection(conn)
+}
 
 func getUDPConnection(serverAddr string) *net.UDPConn {
 	udpAddr, err := net.ResolveUDPAddr("udp", serverAddr)
@@ -23,56 +33,76 @@ func getUDPConnection(serverAddr string) *net.UDPConn {
 	return conn
 }
 
-func ConnectUDP(serverAddr string) {
-	conn := getUDPConnection(serverAddr)
+func handleUDPConnection(conn *net.UDPConn) {
+	var (
+		packetsWaitingAck = make(map[byte]bool)
+		pMutex            sync.Mutex
+	)
 
-	defer conn.Close()
-
-	id, err := u.GetAgentID()
+	// generate Agent ID
+	agentID, err := u.GetAgentID()
 	if err != nil {
 		fmt.Println("[UDP] [ERROR] Unable to get agent ID:", err)
 		os.Exit(1)
 	}
-
 	// create registration request
-	reg := p.NewRegistrationBuilder().SetPacketID(1).SetAgentID(id).Build()
-
+	reg := p.NewRegistrationBuilder().SetPacketID(1).SetAgentID(agentID).Build()
 	// encode registration request
 	regData := p.EncodeRegistration(reg)
 
-	// send registration request
-	u.WriteUDP(conn, nil, regData, "[UDP] Registration request sent", "[UDP] [ERROR] Unable to send registration request")
+	pMutex.Lock()
+	packetsWaitingAck[reg.PacketID] = false
+	pMutex.Unlock()
 
-	// for cycle - to do
-	handleUDPConnection(conn)
+	timeStarted := time.Now()
+	go func() {
+		for {
+			pMutex.Lock()
+			waiting, exists := packetsWaitingAck[reg.PacketID]
+			pMutex.Unlock()
 
-}
+			if !exists { // registration packet has been removed from map
+				break
+			}
+			if !waiting || time.Since(timeStarted) >= u.TIMEOUTSECONDS*time.Second {
+				u.WriteUDP(conn, nil, regData, "[UDP] Registration request sent", "[UDP] [ERROR] Unable to send registration request")
+				pMutex.Lock()
+				packetsWaitingAck[reg.PacketID] = true
+				pMutex.Unlock()
+				timeStarted = time.Now()
+			}
+		}
+	}()
 
-func handleUDPConnection(conn *net.UDPConn) {
-	fmt.Println("[UDP] Waiting for response from server")
+	for {
+		fmt.Println("[UDP] Waiting for response from server")
 
-	// read message from server
-	n, _, responseData := u.ReadUDP(conn, "[UDP] Response received", "[UDP] [ERROR] Unable to read response")
+		// read message from server
+		n, _, responseData := u.ReadUDP(conn, "[UDP] Response received", "[UDP] [ERROR] Unable to read response")
 
-	// Check if data is received
-	if n == 0 {
-		fmt.Println("[UDP] [ERROR] No data received")
-		return
-	}
+		// Check if data is received
+		if n == 0 {
+			fmt.Println("[UDP] [ERROR] No data received")
+			return
+		}
 
-	// Check message type
-	msgType := u.MessageType(responseData[0])
-	switch msgType {
-	case u.ACK:
-		fmt.Println("[UDP] Acknowledgement received from server")
+		// Check message type
+		msgType := u.MessageType(responseData[0])
+		msgPayload := responseData[1:n]
 
-	case u.ERROR:
-		fmt.Println("[UDP] Error message received from server")
-
-	case u.METRICSGATHERING:
-		fmt.Println("[UDP] Metrics received from server")
-
-	default:
-		fmt.Println("[UDP] [ERROR] Unknown message type received from server")
+		go func() {
+			switch msgType {
+			case u.ACK:
+				p.HandleAck(msgPayload, packetsWaitingAck, &pMutex, agentID)
+				return
+			case u.TASK:
+				fmt.Println("[UDP] Metrics received from server")
+				// HandleTask method - TO DO
+				return
+			default:
+				fmt.Println("[UDP] [ERROR] Unknown message type received from server")
+				return
+			}
+		}()
 	}
 }
