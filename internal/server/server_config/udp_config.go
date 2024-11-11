@@ -71,7 +71,8 @@ func handleUDPConnection(conn *net.UDPConn) {
 		mapOfAgents[reg.AgentID] = true
 
 		// ****** SEND ACK ******
-		p.SendAck(conn, udpAddr, reg.PacketID, reg.AgentID, true)
+        ack := p.NewAckBuilder().SetPacketID(reg.PacketID).SetSenderID(reg.AgentID).HasAcknowledged().Build()
+		p.EncondeAndSendAck(conn, udpAddr, ack)
 		return
 	default:
 		fmt.Println("[UDP] [ERROR] Unknown message type")

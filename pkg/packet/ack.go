@@ -71,16 +71,9 @@ func EncodeAck(ack Ack) []byte {
 	}
 }
 
-func SendAck(conn *net.UDPConn, udpAddr *net.UDPAddr, packetID byte, senderId byte, ack bool) {
-	b := NewAckBuilder()
-	b.SetPacketID(packetID)
-	b.SetSenderID(senderId)
-	if ack {
-		b.HasAcknowledged()
-	}
-
+func EncondeAndSendAck(conn *net.UDPConn, udpAddr *net.UDPAddr, ack Ack) {
 	// encode ack
-	ackData := EncodeAck(b.Build())
+	ackData := EncodeAck(ack)
 
 	// send registration request
 	u.WriteUDP(conn, udpAddr, ackData, "[UDP] Message sent", "[UDP] [ERROR] Unable to send message")
