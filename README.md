@@ -20,26 +20,40 @@ This project implements a Distributed Network Monitoring System (NMS) capable of
 ├── cmd/
 │   └── nms/
 │       └── main.go
-├── internal/
-│   ├── agent/
-│   │   ├── config.go
-│   │   └── runner.go
-│   └── server/
-│       ├── config.go
-│       └── runner.go
-├── pkg/
-│   └── utils/
-│       └── ack.go
 ├── configs/
 │   └── settings.json
 ├── docs/
-    └── CC Enunciado TP2 24-25.pdf
-
+│   └── CC Enunciado TP2 24-25.pdf
+├── internal/
+│   ├── agent/
+│   │   ├── agent_config/
+│   │   │   ├── tcp_config.go
+│   │   │   └── udp_config.go
+│   │   └── agent_runner/
+│   │       └── runner.go
+│   └── server/
+│       ├── server_config/
+│       │   ├── tcp_config.go
+│       │   └── udp_config.go
+│       └── server_runner/
+│           └── runner.go
+├── pkg/
+│   ├── packet/
+│   │   ├── ack.go
+│   │   └── registration.go
+│   └── utils/
+│       ├── ack.go
+│       ├── parser.go
+│       ├── udp.go
+│       └── utils.go
+├── Users/
+│   └── eduardofaria
+└── reminders.txt
 ```
 
 
 ## Requirements
-- Python (or your chosen programming language)
+- GO (or your chosen programming language)
 - CORE Network Emulator 7.5
 - Network utilities: `ping`, `iperf`
 
@@ -54,6 +68,17 @@ This project implements a Distributed Network Monitoring System (NMS) capable of
    ```bash
    git clone https://github.com/your-username/distributed-network-monitoring.git
    cd distributed-network-monitoring
+   ```
+
+2. On one terminal, run:
+    ```bash
+    go run internal/server/server_runner/runner.go
+    ```
+
+3. On the other terminal, run:
+    ```bash
+    go run internal/agent/agent_runner/runner.go
+    ```
 
 ## Group Members
 - [Edgar Ferreira](https://www.github.com/Edegare)
