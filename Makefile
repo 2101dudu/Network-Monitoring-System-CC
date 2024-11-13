@@ -5,6 +5,10 @@ SERVER_RUNNER := ./cmd/nms/server/runner.go
 .PHONY: all build build-agent build-server agent server clean
 all: build-agent build-server
 
+agent: build-agent run-agent
+
+server: build-server run-server
+
 build-agent:
 	@echo "Building agent..."
 	@mkdir -p out/bin
@@ -15,11 +19,11 @@ build-server:
 	@mkdir -p out/bin
 	go build -o out/bin/server $(SERVER_RUNNER)
 
-agent:
+run-agent:
 	@echo "Running agent..."
 	@./out/bin/agent
 
-server:
+run-server:
 	@echo "Running server..."	
 	@./out/bin/server
 
