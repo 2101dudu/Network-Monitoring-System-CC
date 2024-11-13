@@ -71,7 +71,7 @@ func EncodeAck(ack Ack) []byte {
 	}
 }
 
-func EncondeAndSendAck(conn *net.UDPConn, udpAddr *net.UDPAddr, ack Ack) {
+func EncodeAndSendAck(conn *net.UDPConn, udpAddr *net.UDPAddr, ack Ack) {
 	// encode ack
 	ackData := EncodeAck(ack)
 
@@ -84,24 +84,24 @@ func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.
 	if err != nil {
 		fmt.Println("[UDP] [ERROR] Unable to decode Ack")
 		return
-	} 
-    pMutex.Lock()
-    _, ok := packetsWaitingAck[ack.PacketID]; 
-    pMutex.Unlock()
+	}
+	pMutex.Lock()
+	_, ok := packetsWaitingAck[ack.PacketID]
+	pMutex.Unlock()
 	if !ok || ack.SenderID != agentID {
 		fmt.Println("[UDP] [ERROR] Invalid acknowledgement")
 		return
 	}
 
 	if !ack.Acknowledged {
-        pMutex.Lock()
+		pMutex.Lock()
 		packetsWaitingAck[ack.PacketID] = false
-        pMutex.Unlock()
+		pMutex.Unlock()
 		fmt.Println("[UDP] Server didn't acknowledge packet", ack.PacketID)
-    } else {
-        pMutex.Lock()
-        delete(packetsWaitingAck, ack.PacketID)
-        pMutex.Unlock()
-        fmt.Println("[UDP] Server acknowledged packet", ack.PacketID)
-    }
+	} else {
+		pMutex.Lock()
+		delete(packetsWaitingAck, ack.PacketID)
+		pMutex.Unlock()
+		fmt.Println("[UDP] Server acknowledged packet", ack.PacketID)
+	}
 }

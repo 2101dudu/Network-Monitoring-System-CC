@@ -16,18 +16,18 @@ func StartUDPServer(port string) {
 
 	addr, err := net.ResolveUDPAddr("udp", ":"+port)
 	if err != nil {
-		fmt.Println("[UDP] [ERROR] Unable to resolve address:", err)
+		fmt.Println("[SERVER] [ERROR 8] Unable to resolve address:", err)
 		os.Exit(1)
 	}
 
 	conn, err := net.ListenUDP("udp", addr)
 	if err != nil {
-		fmt.Println("[UDP] [ERROR] Unable to initialize the server:", err)
+		fmt.Println("[SERVER] [ERROR 9] Unable to initialize the server:", err)
 		os.Exit(1)
 	}
 	defer conn.Close()
 
-	fmt.Println("[UDP] Server listening on port", port)
+	fmt.Println("[SERVER] Server listening on port", port)
 
 	for {
 		handleUDPConnection(conn)
@@ -35,14 +35,14 @@ func StartUDPServer(port string) {
 }
 
 func handleUDPConnection(conn *net.UDPConn) {
-	fmt.Println("[UDP] Waiting for data from an agent")
+	fmt.Println("[SERVER] [MAIN READ THREAD] Waiting for data from an agent")
 
 	// Read registration request
-	n, udpAddr, responseData := u.ReadUDP(conn, "[UDP] Registration request received", "[UDP] [ERROR] Unable to read registration request")
+	n, udpAddr, responseData := u.ReadUDP(conn, "[SERVER] [MAIN READ THREAD] Registration request received", "[SERVER] [ERROR 10] Unable to read registration request")
 
 	// Check if there is data
 	if n == 0 {
-		fmt.Println("[UDP] [ERROR] No data received")
+		fmt.Println("[SERVER] [MAIN READ THREAD] [ERROR 11] No data received")
 		return
 	}
 
@@ -50,19 +50,19 @@ func handleUDPConnection(conn *net.UDPConn) {
 	msgType := u.MessageType(responseData[0])
 	switch msgType {
 	case u.ACK:
-		fmt.Println("[UDP] Acknowledgement received")
+		fmt.Println("[SERVER] Acknowledgement received")
 		return
 	case u.METRICSGATHERING:
-		fmt.Println("[UDP] Metrics received")
+		fmt.Println("[SERVER] Metrics received")
 		return
 	case u.REGISTRATION:
 		// CHANGE TO THREAD
-		fmt.Println("[UDP] Processing registration request...")
+		fmt.Println("[SERVER] Processing registration request...")
 
 		// Decode registration request
 		reg, err := p.DecodeRegistration(responseData[1:n])
 		if err != nil {
-			fmt.Println("[UDP] [ERROR] Unable to decode registration data:", err)
+			fmt.Println("[SERVER] [ERROR 12] Unable to decode registration data:", err)
 			// ****** SEND NOACK ******
 			return
 		}
@@ -71,11 +71,11 @@ func handleUDPConnection(conn *net.UDPConn) {
 		mapOfAgents[reg.AgentID] = true
 
 		// ****** SEND ACK ******
-        ack := p.NewAckBuilder().SetPacketID(reg.PacketID).SetSenderID(reg.AgentID).HasAcknowledged().Build()
-		p.EncondeAndSendAck(conn, udpAddr, ack)
+		ack := p.NewAckBuilder().SetPacketID(reg.PacketID).SetSenderID(reg.AgentID).HasAcknowledged().Build()
+		p.EncodeAndSendAck(conn, udpAddr, ack)
 		return
 	default:
-		fmt.Println("[UDP] [ERROR] Unknown message type")
+		fmt.Println("[SERVER] [ERROR 13] Unknown message type")
 		return
 	}
 }
