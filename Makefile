@@ -1,33 +1,31 @@
-# Variables
-BINARY_NAME := nms
-CMD_PATH := ./cmd/nms
-AGENT_RUNNER := ./internal/agent/runner.go
-SERVER_RUNNER := ./internal/server/runner.go
 
-# Default target
-.PHONY: all
-all: build
+AGENT_RUNNER := ./cmd/nms/agent/runner.go
+SERVER_RUNNER := ./cmd/nms/server/runner.go
 
-# Build and run the agent component
-.PHONY: build-agent
+.PHONY: all build build-agent build-server agent server clean
+all: build-agent build-server
+
 build-agent:
-	@echo "Building and running agent..."
-	go run $(AGENT_RUNNER)
-	@echo "Agent execution finished."
+	@echo "Building agent..."
+	@mkdir -p out/bin
+	go build -o out/bin/agent $(AGENT_RUNNER)
 
-# Build and run the server component
-.PHONY: build-server
 build-server:
-	@echo "Building and running server..."
-	go run $(SERVER_RUNNER)
-	@echo "Server execution finished."
+	@echo "Building server..."
+	@mkdir -p out/bin
+	go build -o out/bin/server $(SERVER_RUNNER)
 
-# Clean built binaries and Go cache
-.PHONY: clean
+agent:
+	@echo "Running agent..."
+	@./out/bin/agent
+
+server:
+	@echo "Running server..."	
+	@./out/bin/server
+
 clean:
 	@echo "Cleaning up..."
-	rm -f $(BINARY_NAME)
-	go clean -cache
+	rm -rf out
 	@echo "Clean complete."
 
 

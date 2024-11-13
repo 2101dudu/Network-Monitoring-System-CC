@@ -105,22 +105,19 @@ func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.
 	fmt.Println("[UDP] Sender acknowledged packet", ack.PacketID)
 }
 
-func SendPacketAndWaitForAck(packetID byte, packetData []byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, conn *net.UDPConn, successMessage string, errorMessage string) {
+func SendPacketAndWaitForAck(packetID byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, conn *net.UDPConn, udpAddr *net.UDPAddr, packetData []byte, successMessage string, errorMessage string) {
 	packetSent := time.Now()
 	for {
-		pMutex.Lock()
-		waiting, exists := packetsWaitingAck[packetID]
-		pMutex.Unlock()
+        waiting, exists := GetPacketIDStatus(packetID, packetsWaitingAck, pMutex) 
 
 		if !exists { // registration packet has been removed from map
-			break
+			return
 		}
-		if !waiting || time.Since(packetSent) >= u.TIMEOUTSECONDS*time.Second {
-			u.WriteUDP(conn, nil, packetData, successMessage, errorMessage)
 
-			pMutex.Lock()
-			packetsWaitingAck[packetID] = true
-			pMutex.Unlock()
+		if !waiting || time.Since(packetSent) >= u.TIMEOUTSECONDS*time.Second {
+			u.WriteUDP(conn, udpAddr, packetData, successMessage, errorMessage)
+
+            PacketIDIsWaiting(packetID, packetsWaitingAck, pMutex, true)
 
 			packetSent = time.Now()
 		}
