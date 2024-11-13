@@ -11,8 +11,11 @@ Perguntas ao professor:
 
 A fazer:
 	- separar Tasks de parser
+    - modularizar extra
+    - mudar print linha 41
 
 
 
 A referir no relatório:
 	- uso cuidadoso de variáveis com espaço de memória reduzido
+    - apresentar estrutura de um pacote como []byte, referindo, por exemplo: [pakcetType, Parameter1, Parameter2, Parameter3, ...]

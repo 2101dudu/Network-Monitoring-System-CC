@@ -6,6 +6,7 @@ import (
 	"net"
 	u "nms/pkg/utils"
 	"sync"
+	"time"
 )
 
 type Ack struct {
@@ -71,44 +72,52 @@ func EncodeAck(ack Ack) []byte {
 	}
 }
 
-func SendAck(conn *net.UDPConn, udpAddr *net.UDPAddr, packetID byte, senderId byte, ack bool) {
-	b := NewAckBuilder()
-	b.SetPacketID(packetID)
-	b.SetSenderID(senderId)
-	if ack {
-		b.HasAcknowledged()
-	}
-
-	// encode ack
-	ackData := EncodeAck(b.Build())
-
-	// send registration request
-	u.WriteUDP(conn, udpAddr, ackData, "[UDP] Message sent", "[UDP] [ERROR] Unable to send message")
+func EncodeAndSendAck(conn *net.UDPConn, udpAddr *net.UDPAddr, ack Ack) {
+	ackData := EncodeAck(ack)
+	u.WriteUDP(conn, udpAddr, ackData, "Message sent", "[ERROR 14] Unable to send message")
 }
 
-func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, agentID byte) {
+func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, senderID byte) {
 	ack, err := DecodeAck(ackPayload)
 	if err != nil {
-		fmt.Println("[UDP] [ERROR] Unable to decode Ack")
+		fmt.Println("[ERROR 15] Unable to decode Ack")
 		return
-	} 
-    pMutex.Lock()
-    _, ok := packetsWaitingAck[ack.PacketID]; 
-    pMutex.Unlock()
-	if !ok || ack.SenderID != agentID {
-		fmt.Println("[UDP] [ERROR] Invalid acknowledgement")
+	}
+
+	_, exist := GetPacketIDStatus(ack.PacketID, packetsWaitingAck, pMutex)
+
+	if !exist || ack.SenderID != senderID {
+		fmt.Println("[ERROR 16] Invalid acknowledgement")
 		return
 	}
 
 	if !ack.Acknowledged {
-        pMutex.Lock()
-		packetsWaitingAck[ack.PacketID] = false
-        pMutex.Unlock()
-		fmt.Println("[UDP] Server didn't acknowledge packet", ack.PacketID)
-    } else {
-        pMutex.Lock()
-        delete(packetsWaitingAck, ack.PacketID)
-        pMutex.Unlock()
-        fmt.Println("[UDP] Server acknowledged packet", ack.PacketID)
-    }
+		PacketIDIsWaiting(ack.PacketID, packetsWaitingAck, pMutex, false)
+		fmt.Println("[UDP] Sender didn't acknowledge packet", ack.PacketID)
+		return
+	}
+
+	pMutex.Lock()
+	delete(packetsWaitingAck, ack.PacketID)
+	pMutex.Unlock()
+	fmt.Println("[UDP] Sender acknowledged packet", ack.PacketID)
+}
+
+func SendPacketAndWaitForAck(packetID byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, conn *net.UDPConn, udpAddr *net.UDPAddr, packetData []byte, successMessage string, errorMessage string) {
+	packetSent := time.Now()
+	for {
+		waiting, exists := GetPacketIDStatus(packetID, packetsWaitingAck, pMutex)
+
+		if !exists { // registration packet has been removed from map
+			return
+		}
+
+		if !waiting || time.Since(packetSent) >= u.TIMEOUTSECONDS*time.Second {
+			u.WriteUDP(conn, udpAddr, packetData, successMessage, errorMessage)
+
+			PacketIDIsWaiting(packetID, packetsWaitingAck, pMutex, true)
+
+			packetSent = time.Now()
+		}
+	}
 }

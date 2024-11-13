@@ -15,39 +15,37 @@ This project implements a Distributed Network Monitoring System (NMS) capable of
 ```
 .
 ├── LICENSE
+├── Makefile
 ├── README.md
 ├── go.mod
 ├── cmd/
 │   └── nms/
-│       └── main.go
-├── configs/
-│   └── settings.json
-├── docs/
-│   └── CC Enunciado TP2 24-25.pdf
+│       ├── agent/
+│       │   └── runner.go
+│       └── server/
+│           └── runner.go
 ├── internal/
 │   ├── agent/
-│   │   ├── agent_config/
-│   │   │   ├── tcp_config.go
-│   │   │   └── udp_config.go
-│   │   └── agent_runner/
-│   │       └── runner.go
+│   │   ├── tcp.go
+│   │   └── udp.go
 │   └── server/
-│       ├── server_config/
-│       │   ├── tcp_config.go
-│       │   └── udp_config.go
-│       └── server_runner/
-│           └── runner.go
+│       ├── tcp.go
+│       └── udp.go
 ├── pkg/
 │   ├── packet/
 │   │   ├── ack.go
+│   │   ├── ackMap.go
 │   │   └── registration.go
 │   └── utils/
-│       ├── ack.go
 │       ├── parser.go
 │       ├── udp.go
 │       └── utils.go
+├── configs/
+│   └── tasks.json
+├── docs/
+│   └── CC Enunciado TP2 24-25.pdf
 ├── Users/
-│   └── eduardofaria
+│   └── eduardofaria/
 └── reminders.txt
 ```
 
@@ -66,18 +64,18 @@ This project implements a Distributed Network Monitoring System (NMS) capable of
 ## Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/distributed-network-monitoring.git
-   cd distributed-network-monitoring
+   git clone git@github.com:2101dudu/Network-Monitoring-System.git
+   cd Network-Monitoring-System
    ```
 
 2. On one terminal, run:
     ```bash
-    go run internal/server/server_runner/runner.go
+    make server
     ```
 
 3. On the other terminal, run:
     ```bash
-    go run internal/agent/agent_runner/runner.go
+    make agent
     ```
 
 ## Group Members
