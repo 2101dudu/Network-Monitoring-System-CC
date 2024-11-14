@@ -14,7 +14,6 @@ type Task struct {
 
 type Device struct {
 	DeviceID      uint8         `json:"device_id"` // 0 - 255
-	IsServer      bool          `json:"is_server"`
 	DeviceMetrics DeviceMetrics `json:"device_metrics"`
 	LinkMetrics   LinkMetrics   `json:"link_metrics"`
 }
@@ -26,36 +25,22 @@ type DeviceMetrics struct {
 }
 
 type LinkMetrics struct {
+	//IsServer            bool                `json:"is_server"`
+	//transportType       uint8               `json:"transportType"`
 	ServerIP            [4]byte             `json:"server_ip"` // [192,168,1,2]
 	TestDuration        uint16              `json:"test_duration"`
-	Bandwidth           Bandwidth           `json:"bandwidth"`
-	Jitter              Jitter              `json:"jitter"`
-	PacketLoss          PacketLoss          `json:"packet_loss"`
+	Bandwidth           bool                `json:"bandwidth"`
+	Jitter              bool                `json:"jitter"`
+	PacketLoss          bool                `json:"packet_loss"`
 	Latency             Latency             `json:"latency"`
 	AlertFlowConditions AlertFlowConditions `json:"alertflow_conditions"`
 }
 
-type Bandwidth struct {
-	Enabled bool   `json:"enabled"`
-	Args    string `json:"args"`
-}
-
-type Jitter struct {
-	Enabled bool   `json:"enabled"`
-	Args    string `json:"args"`
-}
-
-type PacketLoss struct {
-	Enabled bool   `json:"enabled"`
-	Args    string `json:"args"`
-}
-
 type Latency struct {
 	Enabled     bool   `json:"enabled"`
-	Args        string `json:"args"`
 	Destination []byte `json:"destination"` // [192,168,1,2]
 	PacketCount uint16 `json:"packet_count"`
-	Frequency   int    `json:"frequency"`
+	Frequency   uint8  `json:"frequency"`
 }
 
 type AlertFlowConditions struct {
