@@ -5,7 +5,6 @@
         "devices": [
             {
                 "device_id": 1,
-                "is_server": true,
                 "device_metrics": {
                     "cpu_usage": true,
                     "ram_usage": true,
@@ -14,21 +13,11 @@
                 "link_metrics": {
                     "server_ip": [192,168,112,111],
                     "test_duration": 42,
-                    "bandwidth": {
-                        "enabled": true,
-                        "args": "ola"
-                    },
-                    "jitter": { 
-                        "enabled": true,
-                        "args": "ola"
-                    },
-                    "packet_loss": { 
-                        "enabled": false,
-                        "args": "ola"
-                    },
+                    "bandwidth": true,
+                    "jitter": true,
+                    "packet_loss": true,
                     "latency": { 
                         "enabled": true,
-                        "args": "ola",
                         "destination": [192,168,1,2],
                         "packet_count": 50,
                         "frequency": 20
