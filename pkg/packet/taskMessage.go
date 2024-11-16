@@ -131,13 +131,13 @@ func EncodeIperfMessage(msg IperfMessage) ([]byte, error) {
 	}
 
 	// Encode InterfaceStats
-	err := binary.Write(buf, binary.BigEndian, uint16(len(msg.DeviceMetrics.InterfaceStats))) // Write length of the array of strings
+	err := binary.Write(buf, binary.BigEndian, byte(len(msg.DeviceMetrics.InterfaceStats))) // Write length of the array of strings
 	if err != nil {
 		return nil, err
 	}
 	for _, interfaceString := range msg.DeviceMetrics.InterfaceStats { //For each string transforms to bytes and then writes each one on the buffer with their length
 		interfaceBytes := []byte(interfaceString)
-		err := binary.Write(buf, binary.BigEndian, uint16(len(interfaceString))) // Write length of the string
+		err := binary.Write(buf, binary.BigEndian, byte(len(interfaceString))) // Write length of the string
 		if err != nil {
 			return nil, err
 		}
@@ -146,7 +146,7 @@ func EncodeIperfMessage(msg IperfMessage) ([]byte, error) {
 
 	// Encode IperfCommand
 	cmdBytes := []byte(msg.Iperf.IperfCommand) // Convert the string to bytes
-	if err := binary.Write(buf, binary.BigEndian, uint16(len(cmdBytes))); err != nil {
+	if err := binary.Write(buf, binary.BigEndian, byte(len(cmdBytes))); err != nil {
 		return nil, err
 	}
 	buf.Write(cmdBytes) // Write the actual string bytes to the buffer
@@ -159,10 +159,7 @@ func DecodeIperfMessage(data []byte) (IperfMessage, error) {
 	var msg IperfMessage
 
 	// Decode fixed fields
-	var taskType, taskSubType byte
 	fields := []interface{}{
-		&taskType,
-		&taskSubType,
 		&msg.SenderID,
 		&msg.PacketID,
 		&msg.TaskID,
@@ -182,13 +179,13 @@ func DecodeIperfMessage(data []byte) (IperfMessage, error) {
 	}
 
 	// Decode InterfaceStats
-	var interfaceCount uint16
+	var interfaceCount byte
 	if err := binary.Read(buf, binary.BigEndian, &interfaceCount); err != nil {
 		return msg, err
 	}
 	msg.DeviceMetrics.InterfaceStats = make([]string, interfaceCount)
 	for i := range msg.DeviceMetrics.InterfaceStats {
-		var interfaceLen uint16
+		var interfaceLen byte
 		if err := binary.Read(buf, binary.BigEndian, &interfaceLen); err != nil {
 			return msg, err
 		}
@@ -200,7 +197,7 @@ func DecodeIperfMessage(data []byte) (IperfMessage, error) {
 	}
 
 	// Decode IperfCommand
-	var cmdLen uint16
+	var cmdLen byte
 	if err := binary.Read(buf, binary.BigEndian, &cmdLen); err != nil {
 		return msg, err
 	}
@@ -215,15 +212,111 @@ func DecodeIperfMessage(data []byte) (IperfMessage, error) {
 
 // ------------------------- Ping ----------------------------
 
+// -c value (packet count)
+// -i value (frequency)
+// ping -c 4 -i 0.5 <destination>
+
 type PingMessage struct {
 	SenderID      byte
 	PacketID      byte
 	TaskID        byte
 	Frequency     byte
 	DeviceMetrics DeviceMetrics
-	PingCommand   []string
+	PingCommand   string
 }
 
-// -c value (packet count)
-// -i value (frequency)
-// ping -c 4 -i 0.5 <destination>
+func EncodePingMessage(msg PingMessage) ([]byte, error) {
+	buf := new(bytes.Buffer)
+
+	fields := []interface{}{
+		byte(u.TASK),
+		byte(PING),
+		msg.SenderID,
+		msg.PacketID,
+		msg.TaskID,
+		msg.Frequency,
+		u.BoolToByte(msg.DeviceMetrics.CpuUsage),
+		u.BoolToByte(msg.DeviceMetrics.RamUsage),
+	}
+
+	for _, field := range fields {
+		err := binary.Write(buf, binary.BigEndian, field)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Encode InterfaceStats
+	err := binary.Write(buf, binary.BigEndian, byte(len(msg.DeviceMetrics.InterfaceStats))) // Write length of the array of strings
+	if err != nil {
+		return nil, err
+	}
+	for _, interfaceString := range msg.DeviceMetrics.InterfaceStats { //For each string transforms to bytes and then writes each one on the buffer with their length
+		interfaceBytes := []byte(interfaceString)
+		err := binary.Write(buf, binary.BigEndian, byte(len(interfaceString))) // Write length of the string
+		if err != nil {
+			return nil, err
+		}
+		buf.Write(interfaceBytes) // Write the actual string bytes to the buffer
+	}
+
+	cmdBytes := []byte(msg.PingCommand) // Convert the string to bytes
+	if err := binary.Write(buf, binary.BigEndian, byte(len(cmdBytes))); err != nil {
+		return nil, err
+	}
+	buf.Write(cmdBytes) // Write the actual string bytes to the buffer
+
+	return buf.Bytes(), nil
+}
+
+func DecodePingMessage(data []byte) (PingMessage, error) {
+	buf := bytes.NewReader(data)
+	var msg PingMessage
+
+	// Decode fixed fields
+	fields := []interface{}{
+		&msg.SenderID,
+		&msg.PacketID,
+		&msg.TaskID,
+		&msg.Frequency,
+		&msg.DeviceMetrics.CpuUsage,
+		&msg.DeviceMetrics.RamUsage,
+	}
+
+	for _, field := range fields {
+		if err := binary.Read(buf, binary.BigEndian, field); err != nil {
+			return msg, err
+		}
+	}
+
+	// Decode InterfaceStats
+	var interfaceCount byte
+	if err := binary.Read(buf, binary.BigEndian, &interfaceCount); err != nil {
+		return msg, err
+	}
+	msg.DeviceMetrics.InterfaceStats = make([]string, interfaceCount)
+	for i := range msg.DeviceMetrics.InterfaceStats {
+		var interfaceLen byte
+		if err := binary.Read(buf, binary.BigEndian, &interfaceLen); err != nil {
+			return msg, err
+		}
+		interfaceBytes := make([]byte, interfaceLen)
+		if _, err := buf.Read(interfaceBytes); err != nil {
+			return msg, err
+		}
+		msg.DeviceMetrics.InterfaceStats[i] = string(interfaceBytes)
+	}
+
+	// Decode Ping Command
+	var cmdLen byte
+	if err := binary.Read(buf, binary.BigEndian, &cmdLen); err != nil {
+		return msg, err
+	}
+	cmdBytes := make([]byte, cmdLen)
+	if _, err := buf.Read(cmdBytes); err != nil {
+		return msg, err
+	}
+	msg.PingCommand = string(cmdBytes)
+
+	return msg, nil
+}
