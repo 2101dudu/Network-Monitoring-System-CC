@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func GetUDPConnection(serverAddr string) *net.UDPConn {
+func getUDPConnection(serverAddr string) *net.UDPConn {
 	udpAddr, err := net.ResolveUDPAddr("udp", serverAddr)
 	if err != nil {
 		fmt.Println("[AGENT] [ERROR 1] Unable to resolve address:", err)

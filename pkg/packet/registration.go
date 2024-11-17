@@ -2,7 +2,9 @@ package packet
 
 import (
 	"errors"
+	"fmt"
 	u "nms/pkg/utils"
+	"os"
 )
 
 type Registration struct {
@@ -56,4 +58,20 @@ func EncodeRegistration(reg Registration) []byte {
 		reg.PacketID,
 		reg.AgentID,
 	}
+}
+
+func CreateRegistrationPacket(ID byte) (byte, []byte) {
+	// generate Agent ID
+	agentID, err := u.GetAgentID()
+	if err != nil {
+		fmt.Println("[AGENT] [ERROR 3] Unable to get agent ID:", err)
+		os.Exit(1)
+	}
+
+	// create registration request
+	registration := NewRegistrationBuilder().SetPacketID(ID).SetAgentID(agentID).Build()
+	// encode registration request
+	regData := EncodeRegistration(registration)
+
+	return agentID, regData
 }

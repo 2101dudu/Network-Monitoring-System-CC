@@ -1,9 +1,9 @@
 package udp
 
 func ConnectUDP(serverAddr string) {
-	conn := GetUDPConnection(serverAddr)
+	conn := getUDPConnection(serverAddr)
 
 	defer conn.Close()
 
-	HandleUDPConnection(conn)
+	handleUDPConnection(conn)
 }

@@ -74,7 +74,7 @@ func EncodeAck(ack Ack) []byte {
 
 func EncodeAndSendAck(conn *net.UDPConn, udpAddr *net.UDPAddr, ack Ack) {
 	ackData := EncodeAck(ack)
-	u.WriteUDP(conn, udpAddr, ackData, "Message sent", "[ERROR 14] Unable to send message")
+	u.WriteUDP(conn, udpAddr, ackData, "[UDP] Message sent", "[ERROR 14] Unable to send message")
 }
 
 func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, senderID byte) {
@@ -84,7 +84,7 @@ func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.
 		return
 	}
 
-	_, exist := GetPacketIDStatus(ack.PacketID, packetsWaitingAck, pMutex)
+	_, exist := GetPacketStatus(ack.PacketID, packetsWaitingAck, pMutex)
 
 	if !exist || ack.SenderID != senderID {
 		fmt.Println("[ERROR 16] Invalid acknowledgement")
@@ -92,7 +92,7 @@ func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.
 	}
 
 	if !ack.Acknowledged {
-		PacketIDIsWaiting(ack.PacketID, packetsWaitingAck, pMutex, false)
+		PacketIsWaiting(ack.PacketID, packetsWaitingAck, pMutex, false)
 		fmt.Println("[UDP] Sender didn't acknowledge packet", ack.PacketID)
 		return
 	}
@@ -106,7 +106,7 @@ func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.
 func SendPacketAndWaitForAck(packetID byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, conn *net.UDPConn, udpAddr *net.UDPAddr, packetData []byte, successMessage string, errorMessage string) {
 	packetSent := time.Now()
 	for {
-		waiting, exists := GetPacketIDStatus(packetID, packetsWaitingAck, pMutex)
+		waiting, exists := GetPacketStatus(packetID, packetsWaitingAck, pMutex)
 
 		if !exists { // registration packet has been removed from map
 			return
@@ -115,7 +115,7 @@ func SendPacketAndWaitForAck(packetID byte, packetsWaitingAck map[byte]bool, pMu
 		if !waiting || time.Since(packetSent) >= u.TIMEOUTSECONDS*time.Second {
 			u.WriteUDP(conn, udpAddr, packetData, successMessage, errorMessage)
 
-			PacketIDIsWaiting(packetID, packetsWaitingAck, pMutex, true)
+			PacketIsWaiting(packetID, packetsWaitingAck, pMutex, true)
 
 			packetSent = time.Now()
 		}
