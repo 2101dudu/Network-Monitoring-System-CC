@@ -1,4 +1,4 @@
-package agent
+package udp
 
 import (
 	"fmt"
@@ -14,31 +14,7 @@ var (
 	pMutex            sync.Mutex
 )
 
-func ConnectUDP(serverAddr string) {
-	conn := getUDPConnection(serverAddr)
-
-	defer conn.Close()
-
-	handleUDPConnection(conn)
-}
-
-func getUDPConnection(serverAddr string) *net.UDPConn {
-	udpAddr, err := net.ResolveUDPAddr("udp", serverAddr)
-	if err != nil {
-		fmt.Println("[AGENT] [ERROR 1] Unable to resolve address:", err)
-		os.Exit(1)
-	}
-
-	conn, err := net.DialUDP("udp", nil, udpAddr)
-	if err != nil {
-		fmt.Println("[AGENT] [ERROR 2] Unable to connect:", err)
-		os.Exit(1)
-	}
-	return conn
-}
-
-func handleUDPConnection(conn *net.UDPConn) {
-
+func HandleUDPConnection(conn *net.UDPConn) {
 	// generate Agent ID
 	agentID, err := utils.GetAgentID()
 	if err != nil {
