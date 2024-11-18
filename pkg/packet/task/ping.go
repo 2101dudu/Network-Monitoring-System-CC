@@ -22,6 +22,57 @@ type PingMessage struct {
 	PingCommand         string
 }
 
+// ------------- Builder ----------------------
+type PingMessageBuilder struct {
+	pingMessage PingMessage
+}
+
+func NewPingMessageBuilder() *PingMessageBuilder {
+	return &PingMessageBuilder{
+		pingMessage: PingMessage{},
+	}
+}
+
+func (b *PingMessageBuilder) SetSenderID(id byte) *PingMessageBuilder {
+	b.pingMessage.SenderID = id
+	return b
+}
+
+func (b *PingMessageBuilder) SetPacketID(id byte) *PingMessageBuilder {
+	b.pingMessage.PacketID = id
+	return b
+}
+
+func (b *PingMessageBuilder) SetTaskID(id byte) *PingMessageBuilder {
+	b.pingMessage.TaskID = id
+	return b
+}
+
+func (b *PingMessageBuilder) SetFrequency(freq byte) *PingMessageBuilder {
+	b.pingMessage.Frequency = freq
+	return b
+}
+
+func (b *PingMessageBuilder) SetDeviceMetrics(metrics DeviceMetrics) *PingMessageBuilder {
+	b.pingMessage.DeviceMetrics = metrics
+	return b
+}
+
+func (b *PingMessageBuilder) SetAlertFlowConditions(conditions AlertFlowConditions) *PingMessageBuilder {
+	b.pingMessage.AlertFlowConditions = conditions
+	return b
+}
+
+func (b *PingMessageBuilder) SetPingCommand(command string) *PingMessageBuilder {
+	b.pingMessage.PingCommand = command
+	return b
+}
+
+func (b *PingMessageBuilder) Build() PingMessage {
+	return b.pingMessage
+}
+
+// -------------- Encode and Decode ---------------
 func EncodePingMessage(msg PingMessage) ([]byte, error) {
 	buf := new(bytes.Buffer)
 

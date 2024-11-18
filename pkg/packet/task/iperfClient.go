@@ -29,57 +29,103 @@ type Iperf struct {
 	IperfCommand string
 }
 
-/* type IperfClientMessageBuilder struct {
-	IperfClientMessage IperfClientMessage
+// ------------------- Builder Iperf Client message-----------------------
+type IperfClientMessageBuilder struct {
+	iperfClientMessage IperfClientMessage
 }
 
 func NewIperfClientMessageBuilder() *IperfClientMessageBuilder {
 	return &IperfClientMessageBuilder{
-		IperfClientMessage: IperfClientMessage{
-			SenderID:      0,
-			PacketID:      0,
-			TaskID:        0,
-			Frequency:     0,
-			DeviceMetrics: DeviceMetrics{},
-			Iperf:         Iperf{},
-		},
+		iperfClientMessage: IperfClientMessage{},
 	}
 }
 
 func (b *IperfClientMessageBuilder) SetSenderID(id byte) *IperfClientMessageBuilder {
-	b.IperfClientMessage.SenderID = id
+	b.iperfClientMessage.SenderID = id
 	return b
 }
 
 func (b *IperfClientMessageBuilder) SetPacketID(id byte) *IperfClientMessageBuilder {
-	b.IperfClientMessage.PacketID = id
+	b.iperfClientMessage.PacketID = id
 	return b
 }
 
 func (b *IperfClientMessageBuilder) SetTaskID(id byte) *IperfClientMessageBuilder {
-	b.IperfClientMessage.TaskID = id
+	b.iperfClientMessage.TaskID = id
 	return b
 }
 
 func (b *IperfClientMessageBuilder) SetFrequency(freq byte) *IperfClientMessageBuilder {
-	b.IperfClientMessage.Frequency = freq
+	b.iperfClientMessage.Frequency = freq
 	return b
 }
 
 func (b *IperfClientMessageBuilder) SetDeviceMetrics(metrics DeviceMetrics) *IperfClientMessageBuilder {
-	b.IperfClientMessage.DeviceMetrics = metrics
+	b.iperfClientMessage.DeviceMetrics = metrics
+	return b
+}
+
+func (b *IperfClientMessageBuilder) SetAlertFlowConditions(conditions AlertFlowConditions) *IperfClientMessageBuilder {
+	b.iperfClientMessage.AlertFlowConditions = conditions
 	return b
 }
 
 func (b *IperfClientMessageBuilder) SetIperf(iperf Iperf) *IperfClientMessageBuilder {
-	b.IperfClientMessage.Iperf = iperf
+	b.iperfClientMessage.Iperf = iperf
 	return b
 }
 
 func (b *IperfClientMessageBuilder) Build() IperfClientMessage {
-	return b.IperfClientMessage
-} */
+	return b.iperfClientMessage
+}
 
+// ---------------- Builder iperf ----------------
+type IperfBuilder struct {
+	iperf Iperf
+}
+
+func NewIperfBuilder() *IperfBuilder {
+	return &IperfBuilder{
+		iperf: Iperf{
+			TestDuration: 0,
+			Bandwidth:    false,
+			Jitter:       false,
+			PacketLoss:   false,
+			IperfCommand: "",
+		},
+	}
+}
+
+func (b *IperfBuilder) SetTestDuration(duration byte) *IperfBuilder {
+	b.iperf.TestDuration = duration
+	return b
+}
+
+func (b *IperfBuilder) SetBandwidth(enabled bool) *IperfBuilder {
+	b.iperf.Bandwidth = enabled
+	return b
+}
+
+func (b *IperfBuilder) SetJitter(enabled bool) *IperfBuilder {
+	b.iperf.Jitter = enabled
+	return b
+}
+
+func (b *IperfBuilder) SetPacketLoss(enabled bool) *IperfBuilder {
+	b.iperf.PacketLoss = enabled
+	return b
+}
+
+func (b *IperfBuilder) SetIperfCommand(command string) *IperfBuilder {
+	b.iperf.IperfCommand = command
+	return b
+}
+
+func (b *IperfBuilder) Build() Iperf {
+	return b.iperf
+}
+
+// ------------ Encode and Decode ---------------------
 func EncodeIperfClientMessage(msg IperfClientMessage) ([]byte, error) {
 	buf := new(bytes.Buffer)
 
