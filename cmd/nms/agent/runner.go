@@ -1,6 +1,6 @@
 package main
 
-import agent "nms/internal/agent"
+import agent "nms/internal/agent/udp"
 
 func main() {
 
@@ -13,6 +13,6 @@ func main() {
 	//	os.Exit(1)
 	//}
 
-    agent.ConnectUDP("localhost:8081")
+	agent.ConnectUDP("localhost:8081")
 
 }
