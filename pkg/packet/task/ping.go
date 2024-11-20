@@ -78,8 +78,7 @@ func EncodePingMessage(msg PingMessage) ([]byte, error) {
 
 	// Encode fixed fields
 	fields := []interface{}{
-		byte(u.TASK),
-		byte(PING),
+		byte(u.TASKPING),
 		msg.SenderID,
 		msg.PacketID,
 		msg.TaskID,

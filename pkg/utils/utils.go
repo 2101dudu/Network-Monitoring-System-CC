@@ -10,7 +10,9 @@ const (
 	ACK              MessageType = iota // iota = 0
 	REGISTRATION                        // iota = 1
 	METRICSGATHERING                    // iota = 2
-	TASK
+	TASKIPERFSERVER
+	TASKIPERFCLIENT
+	TASKPING
 )
 
 const (

@@ -77,8 +77,7 @@ func EncodeIperfClientMessage(msg IperfClientMessage) ([]byte, error) {
 
 	// Encode fixed fields
 	fields := []interface{}{
-		byte(u.TASK),
-		byte(IPERF),
+		byte(u.TASKIPERFCLIENT),
 		msg.SenderID,
 		msg.PacketID,
 		msg.TaskID,

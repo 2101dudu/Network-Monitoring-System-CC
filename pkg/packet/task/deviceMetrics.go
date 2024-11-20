@@ -1,21 +1,11 @@
 package task
 
-// TYPE - TASK
-type TaskType byte
-
-const (
-	IPERF TaskType = iota
-	PING
-	IPERFS
-)
-
 type DeviceMetrics struct {
 	CpuUsage       bool
 	RamUsage       bool
 	InterfaceStats []string
 }
 
-// ------------------ Device Metrics Builder --------------
 type DeviceMetricsBuilder struct {
 	deviceMetrics DeviceMetrics
 }
@@ -30,12 +20,12 @@ func NewDeviceMetricsBuilder() *DeviceMetricsBuilder {
 	}
 }
 
-func (b *DeviceMetricsBuilder) SetCpuUsage(enabled bool) *DeviceMetricsBuilder {
+func (b *DeviceMetricsBuilder) TrackCpuUsage(enabled bool) *DeviceMetricsBuilder {
 	b.deviceMetrics.CpuUsage = enabled
 	return b
 }
 
-func (b *DeviceMetricsBuilder) SetRamUsage(enabled bool) *DeviceMetricsBuilder {
+func (b *DeviceMetricsBuilder) TrackRamUsage(enabled bool) *DeviceMetricsBuilder {
 	b.deviceMetrics.RamUsage = enabled
 	return b
 }

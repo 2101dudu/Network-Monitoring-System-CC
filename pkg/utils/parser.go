@@ -25,7 +25,6 @@ type DeviceMetrics struct {
 }
 
 type LinkMetrics struct {
-	//IsServer            bool                `json:"is_server"`
 	//transportType       uint8               `json:"transportType"`
 	ServerIP            [4]byte             `json:"server_ip"` // [192,168,1,2]
 	TestDuration        uint16              `json:"test_duration"`
@@ -43,12 +42,12 @@ type Latency struct {
 	Frequency   uint8  `json:"frequency"`
 }
 
-type AlertFlowConditions struct {
-	CpuUsage       int `json:"cpu_usage"`
-	RamUsage       int `json:"ram_usage"`
-	InterfaceStats int `json:"interface_stats"`
-	PacketLoss     int `json:"packet_loss"`
-	Jitter         int `json:"jitter"`
+type AlertFlowConditions struct { // tudo
+	CpuUsage       byte   `json:"cpu_usage"`
+	RamUsage       byte   `json:"ram_usage"`
+	InterfaceStats uint16 `json:"interface_stats"`
+	PacketLoss     byte   `json:"packet_loss"`
+	Jitter         uint16 `json:"jitter"`
 }
 
 func GetDataFromJson(filePath string) []byte {

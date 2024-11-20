@@ -8,7 +8,6 @@ type AlertFlowConditions struct {
 	Jitter         uint16
 }
 
-// ------------------ Alert Flow Builder ----------------------
 type AlertFlowConditionsBuilder struct {
 	alertFlowConditions AlertFlowConditions
 }
@@ -16,11 +15,11 @@ type AlertFlowConditionsBuilder struct {
 func NewAlertFlowConditionsBuilder() *AlertFlowConditionsBuilder {
 	return &AlertFlowConditionsBuilder{
 		alertFlowConditions: AlertFlowConditions{
-			CpuUsage:       90,
-			RamUsage:       90,
-			InterfaceStats: 5000,
-			PacketLoss:     10,
-			Jitter:         100,
+			CpuUsage:       0,
+			RamUsage:       0,
+			InterfaceStats: 0,
+			PacketLoss:     0,
+			Jitter:         0,
 		},
 	}
 }
@@ -53,3 +52,5 @@ func (b *AlertFlowConditionsBuilder) SetJitter(limit uint16) *AlertFlowCondition
 func (b *AlertFlowConditionsBuilder) Build() AlertFlowConditions {
 	return b.alertFlowConditions
 }
+
+// TODO: encode and decode functions
