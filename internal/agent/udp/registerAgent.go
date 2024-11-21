@@ -15,7 +15,7 @@ var (
 
 var agentID byte
 
-func handleUDPConnection(conn *net.UDPConn) {
+func registerAgent(conn *net.UDPConn) {
 	var firstPacketID byte = 1
 	var registrationData []byte
 	agentID, registrationData = packet.CreateRegistrationPacket(firstPacketID)
@@ -27,7 +27,8 @@ func handleUDPConnection(conn *net.UDPConn) {
 	errorMessage := "[AGENT] [ERROR 4] Unable to send registration request"
 	go packet.SendPacketAndWaitForAck(firstPacketID, packetsWaitingAck, &pMutex, conn, nil, registrationData, successMessage, errorMessage)
 
-	for {
+	connHasClosed := false
+	for !connHasClosed {
 		fmt.Println("[AGENT] [MAIN READ THREAD] Waiting for response from server")
 
 		// read message from server
@@ -39,25 +40,9 @@ func handleUDPConnection(conn *net.UDPConn) {
 			return
 		}
 
-		// Check message type
-		packetType := utils.MessageType(data[0])
+		// get ACK contents
 		packetPayload := data[1:n]
 
-		go handlePacket(packetType, packetPayload)
-	}
-}
-
-func handlePacket(packetType utils.MessageType, packetPayload []byte) {
-	switch packetType {
-	case utils.ACK:
-		packet.HandleAck(packetPayload, packetsWaitingAck, &pMutex, agentID)
-		return
-	case utils.TASK:
-		fmt.Println("[AGENT] Metrics received from server")
-		// HandleTask method - TO DO
-		return
-	default:
-		fmt.Println("[AGENT] [ERROR 7] Unknown message type received from server")
-		return
+		connHasClosed = packet.HandleAck(packetPayload, packetsWaitingAck, &pMutex, agentID, conn)
 	}
 }

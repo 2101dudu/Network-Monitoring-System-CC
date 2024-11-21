@@ -33,3 +33,20 @@ func ReadUDP(conn *net.UDPConn, successMessage string, errorMessage string) (int
 	fmt.Println(successMessage)
 	return n, udpAddr, newData
 }
+
+func ResolveUDPAddrAndListen() *net.UDPConn {
+	ip := getIPAddress()
+	addr, err := net.ResolveUDPAddr("udp", ip+":9091")
+	if err != nil {
+		fmt.Println("[AGENT] [ERROR 8] Unable to resolve address:", err)
+		os.Exit(1)
+	}
+
+	conn, err := net.ListenUDP("udp", addr)
+	if err != nil {
+		fmt.Println("[AGENT] [ERROR 9] Unable to initialize the agent:", err)
+		os.Exit(1)
+	}
+
+	return conn
+}
