@@ -33,7 +33,7 @@ func handlePacket(packetType utils.MessageType, packetPayload []byte, conn *net.
 		}
 
 		// register agent
-		mapOfAgents[reg.AgentID] = true
+		agentsIPs[reg.AgentID] = reg.IP
 
 		// send ack
 		ack := packet.NewAckBuilder().SetPacketID(reg.PacketID).SetSenderID(reg.AgentID).HasAcknowledged().Build()

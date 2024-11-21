@@ -3,9 +3,10 @@ package udp
 import utils "nms/pkg/utils"
 
 func StartUDPAgent() {
-	connToServer := getUDPConnection("localhost:8081")
-	registerAgent(connToServer)
+	ip := utils.GetIPAddress()
 
-	connFromAgent := utils.ResolveUDPAddrAndListen()
-	defer connFromAgent.Close()
+	serverConn := getUDPConnection("localhost:8081")
+	registerAgent(serverConn, ip)
+
+	agentConn := utils.ResolveUDPAddrAndListen(ip)
 }

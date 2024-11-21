@@ -8,7 +8,7 @@ import (
 
 func StartUDPServer(port string) {
 	// Initialize the map
-	mapOfAgents = make(map[byte]bool)
+	agentsIPs = make(map[byte][4]byte)
 
 	addr, err := net.ResolveUDPAddr("udp", ":"+port)
 	if err != nil {

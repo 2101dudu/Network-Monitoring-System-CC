@@ -34,8 +34,7 @@ func ReadUDP(conn *net.UDPConn, successMessage string, errorMessage string) (int
 	return n, udpAddr, newData
 }
 
-func ResolveUDPAddrAndListen() *net.UDPConn {
-	ip := getIPAddress()
+func ResolveUDPAddrAndListen(ip string) *net.UDPConn {
 	addr, err := net.ResolveUDPAddr("udp", ip+":9091")
 	if err != nil {
 		fmt.Println("[AGENT] [ERROR 8] Unable to resolve address:", err)

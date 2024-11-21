@@ -6,7 +6,7 @@ import (
 	utils "nms/pkg/utils"
 )
 
-var mapOfAgents map[byte]bool
+var agentsIPs map[byte][4]byte
 
 func handleUDPConnection(conn *net.UDPConn) {
 	fmt.Println("[SERVER] [MAIN READ THREAD] Waiting for data from an agent")

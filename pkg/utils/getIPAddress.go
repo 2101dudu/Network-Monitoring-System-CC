@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func getIPAddress() string {
+func GetIPAddress() string {
 	host, _ := os.Hostname()
 	addrs, _ := net.LookupIP(host)
 	for _, addr := range addrs {

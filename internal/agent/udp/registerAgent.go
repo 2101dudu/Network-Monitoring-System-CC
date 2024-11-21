@@ -15,10 +15,10 @@ var (
 
 var agentID byte
 
-func registerAgent(conn *net.UDPConn) {
+func registerAgent(conn *net.UDPConn, agentIP string) {
 	var firstPacketID byte = 1
 	var registrationData []byte
-	agentID, registrationData = packet.CreateRegistrationPacket(firstPacketID)
+	agentID, registrationData = packet.CreateRegistrationPacket(firstPacketID, agentIP)
 
 	// set the status of the packet to "not" waiting for ack, because it is yet to be sent
 	packet.PacketIsWaiting(firstPacketID, packetsWaitingAck, &pMutex, false)
