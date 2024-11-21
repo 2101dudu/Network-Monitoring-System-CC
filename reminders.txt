@@ -11,8 +11,7 @@ Perguntas ao professor:
 
 A fazer:
 	- separar Tasks de parser
-    - modularizar extra
-    - mudar print linha 41
+    - tirar enum de registration
 
 
 

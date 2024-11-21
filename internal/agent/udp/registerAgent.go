@@ -27,8 +27,8 @@ func registerAgent(conn *net.UDPConn, agentIP string) {
 	errorMessage := "[AGENT] [ERROR 4] Unable to send registration request"
 	go packet.SendPacketAndWaitForAck(firstPacketID, packetsWaitingAck, &pMutex, conn, nil, registrationData, successMessage, errorMessage)
 
-	connHasClosed := false
-	for !connHasClosed {
+	ackWasSent := false
+	for !ackWasSent {
 		fmt.Println("[AGENT] [MAIN READ THREAD] Waiting for response from server")
 
 		// read message from server
@@ -41,8 +41,15 @@ func registerAgent(conn *net.UDPConn, agentIP string) {
 		}
 
 		// get ACK contents
+		packetType := utils.MessageType(data[0])
 		packetPayload := data[1:n]
 
-		connHasClosed = packet.HandleAck(packetPayload, packetsWaitingAck, &pMutex, agentID, conn)
+		if packetType != utils.ACK {
+			fmt.Println("[AGENT] [ERROR 17] Unexpected message type received from server")
+			return
+		}
+		ackWasSent = packet.HandleAck(packetPayload, packetsWaitingAck, &pMutex, agentID, conn)
 	}
+	// ack was received, close connection
+	conn.Close()
 }

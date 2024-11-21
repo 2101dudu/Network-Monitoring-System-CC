@@ -34,8 +34,8 @@ func ReadUDP(conn *net.UDPConn, successMessage string, errorMessage string) (int
 	return n, udpAddr, newData
 }
 
-func ResolveUDPAddrAndListen(ip string) *net.UDPConn {
-	addr, err := net.ResolveUDPAddr("udp", ip+":9091")
+func ResolveUDPAddrAndListen(ip string, port string) *net.UDPConn {
+	addr, err := net.ResolveUDPAddr("udp", ip+":"+port)
 	if err != nil {
 		fmt.Println("[AGENT] [ERROR 8] Unable to resolve address:", err)
 		os.Exit(1)
@@ -47,5 +47,20 @@ func ResolveUDPAddrAndListen(ip string) *net.UDPConn {
 		os.Exit(1)
 	}
 
+	return conn
+}
+
+func ResolveUDPAddrAndDial(ip string, port string) *net.UDPConn {
+	udpAddr, err := net.ResolveUDPAddr("udp", ip+":"+port)
+	if err != nil {
+		fmt.Println("[AGENT] [ERROR 1] Unable to resolve address:", err)
+		os.Exit(1)
+	}
+
+	conn, err := net.DialUDP("udp", nil, udpAddr)
+	if err != nil {
+		fmt.Println("[AGENT] [ERROR 2] Unable to connect:", err)
+		os.Exit(1)
+	}
 	return conn
 }
