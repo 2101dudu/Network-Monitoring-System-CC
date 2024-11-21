@@ -66,6 +66,10 @@ func EncodeRegistration(reg Registration) []byte {
 		byte(utils.REGISTRATION),
 		reg.PacketID,
 		reg.AgentID,
+		reg.IP[0],
+		reg.IP[1],
+		reg.IP[2],
+		reg.IP[3],
 	}
 }
 

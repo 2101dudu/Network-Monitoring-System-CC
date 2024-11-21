@@ -37,11 +37,12 @@ func GetAgentID() (byte, error) {
 func IPStringToByte(ip string) [4]byte {
 	byteIP := [4]byte{0, 0, 0, 0}
 	n := 0
-	for i := 0; i < len(ip); i++ {
+	for i, aux := 0, 0; i < len(ip); i++ {
 		if ip[i] == '.' {
-			intIP, _ := s.Atoi(ip[:i])
+			intIP, _ := s.Atoi(ip[aux:i])
 			byteIP[n] = byte(intIP)
 			n++
+			aux = i + 1
 		}
 	}
 	return byteIP
