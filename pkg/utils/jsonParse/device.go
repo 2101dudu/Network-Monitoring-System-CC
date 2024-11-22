@@ -6,3 +6,10 @@ type Device struct {
 	LinkMetrics         LinkMetrics         `json:"link_metrics"`
 	AlertFlowConditions AlertFlowConditions `json:"alertflow_conditions"`
 }
+
+func validateDevice(device Device, numberOfDevices int) bool {
+    if (!validateDeviceMetrics(device.DeviceMetrics) || !validateLinkMetrics(device.LinkMetrics, numberOfDevices) || !validateAlertFlowConditions(device.AlertFlowConditions)) {
+        return false
+    }
+    return true
+}

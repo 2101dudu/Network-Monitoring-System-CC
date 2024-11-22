@@ -1,7 +1,6 @@
 package udp
 
 import (
-	"fmt"
 	"nms/pkg/utils"
 	parse "nms/pkg/utils/jsonParse"
 )
@@ -11,11 +10,6 @@ var agentsIPs map[byte][4]byte
 func StartUDPServer(port string) {
 	jsonData := parse.GetDataFromJson("configs/tasks.json")
 	var taskList []parse.Task = parse.ParseDataFromJson(jsonData)
-
-	// print taskList
-	for _, task := range taskList {
-		fmt.Println("Devices: ", task.Devices)
-	}
 
 	// validate tasks
 	parse.ValidateAndRebuildTasks(taskList)
