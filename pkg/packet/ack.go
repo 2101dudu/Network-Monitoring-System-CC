@@ -77,30 +77,34 @@ func EncodeAndSendAck(conn *net.UDPConn, udpAddr *net.UDPAddr, ack Ack) {
 	u.WriteUDP(conn, udpAddr, ackData, "[UDP] Message sent", "[ERROR 14] Unable to send message")
 }
 
-func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, senderID byte) {
+func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, senderID byte, conn *net.UDPConn) bool {
 	ack, err := DecodeAck(ackPayload)
 	if err != nil {
 		fmt.Println("[ERROR 15] Unable to decode Ack")
-		return
+		return false
 	}
 
 	_, exist := GetPacketStatus(ack.PacketID, packetsWaitingAck, pMutex)
 
 	if !exist || ack.SenderID != senderID {
 		fmt.Println("[ERROR 16] Invalid acknowledgement")
-		return
+		return false
 	}
 
 	if !ack.Acknowledged {
 		PacketIsWaiting(ack.PacketID, packetsWaitingAck, pMutex, false)
 		fmt.Println("[UDP] Sender didn't acknowledge packet", ack.PacketID)
-		return
+		return false
 	}
 
 	pMutex.Lock()
 	delete(packetsWaitingAck, ack.PacketID)
 	pMutex.Unlock()
 	fmt.Println("[UDP] Sender acknowledged packet", ack.PacketID)
+
+	// if the packet was acknowledged, the connection can be closed, as it's no longer needed
+	conn.Close()
+	return true
 }
 
 func SendPacketAndWaitForAck(packetID byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, conn *net.UDPConn, udpAddr *net.UDPAddr, packetData []byte, successMessage string, errorMessage string) {

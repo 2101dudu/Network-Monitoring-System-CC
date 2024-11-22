@@ -15,10 +15,10 @@ var (
 
 var agentID byte
 
-func handleUDPConnection(conn *net.UDPConn) {
+func registerAgent(conn *net.UDPConn, agentIP string) {
 	var firstPacketID byte = 1
 	var registrationData []byte
-	agentID, registrationData = packet.CreateRegistrationPacket(firstPacketID)
+	agentID, registrationData = packet.CreateRegistrationPacket(firstPacketID, agentIP)
 
 	// set the status of the packet to "not" waiting for ack, because it is yet to be sent
 	packet.PacketIsWaiting(firstPacketID, packetsWaitingAck, &pMutex, false)
@@ -27,7 +27,8 @@ func handleUDPConnection(conn *net.UDPConn) {
 	errorMessage := "[AGENT] [ERROR 4] Unable to send registration request"
 	go packet.SendPacketAndWaitForAck(firstPacketID, packetsWaitingAck, &pMutex, conn, nil, registrationData, successMessage, errorMessage)
 
-	for {
+	ackWasSent := false
+	for !ackWasSent {
 		fmt.Println("[AGENT] [MAIN READ THREAD] Waiting for response from server")
 
 		// read message from server
@@ -39,25 +40,16 @@ func handleUDPConnection(conn *net.UDPConn) {
 			return
 		}
 
-		// Check message type
+		// get ACK contents
 		packetType := utils.MessageType(data[0])
 		packetPayload := data[1:n]
 
-		go handlePacket(packetType, packetPayload)
+		if packetType != utils.ACK {
+			fmt.Println("[AGENT] [ERROR 17] Unexpected message type received from server")
+			return
+		}
+		ackWasSent = packet.HandleAck(packetPayload, packetsWaitingAck, &pMutex, agentID, conn)
 	}
-}
-
-func handlePacket(packetType utils.MessageType, packetPayload []byte) {
-	switch packetType {
-	case utils.ACK:
-		packet.HandleAck(packetPayload, packetsWaitingAck, &pMutex, agentID)
-		return
-	case utils.TASK:
-		fmt.Println("[AGENT] Metrics received from server")
-		// HandleTask method - TO DO
-		return
-	default:
-		fmt.Println("[AGENT] [ERROR 7] Unknown message type received from server")
-		return
-	}
+	// ack was received, close connection
+	conn.Close()
 }

@@ -3,13 +3,14 @@ package packet
 import (
 	"errors"
 	"fmt"
-	u "nms/pkg/utils"
+	utils "nms/pkg/utils"
 	"os"
 )
 
 type Registration struct {
 	PacketID byte
 	AgentID  byte // [0, 255]
+	IP       [4]byte
 }
 
 type RegistrationBuilder struct {
@@ -20,7 +21,9 @@ func NewRegistrationBuilder() *RegistrationBuilder {
 	return &RegistrationBuilder{
 		Registration: Registration{
 			PacketID: 0,
-			AgentID:  0},
+			AgentID:  0,
+			IP:       [4]byte{0, 0, 0, 0},
+		},
 	}
 }
 
@@ -34,19 +37,25 @@ func (r *RegistrationBuilder) SetAgentID(id byte) *RegistrationBuilder {
 	return r
 }
 
+func (r *RegistrationBuilder) SetIP(ip [4]byte) *RegistrationBuilder {
+	r.Registration.IP = ip
+	return r
+}
+
 func (r *RegistrationBuilder) Build() Registration {
 	return r.Registration
 }
 
 // receives the data without the header
 func DecodeRegistration(message []byte) (Registration, error) {
-	if len(message) != 2 {
+	if len(message) != 6 {
 		return Registration{}, errors.New("invalid message length")
 	}
 
 	reg := Registration{
 		PacketID: message[0],
 		AgentID:  message[1],
+		IP:       [4]byte{message[2], message[3], message[4], message[5]},
 	}
 
 	return reg, nil
@@ -54,22 +63,28 @@ func DecodeRegistration(message []byte) (Registration, error) {
 
 func EncodeRegistration(reg Registration) []byte {
 	return []byte{
-		byte(u.REGISTRATION),
+		byte(utils.REGISTRATION),
 		reg.PacketID,
 		reg.AgentID,
+		reg.IP[0],
+		reg.IP[1],
+		reg.IP[2],
+		reg.IP[3],
 	}
 }
 
-func CreateRegistrationPacket(ID byte) (byte, []byte) {
+func CreateRegistrationPacket(ID byte, ip string) (byte, []byte) {
+	byteIP := utils.IPStringToByte(ip)
+
 	// generate Agent ID
-	agentID, err := u.GetAgentID()
+	agentID, err := utils.GetAgentID()
 	if err != nil {
 		fmt.Println("[AGENT] [ERROR 3] Unable to get agent ID:", err)
 		os.Exit(1)
 	}
 
 	// create registration request
-	registration := NewRegistrationBuilder().SetPacketID(ID).SetAgentID(agentID).Build()
+	registration := NewRegistrationBuilder().SetPacketID(ID).SetAgentID(agentID).SetIP(byteIP).Build()
 	// encode registration request
 	regData := EncodeRegistration(registration)
 

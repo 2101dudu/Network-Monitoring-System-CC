@@ -13,6 +13,6 @@ func main() {
 	//	os.Exit(1)
 	//}
 
-	agent.ConnectUDP("localhost:8081")
+	agent.StartUDPAgent()
 
 }
