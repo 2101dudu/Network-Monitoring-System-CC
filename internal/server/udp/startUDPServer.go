@@ -2,6 +2,7 @@ package udp
 
 import (
 	parse "nms/internal/jsonParse"
+	task "nms/internal/packet/task"
 	utils "nms/internal/utils"
 )
 
@@ -14,7 +15,7 @@ func StartUDPServer(port string) {
 	// validate tasks
 	parse.ValidateTaskList(taskList)
 
-	utils.BuildTaskPacketList(taskList)
+	task.HandleTasks(taskList)
 
 	// Initialize the map
 	agentsIPs = make(map[byte][4]byte)

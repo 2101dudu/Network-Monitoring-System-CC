@@ -2,13 +2,13 @@ package jsonParse
 
 type PingParameters struct {
 	Enabled     bool   `json:"enabled"`
-	Destination []byte `json:"destination"` // [192,168,1,2]
+	Destination string `json:"destination"`
 	PacketCount uint16 `json:"packet_count"`
 	Frequency   byte   `json:"frequency"`
 }
 
 func validatePingParameters(pingParameters PingParameters) bool {
-	if len(pingParameters.Destination) != 4 {
+	if len(pingParameters.Destination) == 0 && len(pingParameters.Destination) <= 15 {
 		return false
 	}
 

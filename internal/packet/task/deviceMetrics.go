@@ -11,6 +11,39 @@ type DeviceMetrics struct {
 	InterfaceStats []string
 }
 
+type DeviceMetricsBuilder struct {
+	DeviceMetrics DeviceMetrics
+}
+
+func NewDeviceMetricsBuilder() *DeviceMetricsBuilder {
+	return &DeviceMetricsBuilder{
+		DeviceMetrics: DeviceMetrics{
+			CpuUsage:       false,
+			RamUsage:       false,
+			InterfaceStats: []string{},
+		},
+	}
+}
+
+func (b *DeviceMetricsBuilder) SetCpuUsage(usage bool) *DeviceMetricsBuilder {
+	b.DeviceMetrics.CpuUsage = usage
+	return b
+}
+
+func (b *DeviceMetricsBuilder) SetRamUsage(usage bool) *DeviceMetricsBuilder {
+	b.DeviceMetrics.RamUsage = usage
+	return b
+}
+
+func (b *DeviceMetricsBuilder) SetInterfaceStats(stat []string) *DeviceMetricsBuilder {
+	b.DeviceMetrics.InterfaceStats = stat
+	return b
+}
+
+func (b *DeviceMetricsBuilder) Build() DeviceMetrics {
+	return b.DeviceMetrics
+}
+
 func EncodeDeviceMetrics(metrics DeviceMetrics) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	buf.WriteByte(utils.BoolToByte(metrics.CpuUsage))

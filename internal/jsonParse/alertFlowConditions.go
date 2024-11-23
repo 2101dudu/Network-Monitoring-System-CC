@@ -1,11 +1,11 @@
 package jsonParse
 
 type AlertFlowConditions struct {
-	CpuUsage       byte `json:"cpu_usage"`
-	RamUsage       byte `json:"ram_usage"`
-	InterfaceStats int  `json:"interface_stats"`
-	PacketLoss     byte `json:"packet_loss"`
-	Jitter         int  `json:"jitter"`
+	CpuUsage       byte   `json:"cpu_usage"`
+	RamUsage       byte   `json:"ram_usage"`
+	InterfaceStats uint16 `json:"interface_stats"`
+	PacketLoss     byte   `json:"packet_loss"`
+	Jitter         uint16 `json:"jitter"`
 }
 
 func validateAlertFlowConditions(afc AlertFlowConditions) bool {

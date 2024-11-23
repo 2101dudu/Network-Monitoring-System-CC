@@ -20,7 +20,7 @@
                     },
                     "ping_parameters": { 
                         "enabled": false,
-                        "destination": null,
+                        "destination": "",
                         "packet_count": 50,
                         "frequency": 20
                     }
@@ -50,7 +50,7 @@
                     },
                     "ping_parameters": { 
                         "enabled": false,
-                        "destination": null,
+                        "destination": "",
                         "packet_count": 50,
                         "frequency": 20
                     }
@@ -86,7 +86,7 @@
                     },
                     "ping_parameters": { 
                         "enabled": true,
-                        "destination": [192,168,1,2],
+                        "destination": "192.168.1.2",
                         "packet_count": 60,
                         "frequency": 20
                     }

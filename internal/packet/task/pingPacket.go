@@ -165,9 +165,8 @@ func DecodePingMessage(data []byte) (PingMessage, error) {
 	}
 	msg.AlertFlowConditions = alertFlowConditions
 
-	// Decode PingCommand
-	var cmdLen byte
-	if err := binary.Read(buf, binary.BigEndian, &cmdLen); err != nil {
+	cmdLen, err := buf.ReadByte()
+	if err != nil {
 		return msg, err
 	}
 	cmdBytes := make([]byte, cmdLen)

@@ -12,6 +12,7 @@ Perguntas ao professor:
 A fazer:
 	- separar Tasks de parser
     - trocar o que seja de IPs para DNS
+    - relembrar que os packetIDs não estão a incrementar
 
 
 
