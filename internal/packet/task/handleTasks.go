@@ -16,7 +16,7 @@ func HandleTasks(taskList []parse.Task) {
 			pingPacket := convertTaskIntoPingPacket(task)
 
 			// encode ping packet
-			data, err := EncodePingMessage(pingPacket)
+			data, err := EncodePingPacket(pingPacket)
 			if err != nil {
 				fmt.Println("[ERROR 21] Encoding ping packet")
 				os.Exit(1)
@@ -26,7 +26,7 @@ func HandleTasks(taskList []parse.Task) {
 			// TODO
 
 			// decode ping packet
-			newPingPacket, err := DecodePingMessage(data[1:])
+			newPingPacket, err := DecodePingPacket(data[1:])
 			if err != nil {
 				fmt.Println("[ERROR 22] Decoding ping packet")
 				os.Exit(1)

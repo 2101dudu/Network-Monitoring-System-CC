@@ -12,7 +12,7 @@ import (
 // -i value (frequency)
 // ping -c 4 -i 0.5 <destination>
 
-type PingMessage struct {
+type PingPacket struct {
 	AgentID             byte
 	PacketID            byte
 	TaskID              uint16
@@ -22,13 +22,13 @@ type PingMessage struct {
 	PingCommand         string
 }
 
-type PingMessageBuilder struct {
-	PingMessage PingMessage
+type PingPacketBuilder struct {
+	PingPacket PingPacket
 }
 
-func NewPingMessageBuilder() *PingMessageBuilder {
-	return &PingMessageBuilder{
-		PingMessage: PingMessage{
+func NewPingPacketBuilder() *PingPacketBuilder {
+	return &PingPacketBuilder{
+		PingPacket: PingPacket{
 			PacketID:            0,
 			AgentID:             0,
 			TaskID:              0,
@@ -40,46 +40,46 @@ func NewPingMessageBuilder() *PingMessageBuilder {
 	}
 }
 
-func (b *PingMessageBuilder) SetPacketID(id byte) *PingMessageBuilder {
-	b.PingMessage.PacketID = id
+func (b *PingPacketBuilder) SetPacketID(id byte) *PingPacketBuilder {
+	b.PingPacket.PacketID = id
 	return b
 }
 
-func (b *PingMessageBuilder) SetAgentID(id byte) *PingMessageBuilder {
-	b.PingMessage.AgentID = id
+func (b *PingPacketBuilder) SetAgentID(id byte) *PingPacketBuilder {
+	b.PingPacket.AgentID = id
 	return b
 }
 
-func (b *PingMessageBuilder) SetTaskID(id uint16) *PingMessageBuilder {
-	b.PingMessage.TaskID = id
+func (b *PingPacketBuilder) SetTaskID(id uint16) *PingPacketBuilder {
+	b.PingPacket.TaskID = id
 	return b
 }
 
-func (b *PingMessageBuilder) SetFrequency(freq uint16) *PingMessageBuilder {
-	b.PingMessage.Frequency = freq
+func (b *PingPacketBuilder) SetFrequency(freq uint16) *PingPacketBuilder {
+	b.PingPacket.Frequency = freq
 	return b
 }
 
-func (b *PingMessageBuilder) SetDeviceMetrics(metrics DeviceMetrics) *PingMessageBuilder {
-	b.PingMessage.DeviceMetrics = metrics
+func (b *PingPacketBuilder) SetDeviceMetrics(metrics DeviceMetrics) *PingPacketBuilder {
+	b.PingPacket.DeviceMetrics = metrics
 	return b
 }
 
-func (b *PingMessageBuilder) SetAlertFlowConditions(conditions AlertFlowConditions) *PingMessageBuilder {
-	b.PingMessage.AlertFlowConditions = conditions
+func (b *PingPacketBuilder) SetAlertFlowConditions(conditions AlertFlowConditions) *PingPacketBuilder {
+	b.PingPacket.AlertFlowConditions = conditions
 	return b
 }
 
-func (b *PingMessageBuilder) SetPingCommand(cmd string) *PingMessageBuilder {
-	b.PingMessage.PingCommand = cmd
+func (b *PingPacketBuilder) SetPingCommand(cmd string) *PingPacketBuilder {
+	b.PingPacket.PingCommand = cmd
 	return b
 }
 
-func (b *PingMessageBuilder) Build() PingMessage {
-	return b.PingMessage
+func (b *PingPacketBuilder) Build() PingPacket {
+	return b.PingPacket
 }
 
-func EncodePingMessage(msg PingMessage) ([]byte, error) {
+func EncodePingPacket(msg PingPacket) ([]byte, error) {
 	buf := new(bytes.Buffer)
 
 	// Encode fixed fields
@@ -113,9 +113,9 @@ func EncodePingMessage(msg PingMessage) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func DecodePingMessage(data []byte) (PingMessage, error) {
+func DecodePingPacket(data []byte) (PingPacket, error) {
 	buf := bytes.NewReader(data)
-	var msg PingMessage
+	var msg PingPacket
 
 	// Decode fixed fields
 	packetID, err := buf.ReadByte()

@@ -48,15 +48,15 @@ func (a *AckBuilder) Build() Ack {
 }
 
 // receives the data without the header
-func DecodeAck(message []byte) (Ack, error) {
-	if len(message) != 3 {
-		return Ack{}, errors.New("invalid message length")
+func DecodeAck(packet []byte) (Ack, error) {
+	if len(packet) != 3 {
+		return Ack{}, errors.New("invalid packet length")
 	}
 
 	ack := Ack{
-		PacketID:     message[0],
-		SenderID:     message[1],
-		Acknowledged: message[2] == 1,
+		PacketID:     packet[0],
+		SenderID:     packet[1],
+		Acknowledged: packet[2] == 1,
 	}
 
 	return ack, nil
@@ -74,7 +74,7 @@ func EncodeAck(ack Ack) []byte {
 
 func EncodeAndSendAck(conn *net.UDPConn, udpAddr *net.UDPAddr, ack Ack) {
 	ackData := EncodeAck(ack)
-	utils.WriteUDP(conn, udpAddr, ackData, "[UDP] Message sent", "[ERROR 14] Unable to send message")
+	utils.WriteUDP(conn, udpAddr, ackData, "[UDP] Packet sent", "[ERROR 14] Unable to send packet")
 }
 
 func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, senderID byte, conn *net.UDPConn) bool {

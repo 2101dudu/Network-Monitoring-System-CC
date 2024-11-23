@@ -47,15 +47,15 @@ func (r *RegistrationBuilder) Build() Registration {
 }
 
 // receives the data without the header
-func DecodeRegistration(message []byte) (Registration, error) {
-	if len(message) != 6 {
-		return Registration{}, errors.New("invalid message length")
+func DecodeRegistration(packet []byte) (Registration, error) {
+	if len(packet) != 6 {
+		return Registration{}, errors.New("invalid packet length")
 	}
 
 	reg := Registration{
-		PacketID: message[0],
-		AgentID:  message[1],
-		IP:       [4]byte{message[2], message[3], message[4], message[5]},
+		PacketID: packet[0],
+		AgentID:  packet[1],
+		IP:       [4]byte{packet[2], packet[3], packet[4], packet[5]},
 	}
 
 	return reg, nil

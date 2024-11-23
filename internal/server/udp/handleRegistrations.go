@@ -19,12 +19,12 @@ func handleRegistrations(conn *net.UDPConn) {
 			return
 		}
 
-		// type cast the data to the appropriate message type
+		// type cast the data to the appropriate packet type
 		packetType := utils.PacketType(data[0])
 		packetPayload := data[1:n]
 
 		if packetType != utils.REGISTRATION {
-			fmt.Println("[AGENT] [ERROR 18] Unexpected message type received from server")
+			fmt.Println("[AGENT] [ERROR 18] Unexpected packet type received from server")
 			return
 		}
 		handleRegistration(packetPayload, conn, udpAddr)

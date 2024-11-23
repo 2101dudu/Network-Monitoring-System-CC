@@ -5,7 +5,7 @@ import (
 	parse "nms/internal/jsonParse"
 )
 
-func convertTaskIntoPingPacket(task parse.Task) PingMessage {
+func convertTaskIntoPingPacket(task parse.Task) PingPacket {
 	// main fields
 	aID := task.Devices[0].DeviceID
 	tID := task.TaskID
@@ -31,7 +31,7 @@ func convertTaskIntoPingPacket(task parse.Task) PingMessage {
 	pingCommand := fmt.Sprintf("ping -c %d -i %d %s", task.Devices[0].LinkMetrics.PingParameters.PacketCount, task.Devices[0].LinkMetrics.PingParameters.Frequency, destination)
 
 	// build ping packet
-	pingPacket := NewPingMessageBuilder().
+	pingPacket := NewPingPacketBuilder().
 		SetAgentID(aID).
 		SetPacketID(1).
 		SetTaskID(tID).

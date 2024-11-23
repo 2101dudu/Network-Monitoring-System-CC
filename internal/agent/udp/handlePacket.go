@@ -17,7 +17,7 @@ func handlePacket(packetType utils.PacketType, packetPayload []byte, conn *net.U
 		// HandleTask method - TO DO
 		return
 	default:
-		fmt.Println("[AGENT] [ERROR 7] Unknown message type received from server")
+		fmt.Println("[AGENT] [ERROR 7] Unknown packet type received from server")
 		return
 	}
 }

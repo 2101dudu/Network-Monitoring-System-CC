@@ -32,7 +32,7 @@ func registerAgent(conn *net.UDPConn, agentIP string) {
 	for !ackWasSent {
 		fmt.Println("[AGENT] [MAIN READ THREAD] Waiting for response from server")
 
-		// read message from server
+		// read packet from server
 		n, _, data := utils.ReadUDP(conn, "[AGENT] [MAIN READ THREAD] Response received", "[AGENT] [MAIN READ THREAD] [ERROR 5] Unable to read response")
 
 		// Check if data was received
@@ -46,7 +46,7 @@ func registerAgent(conn *net.UDPConn, agentIP string) {
 		packetPayload := data[1:n]
 
 		if packetType != utils.ACK {
-			fmt.Println("[AGENT] [ERROR 17] Unexpected message type received from server")
+			fmt.Println("[AGENT] [ERROR 17] Unexpected packet type received from server")
 			return
 		}
 		ackWasSent = ack.HandleAck(packetPayload, packetsWaitingAck, &pMutex, agentID, conn)
