@@ -3,11 +3,11 @@ package udp
 import (
 	"fmt"
 	"net"
-	packet "nms/pkg/packet"
+	packet "nms/internal/packet"
 	utils "nms/pkg/utils"
 )
 
-func handlePacket(packetType utils.MessageType, packetPayload []byte, conn *net.UDPConn) {
+func handlePacket(packetType utils.PacketType, packetPayload []byte, conn *net.UDPConn) {
 	switch packetType {
 	case utils.ACK:
 		packet.HandleAck(packetPayload, packetsWaitingAck, &pMutex, agentID, conn)

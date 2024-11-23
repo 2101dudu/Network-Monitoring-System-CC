@@ -1,7 +1,7 @@
 package udp
 
 import (
-	utils "nms/pkg/utils"
+	utils "nms/internal/utils"
 	"time"
 )
 

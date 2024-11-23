@@ -3,7 +3,7 @@ package agent
 import (
 	"fmt"
 	"net"
-	packet "nms/pkg/packet"
+	packet "nms/internal/packet"
 	"os"
 )
 

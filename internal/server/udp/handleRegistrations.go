@@ -3,7 +3,7 @@ package udp
 import (
 	"fmt"
 	"net"
-	utils "nms/pkg/utils"
+	utils "nms/internal/utils"
 )
 
 func handleRegistrations(conn *net.UDPConn) {
@@ -20,7 +20,7 @@ func handleRegistrations(conn *net.UDPConn) {
 		}
 
 		// type cast the data to the appropriate message type
-		packetType := utils.MessageType(data[0])
+		packetType := utils.PacketType(data[0])
 		packetPayload := data[1:n]
 
 		if packetType != utils.REGISTRATION {

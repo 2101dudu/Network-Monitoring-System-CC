@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	u "nms/pkg/utils"
+	utils "nms/internal/utils"
 	"sync"
 	"time"
 )
@@ -65,16 +65,16 @@ func DecodeAck(message []byte) (Ack, error) {
 // receives the data the header
 func EncodeAck(ack Ack) []byte {
 	return []byte{
-		byte(u.ACK),
+		byte(utils.ACK),
 		ack.PacketID,
 		ack.SenderID,
-		u.BoolToByte(ack.Acknowledged),
+		utils.BoolToByte(ack.Acknowledged),
 	}
 }
 
 func EncodeAndSendAck(conn *net.UDPConn, udpAddr *net.UDPAddr, ack Ack) {
 	ackData := EncodeAck(ack)
-	u.WriteUDP(conn, udpAddr, ackData, "[UDP] Message sent", "[ERROR 14] Unable to send message")
+	utils.WriteUDP(conn, udpAddr, ackData, "[UDP] Message sent", "[ERROR 14] Unable to send message")
 }
 
 func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, senderID byte, conn *net.UDPConn) bool {
@@ -116,8 +116,8 @@ func SendPacketAndWaitForAck(packetID byte, packetsWaitingAck map[byte]bool, pMu
 			return
 		}
 
-		if !waiting || time.Since(packetSent) >= u.TIMEOUTSECONDS*time.Second {
-			u.WriteUDP(conn, udpAddr, packetData, successMessage, errorMessage)
+		if !waiting || time.Since(packetSent) >= utils.TIMEOUTSECONDS*time.Second {
+			utils.WriteUDP(conn, udpAddr, packetData, successMessage, errorMessage)
 
 			PacketIsWaiting(packetID, packetsWaitingAck, pMutex, true)
 

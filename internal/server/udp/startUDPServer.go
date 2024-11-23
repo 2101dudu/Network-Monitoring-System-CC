@@ -1,8 +1,8 @@
 package udp
 
 import (
-	"nms/pkg/utils"
-	parse "nms/pkg/utils/jsonParse"
+	parse "nms/internal/jsonParse"
+	utils "nms/internal/utils"
 )
 
 var agentsIPs map[byte][4]byte

@@ -3,8 +3,8 @@ package udp
 import (
 	"fmt"
 	"net"
-	packet "nms/pkg/packet"
-	utils "nms/pkg/utils"
+	packet "nms/internal/packet"
+	utils "nms/internal/utils"
 	"sync"
 )
 
@@ -41,7 +41,7 @@ func registerAgent(conn *net.UDPConn, agentIP string) {
 		}
 
 		// get ACK contents
-		packetType := utils.MessageType(data[0])
+		packetType := utils.PacketType(data[0])
 		packetPayload := data[1:n]
 
 		if packetType != utils.ACK {

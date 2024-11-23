@@ -3,7 +3,7 @@ package udp
 import (
 	"fmt"
 	"net"
-	packet "nms/pkg/packet"
+	packet "nms/internal/packet"
 )
 
 func handleRegistration(packetPayload []byte, conn *net.UDPConn, udpAddr *net.UDPAddr) {
