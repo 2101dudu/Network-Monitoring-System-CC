@@ -1,7 +1,6 @@
 package task
 
 import (
-	"fmt"
 	parse "nms/internal/jsonParse"
 )
 
@@ -26,7 +25,7 @@ func convertTaskIntoIperfServerPacket(task parse.Task, serverIndex byte) IperfSe
 	alert := NewAlertFlowConditionsBuilder().SetCpuUsage(cpuUsage).SetRamUsage(ramUsage).SetInterfaceStats(interStats).SetPacketLoss(packetLoss).SetJitter(jitter).Build()
 
 	// build iperf server command
-	iperfCommand := fmt.Sprintf("iperf3 -s")
+	iperfCommand := "iperf3 -s"
 	if !task.Devices[serverIndex].LinkMetrics.IperfParameters.Bandwidth {
 		iperfCommand += " -u"
 	}
