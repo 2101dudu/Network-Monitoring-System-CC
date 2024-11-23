@@ -1,9 +1,9 @@
-package packet
+package registration
 
 import (
 	"errors"
 	"fmt"
-	utils "nms/pkg/utils"
+	utils "nms/internal/utils"
 	"os"
 )
 

@@ -2,7 +2,7 @@ package task
 
 import (
 	"bytes"
-	utils "nms/pkg/utils"
+	utils "nms/internal/utils"
 )
 
 type DeviceMetrics struct {

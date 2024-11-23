@@ -3,7 +3,7 @@ package task
 import (
 	"bytes"
 	"encoding/binary"
-	utils "nms/pkg/utils"
+	utils "nms/internal/utils"
 )
 
 // ------------------------- Iperf Server -----------------------------

@@ -1,4 +1,4 @@
-package packet
+package ack
 
 import (
 	"errors"
@@ -84,7 +84,7 @@ func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.
 		return false
 	}
 
-	_, exist := GetPacketStatus(ack.PacketID, packetsWaitingAck, pMutex)
+	_, exist := utils.GetPacketStatus(ack.PacketID, packetsWaitingAck, pMutex)
 
 	if !exist || ack.SenderID != senderID {
 		fmt.Println("[ERROR 16] Invalid acknowledgement")
@@ -92,7 +92,7 @@ func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.
 	}
 
 	if !ack.Acknowledged {
-		PacketIsWaiting(ack.PacketID, packetsWaitingAck, pMutex, false)
+		utils.PacketIsWaiting(ack.PacketID, packetsWaitingAck, pMutex, false)
 		fmt.Println("[UDP] Sender didn't acknowledge packet", ack.PacketID)
 		return false
 	}
@@ -110,7 +110,7 @@ func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.
 func SendPacketAndWaitForAck(packetID byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, conn *net.UDPConn, udpAddr *net.UDPAddr, packetData []byte, successMessage string, errorMessage string) {
 	packetSent := time.Now()
 	for {
-		waiting, exists := GetPacketStatus(packetID, packetsWaitingAck, pMutex)
+		waiting, exists := utils.GetPacketStatus(packetID, packetsWaitingAck, pMutex)
 
 		if !exists { // registration packet has been removed from map
 			return
@@ -119,7 +119,7 @@ func SendPacketAndWaitForAck(packetID byte, packetsWaitingAck map[byte]bool, pMu
 		if !waiting || time.Since(packetSent) >= utils.TIMEOUTSECONDS*time.Second {
 			utils.WriteUDP(conn, udpAddr, packetData, successMessage, errorMessage)
 
-			PacketIsWaiting(packetID, packetsWaitingAck, pMutex, true)
+			utils.PacketIsWaiting(packetID, packetsWaitingAck, pMutex, true)
 
 			packetSent = time.Now()
 		}

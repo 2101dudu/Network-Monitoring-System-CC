@@ -3,7 +3,7 @@ package task
 import (
 	"bytes"
 	"encoding/binary"
-	u "nms/pkg/utils"
+	utils "nms/internal/utils"
 )
 
 // ------------------------- Ping ----------------------------
@@ -15,60 +15,100 @@ import (
 type PingMessage struct {
 	AgentID             byte
 	PacketID            byte
-	TaskID              byte
-	Frequency           byte
+	TaskID              uint16
+	Frequency           uint16
 	DeviceMetrics       DeviceMetrics
 	AlertFlowConditions AlertFlowConditions
 	PingCommand         string
+}
+
+type PingMessageBuilder struct {
+	PingMessage PingMessage
+}
+
+func NewPingMessageBuilder() *PingMessageBuilder {
+	return &PingMessageBuilder{
+		PingMessage: PingMessage{
+			PacketID:            0,
+			AgentID:             0,
+			TaskID:              0,
+			Frequency:           0,
+			DeviceMetrics:       DeviceMetrics{},
+			AlertFlowConditions: AlertFlowConditions{},
+			PingCommand:         "",
+		},
+	}
+}
+
+func (b *PingMessageBuilder) SetPacketID(id byte) *PingMessageBuilder {
+	b.PingMessage.PacketID = id
+	return b
+}
+
+func (b *PingMessageBuilder) SetAgentID(id byte) *PingMessageBuilder {
+	b.PingMessage.AgentID = id
+	return b
+}
+
+func (b *PingMessageBuilder) SetTaskID(id uint16) *PingMessageBuilder {
+	b.PingMessage.TaskID = id
+	return b
+}
+
+func (b *PingMessageBuilder) SetFrequency(freq uint16) *PingMessageBuilder {
+	b.PingMessage.Frequency = freq
+	return b
+}
+
+func (b *PingMessageBuilder) SetDeviceMetrics(metrics DeviceMetrics) *PingMessageBuilder {
+	b.PingMessage.DeviceMetrics = metrics
+	return b
+}
+
+func (b *PingMessageBuilder) SetAlertFlowConditions(conditions AlertFlowConditions) *PingMessageBuilder {
+	b.PingMessage.AlertFlowConditions = conditions
+	return b
+}
+
+func (b *PingMessageBuilder) SetPingCommand(cmd string) *PingMessageBuilder {
+	b.PingMessage.PingCommand = cmd
+	return b
+}
+
+func (b *PingMessageBuilder) Build() PingMessage {
+	return b.PingMessage
 }
 
 func EncodePingMessage(msg PingMessage) ([]byte, error) {
 	buf := new(bytes.Buffer)
 
 	// Encode fixed fields
-	fields := []interface{}{
-		byte(u.TASK),
-		byte(PING),
-		msg.AgentID,
-		msg.PacketID,
-		msg.TaskID,
-		msg.Frequency,
-		u.BoolToByte(msg.DeviceMetrics.CpuUsage),
-		u.BoolToByte(msg.DeviceMetrics.RamUsage),
-		msg.AlertFlowConditions.CpuUsage,
-		msg.AlertFlowConditions.RamUsage,
-		msg.AlertFlowConditions.InterfaceStats,
-		msg.AlertFlowConditions.PacketLoss,
-		msg.AlertFlowConditions.Jitter,
-	}
+	buf.WriteByte(byte(utils.PING))
+	buf.WriteByte(msg.PacketID)
+	buf.WriteByte(msg.AgentID)
+	binary.Write(buf, binary.BigEndian, msg.TaskID)
+	binary.Write(buf, binary.BigEndian, msg.Frequency)
 
-	for _, field := range fields {
-		err := binary.Write(buf, binary.BigEndian, field)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	// Encode InterfaceStats
-	err := binary.Write(buf, binary.BigEndian, byte(len(msg.DeviceMetrics.InterfaceStats))) // Write length of the array of strings
+	// Encode DeviceMetrics
+	deviceMetricsBytes, err := EncodeDeviceMetrics(msg.DeviceMetrics)
 	if err != nil {
 		return nil, err
 	}
-	for _, interfaceString := range msg.DeviceMetrics.InterfaceStats { // Encode each interface as bytes
-		interfaceBytes := []byte(interfaceString)
-		err := binary.Write(buf, binary.BigEndian, byte(len(interfaceString))) // Write string length
-		if err != nil {
-			return nil, err
-		}
-		buf.Write(interfaceBytes) // Write string content
-	}
+	buf.WriteByte(byte(len(deviceMetricsBytes))) // Add size byte
+	buf.Write(deviceMetricsBytes)
 
-	// Encode PingCommand
-	cmdBytes := []byte(msg.PingCommand) // Convert string to bytes
-	if err := binary.Write(buf, binary.BigEndian, byte(len(cmdBytes))); err != nil {
+	// Encode AlertFlowConditions
+	alertFlowConditionsBytes, err := EncodeAlertFlowConditions(msg.AlertFlowConditions)
+	if err != nil {
 		return nil, err
 	}
-	buf.Write(cmdBytes) // Write command content
+	buf.WriteByte(byte(len(alertFlowConditionsBytes))) // Add size byte
+	buf.Write(alertFlowConditionsBytes)
+
+	// Encode PingCommand
+	cmdBytes := []byte(msg.PingCommand)
+	buf.WriteByte(byte(len(cmdBytes)))
+	buf.Write(cmdBytes)
 
 	return buf.Bytes(), nil
 }
@@ -78,43 +118,52 @@ func DecodePingMessage(data []byte) (PingMessage, error) {
 	var msg PingMessage
 
 	// Decode fixed fields
-	fields := []interface{}{
-		&msg.SenderID,
-		&msg.PacketID,
-		&msg.TaskID,
-		&msg.Frequency,
-		&msg.DeviceMetrics.CpuUsage,
-		&msg.DeviceMetrics.RamUsage,
-		&msg.AlertFlowConditions.CpuUsage,
-		&msg.AlertFlowConditions.RamUsage,
-		&msg.AlertFlowConditions.InterfaceStats,
-		&msg.AlertFlowConditions.PacketLoss,
-		&msg.AlertFlowConditions.Jitter,
-	}
-
-	for _, field := range fields {
-		if err := binary.Read(buf, binary.BigEndian, field); err != nil {
-			return msg, err
-		}
-	}
-
-	// Decode InterfaceStats
-	var interfaceCount byte
-	if err := binary.Read(buf, binary.BigEndian, &interfaceCount); err != nil {
+	packetID, err := buf.ReadByte()
+	if err != nil {
 		return msg, err
 	}
-	msg.DeviceMetrics.InterfaceStats = make([]string, interfaceCount)
-	for i := range msg.DeviceMetrics.InterfaceStats {
-		var interfaceLen byte
-		if err := binary.Read(buf, binary.BigEndian, &interfaceLen); err != nil {
-			return msg, err
-		}
-		interfaceBytes := make([]byte, interfaceLen)
-		if _, err := buf.Read(interfaceBytes); err != nil {
-			return msg, err
-		}
-		msg.DeviceMetrics.InterfaceStats[i] = string(interfaceBytes)
+	agentID, err := buf.ReadByte()
+	if err != nil {
+		return msg, err
 	}
+	if err := binary.Read(buf, binary.BigEndian, &msg.TaskID); err != nil {
+		return msg, err
+	}
+	if err := binary.Read(buf, binary.BigEndian, &msg.Frequency); err != nil {
+		return msg, err
+	}
+	msg.PacketID = packetID
+	msg.AgentID = agentID
+
+	// Decode DeviceMetrics
+	var deviceMetricsSize byte
+	if err := binary.Read(buf, binary.BigEndian, &deviceMetricsSize); err != nil {
+		return msg, err
+	}
+	deviceMetricsBytes := make([]byte, deviceMetricsSize)
+	if _, err := buf.Read(deviceMetricsBytes); err != nil {
+		return msg, err
+	}
+	deviceMetrics, err := DecodeDeviceMetrics(deviceMetricsBytes)
+	if err != nil {
+		return msg, err
+	}
+	msg.DeviceMetrics = deviceMetrics
+
+	// Decode AlertFlowConditions
+	var alertFlowConditionsSize byte
+	if err := binary.Read(buf, binary.BigEndian, &alertFlowConditionsSize); err != nil {
+		return msg, err
+	}
+	alertFlowConditionsBytes := make([]byte, alertFlowConditionsSize)
+	if _, err := buf.Read(alertFlowConditionsBytes); err != nil {
+		return msg, err
+	}
+	alertFlowConditions, err := DecodeAlertFlowConditions(alertFlowConditionsBytes)
+	if err != nil {
+		return msg, err
+	}
+	msg.AlertFlowConditions = alertFlowConditions
 
 	// Decode PingCommand
 	var cmdLen byte

@@ -3,16 +3,16 @@ package udp
 import (
 	"fmt"
 	"net"
-	packet "nms/internal/packet"
-	utils "nms/pkg/utils"
+	ack "nms/internal/packet/ack"
+	utils "nms/internal/utils"
 )
 
 func handlePacket(packetType utils.PacketType, packetPayload []byte, conn *net.UDPConn) {
 	switch packetType {
 	case utils.ACK:
-		packet.HandleAck(packetPayload, packetsWaitingAck, &pMutex, agentID, conn)
+		ack.HandleAck(packetPayload, packetsWaitingAck, &pMutex, agentID, conn)
 		return
-	case utils.TASK:
+	case utils.PING:
 		fmt.Println("[AGENT] Metrics received from server")
 		// HandleTask method - TO DO
 		return

@@ -3,7 +3,7 @@ package task
 import (
 	"bytes"
 	"encoding/binary"
-	u "nms/pkg/utils"
+	utils "nms/internal/utils"
 )
 
 // ------------------------- Iperf Client -----------------------------
@@ -103,14 +103,14 @@ func EncodeIperfClientPacket(msg IperfClientPacket) ([]byte, error) {
 	buf := new(bytes.Buffer)
 
 	// Encode fixed fields
-	buf.WriteByte(byte(u.IPERFCLIENT))
+	buf.WriteByte(byte(utils.IPERFCLIENT))
 	buf.WriteByte(msg.PacketID)
 	buf.WriteByte(msg.AgentID)
 	binary.Write(buf, binary.BigEndian, msg.TaskID)
 	binary.Write(buf, binary.BigEndian, msg.Frequency)
-	buf.WriteByte(u.BoolToByte(msg.Bandwith))
-	buf.WriteByte(u.BoolToByte(msg.Jitter))
-	buf.WriteByte(u.BoolToByte(msg.PacketLoss))
+	buf.WriteByte(utils.BoolToByte(msg.Bandwith))
+	buf.WriteByte(utils.BoolToByte(msg.Jitter))
+	buf.WriteByte(utils.BoolToByte(msg.PacketLoss))
 
 	// Encode DeviceMetrics
 	deviceMetricsBytes, err := EncodeDeviceMetrics(msg.DeviceMetrics)

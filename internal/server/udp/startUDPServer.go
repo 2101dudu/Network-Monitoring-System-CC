@@ -14,7 +14,7 @@ func StartUDPServer(port string) {
 	// validate tasks
 	parse.ValidateTaskList(taskList)
 
-	utils.BuildTaskList(taskList)
+	utils.BuildTaskPacketList(taskList)
 
 	// Initialize the map
 	agentsIPs = make(map[byte][4]byte)

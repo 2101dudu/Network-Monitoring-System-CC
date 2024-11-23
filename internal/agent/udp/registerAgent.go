@@ -3,7 +3,8 @@ package udp
 import (
 	"fmt"
 	"net"
-	packet "nms/internal/packet"
+	ack "nms/internal/packet/ack"
+	registration "nms/internal/packet/registration"
 	utils "nms/internal/utils"
 	"sync"
 )
@@ -18,14 +19,14 @@ var agentID byte
 func registerAgent(conn *net.UDPConn, agentIP string) {
 	var firstPacketID byte = 1
 	var registrationData []byte
-	agentID, registrationData = packet.CreateRegistrationPacket(firstPacketID, agentIP)
+	agentID, registrationData = registration.CreateRegistrationPacket(firstPacketID, agentIP)
 
 	// set the status of the packet to "not" waiting for ack, because it is yet to be sent
-	packet.PacketIsWaiting(firstPacketID, packetsWaitingAck, &pMutex, false)
+	utils.PacketIsWaiting(firstPacketID, packetsWaitingAck, &pMutex, false)
 
 	successMessage := "[AGENT] Registration request sent"
 	errorMessage := "[AGENT] [ERROR 4] Unable to send registration request"
-	go packet.SendPacketAndWaitForAck(firstPacketID, packetsWaitingAck, &pMutex, conn, nil, registrationData, successMessage, errorMessage)
+	go ack.SendPacketAndWaitForAck(firstPacketID, packetsWaitingAck, &pMutex, conn, nil, registrationData, successMessage, errorMessage)
 
 	ackWasSent := false
 	for !ackWasSent {
@@ -48,7 +49,7 @@ func registerAgent(conn *net.UDPConn, agentIP string) {
 			fmt.Println("[AGENT] [ERROR 17] Unexpected message type received from server")
 			return
 		}
-		ackWasSent = packet.HandleAck(packetPayload, packetsWaitingAck, &pMutex, agentID, conn)
+		ackWasSent = ack.HandleAck(packetPayload, packetsWaitingAck, &pMutex, agentID, conn)
 	}
 	// ack was received, close connection
 	conn.Close()
