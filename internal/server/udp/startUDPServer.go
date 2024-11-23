@@ -12,7 +12,9 @@ func StartUDPServer(port string) {
 	var taskList []parse.Task = parse.ParseDataFromJson(jsonData)
 
 	// validate tasks
-	parse.ValidateAndRebuildTasks(taskList)
+	parse.ValidateTaskList(taskList)
+
+	utils.BuildTaskList(taskList)
 
 	// Initialize the map
 	agentsIPs = make(map[byte][4]byte)

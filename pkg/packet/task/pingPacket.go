@@ -1,4 +1,4 @@
-package packet
+package task
 
 import (
 	"bytes"
@@ -13,7 +13,7 @@ import (
 // ping -c 4 -i 0.5 <destination>
 
 type PingMessage struct {
-	SenderID            byte
+	AgentID             byte
 	PacketID            byte
 	TaskID              byte
 	Frequency           byte
@@ -29,7 +29,7 @@ func EncodePingMessage(msg PingMessage) ([]byte, error) {
 	fields := []interface{}{
 		byte(u.TASK),
 		byte(PING),
-		msg.SenderID,
+		msg.AgentID,
 		msg.PacketID,
 		msg.TaskID,
 		msg.Frequency,

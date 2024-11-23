@@ -5,13 +5,15 @@ import (
 	s "strconv"
 )
 
-type MessageType byte
+type PacketType byte
 
 const (
-	ACK              MessageType = iota // iota = 0
-	REGISTRATION                        // iota = 1
-	METRICSGATHERING                    // iota = 2
-	TASK
+	ACK              PacketType = iota // iota = 0
+	REGISTRATION                       // iota = 1
+	METRICSGATHERING                   // iota = 2
+	IPERFCLIENT
+	IPERFSERVER
+	PING
 )
 
 const (

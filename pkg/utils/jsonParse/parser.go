@@ -27,7 +27,7 @@ func ParseDataFromJson(data []byte) []Task {
 	return tasks
 }
 
-func ValidateAndRebuildTasks(taskList []Task) {
+func ValidateTaskList(taskList []Task) {
 	// map to track unique TaskIDs
 	seenTaskIDs := make(map[uint16]bool)
 
@@ -44,7 +44,5 @@ func ValidateAndRebuildTasks(taskList []Task) {
 			fmt.Println("[ERROR 19] Invalid task")
 			os.Exit(1)
 		}
-		//newTask := RebuildTask(task)
-		//newTaskList = append(newTaskList, newTask)
 	}
 }

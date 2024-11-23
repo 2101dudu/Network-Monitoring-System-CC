@@ -2,7 +2,7 @@ package jsonParse
 
 type LinkMetrics struct {
 	//IsServer            bool                `json:"is_server"`
-	//transportType       uint8               `json:"transportType"`
+	//transportType       byte               `json:"transportType"`
 	IperfParameters IperfParameters `json:"iperf_parameters"`
 	PingParameters  PingParameters  `json:"ping_parameters"`
 }
