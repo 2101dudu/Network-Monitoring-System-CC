@@ -10,7 +10,8 @@ import (
 var agentsIPs map[byte][4]byte
 
 func StartUDPServer(port string) {
-	log.SetFlags(log.Ltime | log.Lmicroseconds | log.Lshortfile)
+	// incldude "| log.Lshortfile" in the log flags to include the file name and line of code in the log
+	log.SetFlags(log.Ltime | log.Lmicroseconds)
 
 	jsonData := parse.GetDataFromJson("configs/tasks.json")
 	var taskList []parse.Task = parse.ParseDataFromJson(jsonData)

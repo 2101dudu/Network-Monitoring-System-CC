@@ -4,7 +4,6 @@ import (
 	"errors"
 	"log"
 	utils "nms/internal/utils"
-	"os"
 )
 
 type Registration struct {
@@ -79,8 +78,7 @@ func CreateRegistrationPacket(ID byte, ip string) (byte, []byte) {
 	// generate Agent ID
 	agentID, err := utils.GetAgentID()
 	if err != nil {
-		log.Println("[AGENT] [ERROR 3] Unable to get agent ID:", err)
-		os.Exit(1)
+		log.Fatalln("[AGENT] [ERROR 3] Unable to get agent ID:", err)
 	}
 
 	// create registration request

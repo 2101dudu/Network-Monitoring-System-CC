@@ -9,8 +9,7 @@ import (
 func GetDataFromJson(filePath string) []byte {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
-		log.Println("[ERROR 8] Unable to read file: ", err)
-		os.Exit(1)
+		log.Fatalln("[ERROR 8] Unable to read file: ", err)
 	}
 
 	return data
@@ -20,8 +19,7 @@ func ParseDataFromJson(data []byte) []Task {
 	var tasks []Task
 	err := json.Unmarshal(data, &tasks)
 	if err != nil {
-		log.Println("[ERROR 9] Unable to parse data", err)
-		os.Exit(1)
+		log.Fatalln("[ERROR 9] Unable to parse data:", err)
 	}
 
 	return tasks
@@ -34,15 +32,13 @@ func ValidateTaskList(taskList []Task) {
 	for _, task := range taskList {
 		// check if TaskID is repeated
 		if seenTaskIDs[task.TaskID] {
-			log.Printf("[ERROR 20] Duplicate TaskID found: %d\n", task.TaskID)
-			os.Exit(1)
+			log.Fatalf("[ERROR 20] Duplicate TaskID found: %d\n", task.TaskID)
 		}
 		seenTaskIDs[task.TaskID] = true
 
 		valid := validateTask(task)
 		if !valid {
-			log.Println("[ERROR 19] Invalid task")
-			os.Exit(1)
+			log.Fatalln("[ERROR 19] Invalid task")
 		}
 	}
 }

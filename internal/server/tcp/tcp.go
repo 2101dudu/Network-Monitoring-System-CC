@@ -3,14 +3,12 @@ package server
 import (
 	"log"
 	"net"
-	"os"
 )
 
 func StartTCPServer(port string) {
 	listener, err := net.Listen("tcp", ":"+port)
 	if err != nil {
-		log.Println("[TCP] [ERROR] Unable to initialize the server:", err)
-		os.Exit(1)
+		log.Fatalln("[TCP] [ERROR] Unable to initialize the server:", err)
 	}
 	defer listener.Close()
 
@@ -37,8 +35,7 @@ func handleTCPConnection(conn net.Conn) {
 	regData := make([]byte, 1024)
 	_, err := conn.Read(regData)
 	if err != nil {
-		log.Println("[TCP] [ERROR] Unable to read data:", err)
-		os.Exit(1)
+		log.Fatalln("[TCP] [ERROR] Unable to read data:", err)
 	}
 
 	//reg, err := p.DecodeRegistration(regData[1:n])

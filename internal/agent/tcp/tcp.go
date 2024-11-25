@@ -4,14 +4,12 @@ import (
 	"log"
 	"net"
 	registration "nms/internal/packet/registration"
-	"os"
 )
 
 func ConnectTCP(serverAddr string) {
 	conn, err := net.Dial("tcp", serverAddr)
 	if err != nil {
-		log.Println("[TCP] [ERROR] Unable to connect:", err)
-		os.Exit(1)
+		log.Fatalln("[TCP] [ERROR] Unable to connect:", err)
 	}
 	defer conn.Close()
 
@@ -21,8 +19,7 @@ func ConnectTCP(serverAddr string) {
 
 	_, err = conn.Write(regData)
 	if err != nil {
-		log.Println("[TCP] [ERROR] Unable to send registration request:", err)
-		os.Exit(1)
+		log.Fatalln("[TCP] [ERROR] Unable to send registration request:", err)
 	}
 
 	log.Println("[TCP] Registration request sent")
@@ -31,14 +28,12 @@ func ConnectTCP(serverAddr string) {
 	newRegData := make([]byte, 1024)
 	n, err := conn.Read(newRegData)
 	if err != nil {
-		log.Println("[TCP] [ERROR] Unable to read data:", err)
-		os.Exit(1)
+		log.Fatalln("[TCP] [ERROR] Unable to read data:", err)
 	}
 
 	newReg, err := registration.DecodeRegistration(newRegData[1:n])
 	if err != nil {
-		log.Println("[TCP] [ERROR] Unable to decode new registration data:", err)
-		os.Exit(1)
+		log.Fatalln("[TCP] [ERROR] Unable to decode new registration data:", err)
 	}
 
 	//if newReg.NewID == 0 || !newReg.SenderIsServer {

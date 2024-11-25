@@ -3,7 +3,6 @@ package task
 import (
 	"log"
 	parse "nms/internal/jsonParse"
-	"os"
 )
 
 func HandleTasks(taskList []parse.Task) {
@@ -18,8 +17,7 @@ func HandleTasks(taskList []parse.Task) {
 			// encode ping packet
 			data, err := EncodePingPacket(pingPacket)
 			if err != nil {
-				log.Println("[ERROR 21] Encoding ping packet")
-				os.Exit(1)
+				log.Fatalln("[ERROR 21] Encoding ping packet")
 			}
 
 			// send ping packet
@@ -28,8 +26,7 @@ func HandleTasks(taskList []parse.Task) {
 			// decode ping packet
 			newPingPacket, err := DecodePingPacket(data[1:])
 			if err != nil {
-				log.Println("[ERROR 22] Decoding ping packet")
-				os.Exit(1)
+				log.Fatalln("[ERROR 22] Decoding ping packet")
 			}
 
 			log.Print(newPingPacket.AgentID, newPingPacket.PacketID, newPingPacket.TaskID, newPingPacket.Frequency, newPingPacket.DeviceMetrics.CpuUsage, newPingPacket.DeviceMetrics.RamUsage, newPingPacket.DeviceMetrics.InterfaceStats, newPingPacket.AlertFlowConditions, newPingPacket.DeviceMetrics, newPingPacket.PingCommand+"\n\n")
@@ -41,15 +38,13 @@ func HandleTasks(taskList []parse.Task) {
 				// encode iperf server packet
 				dataServer, err := EncodeIperfServerPacket(iperfServerPacket)
 				if err != nil {
-					log.Println("[ERROR 25] Encoding iperf server packet")
-					os.Exit(1)
+					log.Fatalln("[ERROR 25] Encoding iperf server packet")
 				}
 
 				// encode iperf client packet
 				dataClient, err := EncodeIperfClientPacket(iperfClientPacket)
 				if err != nil {
-					log.Println("[ERROR 23] Encoding iperf client packet")
-					os.Exit(1)
+					log.Fatalln("[ERROR 23] Encoding iperf client packet")
 				}
 
 				// send iperf client packet
@@ -61,15 +56,13 @@ func HandleTasks(taskList []parse.Task) {
 				// decode iperf server packet
 				newIperfServerPacket, err := DecodeIperfServerPacket(dataServer[1:])
 				if err != nil {
-					log.Println("[ERROR 26] Decoding iperf server packet")
-					os.Exit(1)
+					log.Fatalln("[ERROR 26] Decoding iperf server packet")
 				}
 
 				// decode iperf client packet
 				newIperfClientPacket, err := DecodeIperfClientPacket(dataClient[1:])
 				if err != nil {
-					log.Println("[ERROR 24] Decoding iperf client packet")
-					os.Exit(1)
+					log.Fatalln("[ERROR 24] Decoding iperf client packet")
 				}
 
 				log.Print(newIperfServerPacket.AgentID, newIperfServerPacket.PacketID, newIperfServerPacket.TaskID, newIperfServerPacket.Frequency, newIperfServerPacket.DeviceMetrics.CpuUsage, newIperfServerPacket.DeviceMetrics.RamUsage, newIperfServerPacket.DeviceMetrics.InterfaceStats, newIperfServerPacket.AlertFlowConditions, newIperfServerPacket.DeviceMetrics, newIperfServerPacket.IperfServerCommand+"\n\n")
@@ -81,15 +74,13 @@ func HandleTasks(taskList []parse.Task) {
 				// encode iperf server packet
 				dataServer, err := EncodeIperfServerPacket(iperfServerPacket)
 				if err != nil {
-					log.Println("[ERROR 25] Encoding iperf server packet")
-					os.Exit(1)
+					log.Fatalln("[ERROR 25] Encoding iperf server packet")
 				}
 
 				// encode iperf client packet
 				dataClient, err := EncodeIperfClientPacket(iperfClientPacket)
 				if err != nil {
-					log.Println("[ERROR 23] Encoding iperf client packet")
-					os.Exit(1)
+					log.Fatalln("[ERROR 23] Encoding iperf client packet")
 				}
 
 				// send iperf client packet
@@ -101,15 +92,13 @@ func HandleTasks(taskList []parse.Task) {
 				// decode iperf server packet
 				newIperfServerPacket, err := DecodeIperfServerPacket(dataServer[1:])
 				if err != nil {
-					log.Println("[ERROR 26] Decoding iperf server packet")
-					os.Exit(1)
+					log.Fatalln("[ERROR 26] Decoding iperf server packet")
 				}
 
 				// decode iperf client packet
 				newIperfClientPacket, err := DecodeIperfClientPacket(dataClient[1:])
 				if err != nil {
-					log.Println("[ERROR 24] Decoding iperf client packet")
-					os.Exit(1)
+					log.Fatalln("[ERROR 24] Decoding iperf client packet")
 				}
 
 				log.Print(newIperfServerPacket.AgentID, newIperfServerPacket.PacketID, newIperfServerPacket.TaskID, newIperfServerPacket.Frequency, newIperfServerPacket.DeviceMetrics.CpuUsage, newIperfServerPacket.DeviceMetrics.RamUsage, newIperfServerPacket.DeviceMetrics.InterfaceStats, newIperfServerPacket.AlertFlowConditions, newIperfServerPacket.DeviceMetrics, newIperfServerPacket.IperfServerCommand+"\n\n")
