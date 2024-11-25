@@ -1,23 +1,23 @@
 package udp
 
 import (
-	"fmt"
+	"log"
 	"net"
-	packet "nms/pkg/packet"
-	utils "nms/pkg/utils"
+	ack "nms/internal/packet/ack"
+	utils "nms/internal/utils"
 )
 
-func handlePacket(packetType utils.MessageType, packetPayload []byte, conn *net.UDPConn) {
+func handlePacket(packetType utils.PacketType, packetPayload []byte, conn *net.UDPConn) {
 	switch packetType {
 	case utils.ACK:
-		packet.HandleAck(packetPayload, packetsWaitingAck, &pMutex, agentID, conn)
+		ack.HandleAck(packetPayload, packetsWaitingAck, &pMutex, agentID, conn)
 		return
-	case utils.TASK:
-		fmt.Println("[AGENT] Metrics received from server")
+	case utils.PING:
+		log.Println("[AGENT] Metrics received from server")
 		// HandleTask method - TO DO
 		return
 	default:
-		fmt.Println("[AGENT] [ERROR 7] Unknown message type received from server")
+		log.Println("[AGENT] [ERROR 7] Unknown packet type received from server")
 		return
 	}
 }

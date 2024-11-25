@@ -1,10 +1,9 @@
-package packet
+package registration
 
 import (
 	"errors"
-	"fmt"
-	utils "nms/pkg/utils"
-	"os"
+	"log"
+	utils "nms/internal/utils"
 )
 
 type Registration struct {
@@ -47,15 +46,15 @@ func (r *RegistrationBuilder) Build() Registration {
 }
 
 // receives the data without the header
-func DecodeRegistration(message []byte) (Registration, error) {
-	if len(message) != 6 {
-		return Registration{}, errors.New("invalid message length")
+func DecodeRegistration(packet []byte) (Registration, error) {
+	if len(packet) != 6 {
+		return Registration{}, errors.New("invalid packet length")
 	}
 
 	reg := Registration{
-		PacketID: message[0],
-		AgentID:  message[1],
-		IP:       [4]byte{message[2], message[3], message[4], message[5]},
+		PacketID: packet[0],
+		AgentID:  packet[1],
+		IP:       [4]byte{packet[2], packet[3], packet[4], packet[5]},
 	}
 
 	return reg, nil
@@ -79,8 +78,7 @@ func CreateRegistrationPacket(ID byte, ip string) (byte, []byte) {
 	// generate Agent ID
 	agentID, err := utils.GetAgentID()
 	if err != nil {
-		fmt.Println("[AGENT] [ERROR 3] Unable to get agent ID:", err)
-		os.Exit(1)
+		log.Fatalln("[AGENT] [ERROR 3] Unable to get agent ID:", err)
 	}
 
 	// create registration request

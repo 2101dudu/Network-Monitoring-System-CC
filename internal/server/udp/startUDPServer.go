@@ -1,18 +1,25 @@
 package udp
 
 import (
-	"nms/pkg/utils"
-	parse "nms/pkg/utils/jsonParse"
+	"log"
+	parse "nms/internal/jsonParse"
+	task "nms/internal/packet/task"
+	utils "nms/internal/utils"
 )
 
 var agentsIPs map[byte][4]byte
 
 func StartUDPServer(port string) {
+	// incldude "| log.Lshortfile" in the log flags to include the file name and line of code in the log
+	log.SetFlags(log.Ltime | log.Lmicroseconds)
+
 	jsonData := parse.GetDataFromJson("configs/tasks.json")
 	var taskList []parse.Task = parse.ParseDataFromJson(jsonData)
 
 	// validate tasks
-	parse.ValidateAndRebuildTasks(taskList)
+	parse.ValidateTaskList(taskList)
+
+	task.HandleTasks(taskList)
 
 	// Initialize the map
 	agentsIPs = make(map[byte][4]byte)

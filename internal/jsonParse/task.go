@@ -29,6 +29,10 @@ func validateTask(task Task) bool {
 		if task.Frequency < task.Devices[0].LinkMetrics.IperfParameters.TestDuration {
 			return false
 		}
+
+		if (task.Devices[0].LinkMetrics.IperfParameters.Bandwidth != task.Devices[1].LinkMetrics.IperfParameters.Bandwidth) || (task.Devices[0].LinkMetrics.IperfParameters.Jitter != task.Devices[1].LinkMetrics.IperfParameters.Jitter) || (task.Devices[0].LinkMetrics.IperfParameters.PacketLoss != task.Devices[1].LinkMetrics.IperfParameters.PacketLoss) {
+			return false
+		}
 	}
 
 	// ping

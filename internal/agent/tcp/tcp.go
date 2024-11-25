@@ -1,51 +1,46 @@
 package agent
 
 import (
-	"fmt"
+	"log"
 	"net"
-	packet "nms/pkg/packet"
-	"os"
+	registration "nms/internal/packet/registration"
 )
 
 func ConnectTCP(serverAddr string) {
 	conn, err := net.Dial("tcp", serverAddr)
 	if err != nil {
-		fmt.Println("[TCP] [ERROR] Unable to connect:", err)
-		os.Exit(1)
+		log.Fatalln("[TCP] [ERROR] Unable to connect:", err)
 	}
 	defer conn.Close()
 
 	// create, encode and send registration request to server
-	reg := packet.NewRegistrationBuilder().Build()
-	regData := packet.EncodeRegistration(reg)
+	reg := registration.NewRegistrationBuilder().Build()
+	regData := registration.EncodeRegistration(reg)
 
 	_, err = conn.Write(regData)
 	if err != nil {
-		fmt.Println("[TCP] [ERROR] Unable to send registration request:", err)
-		os.Exit(1)
+		log.Fatalln("[TCP] [ERROR] Unable to send registration request:", err)
 	}
 
-	fmt.Println("[TCP] Registration request sent")
+	log.Println("[TCP] Registration request sent")
 
 	// decode new registration request from server and update registration
 	newRegData := make([]byte, 1024)
 	n, err := conn.Read(newRegData)
 	if err != nil {
-		fmt.Println("[TCP] [ERROR] Unable to read data:", err)
-		os.Exit(1)
+		log.Fatalln("[TCP] [ERROR] Unable to read data:", err)
 	}
 
-	newReg, err := packet.DecodeRegistration(newRegData[1:n])
+	newReg, err := registration.DecodeRegistration(newRegData[1:n])
 	if err != nil {
-		fmt.Println("[TCP] [ERROR] Unable to decode new registration data:", err)
-		os.Exit(1)
+		log.Fatalln("[TCP] [ERROR] Unable to decode new registration data:", err)
 	}
 
 	//if newReg.NewID == 0 || !newReg.SenderIsServer {
-	//	fmt.Println("[TCP] [ERROR] Invalid registration request parameters")
+	//	log.Println("[TCP] [ERROR] Invalid registration request parameters")
 	//	// send NO_ACK
 	//}
 
 	// send ACK
-	fmt.Println(newReg)
+	log.Println(newReg)
 }

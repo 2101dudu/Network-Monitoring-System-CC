@@ -1,25 +1,23 @@
 package server
 
 import (
-	"fmt"
+	"log"
 	"net"
-	"os"
 )
 
 func StartTCPServer(port string) {
 	listener, err := net.Listen("tcp", ":"+port)
 	if err != nil {
-		fmt.Println("[TCP] [ERROR] Unable to initialize the server:", err)
-		os.Exit(1)
+		log.Fatalln("[TCP] [ERROR] Unable to initialize the server:", err)
 	}
 	defer listener.Close()
 
-	fmt.Println("[TCP] Server listening on port", port)
+	log.Println("[TCP] Server listening on port", port)
 
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			fmt.Println("[TCP] [ERROR] Unable to accept connection:", err)
+			log.Println("[TCP] [ERROR] Unable to accept connection:", err)
 			continue
 		}
 		go handleTCPConnection(conn)
@@ -30,25 +28,24 @@ func StartTCPServer(port string) {
 func handleTCPConnection(conn net.Conn) {
 	defer conn.Close()
 
-	fmt.Println("[TCP] Established connection with Agent", conn.RemoteAddr())
+	log.Println("[TCP] Established connection with Agent", conn.RemoteAddr())
 
 	// decode and process registration request from agent
 
 	regData := make([]byte, 1024)
 	_, err := conn.Read(regData)
 	if err != nil {
-		fmt.Println("[TCP] [ERROR] Unable to read data:", err)
-		os.Exit(1)
+		log.Fatalln("[TCP] [ERROR] Unable to read data:", err)
 	}
 
 	//reg, err := p.DecodeRegistration(regData[1:n])
 	//if err != nil {
-	//	fmt.Println("[TCP] [ERROR] Unable to decode registration data:", err)
+	//	log.Println("[TCP] [ERROR] Unable to decode registration data:", err)
 	//	os.Exit(1)
 	//}
 
 	//if reg.NewID != 0 || reg.SenderIsServer {
-	//	fmt.Println("[TCP] [ERROR] Invalid registration request parameters")
+	//	log.Println("[TCP] [ERROR] Invalid registration request parameters")
 	//	// send NO_ACK
 	//}
 
@@ -59,11 +56,11 @@ func handleTCPConnection(conn net.Conn) {
 
 	//_, err = conn.Write(newRegData)
 	//if err != nil {
-	//	fmt.Println("[TCP] [ERROR] Unable to send new registration request", err)
+	//	log.Println("[TCP] [ERROR] Unable to send new registration request", err)
 	//	os.Exit(1)
 	//}
 
 	// send ACK
-	fmt.Println("[TCP] New registration request sent")
+	log.Println("[TCP] New registration request sent")
 
 }

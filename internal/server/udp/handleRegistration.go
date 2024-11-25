@@ -1,20 +1,21 @@
 package udp
 
 import (
-	"fmt"
+	"log"
 	"net"
-	packet "nms/pkg/packet"
+	ack "nms/internal/packet/ack"
+	registration "nms/internal/packet/registration"
 )
 
 func handleRegistration(packetPayload []byte, conn *net.UDPConn, udpAddr *net.UDPAddr) {
 	// Decode registration request
-	reg, err := packet.DecodeRegistration(packetPayload)
+	reg, err := registration.DecodeRegistration(packetPayload)
 	if err != nil {
-		fmt.Println("[SERVER] [ERROR 12] Unable to decode registration data:", err)
+		log.Println("[SERVER] [ERROR 12] Unable to decode registration data:", err)
 
 		// send noack
-		noack := packet.NewAckBuilder().SetPacketID(reg.PacketID).SetSenderID(reg.AgentID).Build()
-		packet.EncodeAndSendAck(conn, udpAddr, noack)
+		noack := ack.NewAckBuilder().SetPacketID(reg.PacketID).SetSenderID(reg.AgentID).Build()
+		ack.EncodeAndSendAck(conn, udpAddr, noack)
 		return
 	}
 
@@ -22,8 +23,8 @@ func handleRegistration(packetPayload []byte, conn *net.UDPConn, udpAddr *net.UD
 	agentsIPs[reg.AgentID] = reg.IP
 
 	// send ack
-	ack := packet.NewAckBuilder().SetPacketID(reg.PacketID).SetSenderID(reg.AgentID).HasAcknowledged().Build()
-	packet.EncodeAndSendAck(conn, udpAddr, ack)
+	newAck := ack.NewAckBuilder().SetPacketID(reg.PacketID).SetSenderID(reg.AgentID).HasAcknowledged().Build()
+	ack.EncodeAndSendAck(conn, udpAddr, newAck)
 
 	// Verify if isServer on any task - if so then sign all clients conected to that task that are already on the map!
 	// If not server - verify if server already is running (after the agent server starts running iperf -s, sends to this server an ACK)
