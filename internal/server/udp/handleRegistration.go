@@ -1,7 +1,7 @@
 package udp
 
 import (
-	"fmt"
+	"log"
 	"net"
 	ack "nms/internal/packet/ack"
 	registration "nms/internal/packet/registration"
@@ -11,7 +11,7 @@ func handleRegistration(packetPayload []byte, conn *net.UDPConn, udpAddr *net.UD
 	// Decode registration request
 	reg, err := registration.DecodeRegistration(packetPayload)
 	if err != nil {
-		fmt.Println("[SERVER] [ERROR 12] Unable to decode registration data:", err)
+		log.Println("[SERVER] [ERROR 12] Unable to decode registration data:", err)
 
 		// send noack
 		noack := ack.NewAckBuilder().SetPacketID(reg.PacketID).SetSenderID(reg.AgentID).Build()

@@ -2,7 +2,7 @@ package ack
 
 import (
 	"errors"
-	"fmt"
+	"log"
 	"net"
 	utils "nms/internal/utils"
 	"sync"
@@ -80,27 +80,27 @@ func EncodeAndSendAck(conn *net.UDPConn, udpAddr *net.UDPAddr, ack Ack) {
 func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, senderID byte, conn *net.UDPConn) bool {
 	ack, err := DecodeAck(ackPayload)
 	if err != nil {
-		fmt.Println("[ERROR 15] Unable to decode Ack")
+		log.Println("[ERROR 15] Unable to decode Ack")
 		return false
 	}
 
 	_, exist := utils.GetPacketStatus(ack.PacketID, packetsWaitingAck, pMutex)
 
 	if !exist || ack.SenderID != senderID {
-		fmt.Println("[ERROR 16] Invalid acknowledgement")
+		log.Println("[ERROR 16] Invalid acknowledgement")
 		return false
 	}
 
 	if !ack.Acknowledged {
 		utils.PacketIsWaiting(ack.PacketID, packetsWaitingAck, pMutex, false)
-		fmt.Println("[UDP] Sender didn't acknowledge packet", ack.PacketID)
+		log.Println("[UDP] Sender didn't acknowledge packet", ack.PacketID)
 		return false
 	}
 
 	pMutex.Lock()
 	delete(packetsWaitingAck, ack.PacketID)
 	pMutex.Unlock()
-	fmt.Println("[UDP] Sender acknowledged packet", ack.PacketID)
+	log.Println("[UDP] Sender acknowledged packet", ack.PacketID)
 
 	// if the packet was acknowledged, the connection can be closed, as it's no longer needed
 	conn.Close()

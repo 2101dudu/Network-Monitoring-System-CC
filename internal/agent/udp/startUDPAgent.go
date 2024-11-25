@@ -1,11 +1,15 @@
 package udp
 
 import (
+	"log"
 	utils "nms/internal/utils"
 	"time"
 )
 
 func StartUDPAgent() {
+	// incldude "| log.Lshortfile" in the log flags to include the file name and line of code in the log
+	log.SetFlags(log.Ltime | log.Lmicroseconds)
+
 	ip := utils.GetIPAddress()
 
 	serverConn := utils.ResolveUDPAddrAndDial("localhost", "8081")

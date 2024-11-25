@@ -1,7 +1,7 @@
 package udp
 
 import (
-	"fmt"
+	"log"
 	"net"
 	ack "nms/internal/packet/ack"
 	registration "nms/internal/packet/registration"
@@ -30,14 +30,14 @@ func registerAgent(conn *net.UDPConn, agentIP string) {
 
 	ackWasSent := false
 	for !ackWasSent {
-		fmt.Println("[AGENT] [MAIN READ THREAD] Waiting for response from server")
+		log.Println("[AGENT] [MAIN READ THREAD] Waiting for response from server")
 
 		// read packet from server
 		n, _, data := utils.ReadUDP(conn, "[AGENT] [MAIN READ THREAD] Response received", "[AGENT] [MAIN READ THREAD] [ERROR 5] Unable to read response")
 
 		// Check if data was received
 		if n == 0 {
-			fmt.Println("[AGENT] [MAIN READ THREAD] [ERROR 6] No data received")
+			log.Println("[AGENT] [MAIN READ THREAD] [ERROR 6] No data received")
 			return
 		}
 
@@ -46,7 +46,7 @@ func registerAgent(conn *net.UDPConn, agentIP string) {
 		packetPayload := data[1:n]
 
 		if packetType != utils.ACK {
-			fmt.Println("[AGENT] [ERROR 17] Unexpected packet type received from server")
+			log.Println("[AGENT] [ERROR 17] Unexpected packet type received from server")
 			return
 		}
 		ackWasSent = ack.HandleAck(packetPayload, packetsWaitingAck, &pMutex, agentID, conn)

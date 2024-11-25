@@ -9,7 +9,7 @@ func main() {
 	//} else if protocol == "udp" {
 	//	agent.ConnectUDP(serverAddr)
 	//} else {
-	//	fmt.Println("[ERROR] Unknown procotol")
+	//	log.Println("[ERROR] Unknown procotol")
 	//	os.Exit(1)
 	//}
 

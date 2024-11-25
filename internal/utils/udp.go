@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"fmt"
+	"log"
 	"net"
 	"os"
 )
@@ -17,33 +17,33 @@ func WriteUDP(conn *net.UDPConn, udpAddr *net.UDPAddr, data []byte, successMessa
 	}
 
 	if err != nil {
-		fmt.Println(errorMessage, ":", err)
+		log.Println(errorMessage, ":", err)
 		os.Exit(1)
 	}
-	fmt.Println(successMessage)
+	log.Println(successMessage)
 }
 
 func ReadUDP(conn *net.UDPConn, successMessage string, errorMessage string) (int, *net.UDPAddr, []byte) {
 	newData := make([]byte, 1024)
 	n, udpAddr, err := conn.ReadFromUDP(newData)
 	if err != nil {
-		fmt.Println(errorMessage, ":", err)
+		log.Println(errorMessage, ":", err)
 		os.Exit(1)
 	}
-	fmt.Println(successMessage)
+	log.Println(successMessage)
 	return n, udpAddr, newData
 }
 
 func ResolveUDPAddrAndListen(ip string, port string) *net.UDPConn {
 	addr, err := net.ResolveUDPAddr("udp", ip+":"+port)
 	if err != nil {
-		fmt.Println("[AGENT] [ERROR 8] Unable to resolve address:", err)
+		log.Println("[AGENT] [ERROR 8] Unable to resolve address:", err)
 		os.Exit(1)
 	}
 
 	conn, err := net.ListenUDP("udp", addr)
 	if err != nil {
-		fmt.Println("[AGENT] [ERROR 9] Unable to initialize the agent:", err)
+		log.Println("[AGENT] [ERROR 9] Unable to initialize the agent:", err)
 		os.Exit(1)
 	}
 
@@ -53,13 +53,13 @@ func ResolveUDPAddrAndListen(ip string, port string) *net.UDPConn {
 func ResolveUDPAddrAndDial(ip string, port string) *net.UDPConn {
 	udpAddr, err := net.ResolveUDPAddr("udp", ip+":"+port)
 	if err != nil {
-		fmt.Println("[AGENT] [ERROR 1] Unable to resolve address:", err)
+		log.Println("[AGENT] [ERROR 1] Unable to resolve address:", err)
 		os.Exit(1)
 	}
 
 	conn, err := net.DialUDP("udp", nil, udpAddr)
 	if err != nil {
-		fmt.Println("[AGENT] [ERROR 2] Unable to connect:", err)
+		log.Println("[AGENT] [ERROR 2] Unable to connect:", err)
 		os.Exit(1)
 	}
 	return conn

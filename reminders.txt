@@ -13,7 +13,6 @@ A fazer:
 	- separar Tasks de parser
     - trocar o que seja de IPs para DNS
     - relembrar que os packetIDs não estão a incrementar
-    - fmt -> log; log.SetFlags(log.Ltime | log.Lmicroseconds| log.Lshortfile)
     - remover uso de Os.Exit e usar log.Fatalln
 
 

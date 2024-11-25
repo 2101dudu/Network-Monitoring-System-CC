@@ -2,7 +2,7 @@ package registration
 
 import (
 	"errors"
-	"fmt"
+	"log"
 	utils "nms/internal/utils"
 	"os"
 )
@@ -79,7 +79,7 @@ func CreateRegistrationPacket(ID byte, ip string) (byte, []byte) {
 	// generate Agent ID
 	agentID, err := utils.GetAgentID()
 	if err != nil {
-		fmt.Println("[AGENT] [ERROR 3] Unable to get agent ID:", err)
+		log.Println("[AGENT] [ERROR 3] Unable to get agent ID:", err)
 		os.Exit(1)
 	}
 
