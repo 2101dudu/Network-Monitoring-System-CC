@@ -74,7 +74,7 @@ func EncodeAck(ack Ack) []byte {
 
 func EncodeAndSendAck(conn *net.UDPConn, udpAddr *net.UDPAddr, ack Ack) {
 	ackData := EncodeAck(ack)
-	utils.WriteUDP(conn, udpAddr, ackData, "[UDP] Packet sent", "[ERROR 14] Unable to send packet")
+	utils.WriteUDP(conn, udpAddr, ackData, "[UDP] Ack sent", "[ERROR 14] Unable to send ack")
 }
 
 func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, senderID byte, conn *net.UDPConn) bool {

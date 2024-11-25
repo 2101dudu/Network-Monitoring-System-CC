@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"fmt"
 	"os/exec"
-	s "strconv"
+	"strconv"
+	"strings"
 )
 
 type PacketType byte
@@ -18,7 +20,7 @@ const (
 
 const (
 	TIMEOUTSECONDS = 2
-	MAXAGENTS      = 10
+	MAXAGENTS      = 1
 )
 
 func BoolToByte(b bool) byte {
@@ -37,16 +39,20 @@ func GetAgentID() (byte, error) {
 	return byte(1), err
 }
 
-func IPStringToByte(ip string) [4]byte {
-	byteIP := [4]byte{0, 0, 0, 0}
-	n := 0
-	for i, aux := 0, 0; i < len(ip); i++ {
-		if ip[i] == '.' {
-			intIP, _ := s.Atoi(ip[aux:i])
-			byteIP[n] = byte(intIP)
-			n++
-			aux = i + 1
-		}
+func IPStringToByte(ip string) ([4]byte, error) {
+	var byteIP [4]byte
+	segments := strings.Split(ip, ".")
+	if len(segments) != 4 {
+		return byteIP, fmt.Errorf("invalid IP address: %s", ip)
 	}
-	return byteIP
+
+	for i, segment := range segments {
+		intIP, err := strconv.Atoi(segment)
+		if err != nil || intIP < 0 || intIP > 255 {
+			return byteIP, fmt.Errorf("invalid IP segment: %s", segment)
+		}
+		byteIP[i] = byte(intIP)
+	}
+
+	return byteIP, nil
 }

@@ -5,7 +5,7 @@ import (
 	parse "nms/internal/jsonParse"
 )
 
-func convertTaskIntoIperfClientPacket(task parse.Task, clientIndex byte) IperfClientPacket {
+func ConvertTaskIntoIperfClientPacket(task parse.Task, clientIndex byte) IperfClientPacket {
 	// main fields
 	aID := task.Devices[clientIndex].DeviceID
 	tID := task.TaskID

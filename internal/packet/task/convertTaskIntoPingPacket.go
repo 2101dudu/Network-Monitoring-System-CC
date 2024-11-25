@@ -5,7 +5,7 @@ import (
 	parse "nms/internal/jsonParse"
 )
 
-func convertTaskIntoPingPacket(task parse.Task) PingPacket {
+func ConvertTaskIntoPingPacket(task parse.Task) PingPacket {
 	// main fields
 	aID := task.Devices[0].DeviceID
 	tID := task.TaskID
