@@ -13,14 +13,11 @@ func StartUDPAgent() {
 
 	// make the agent open an UDP connection via port 9091
 	agentConn := utils.ResolveUDPAddrAndListen(ip, "9091")
+	defer agentConn.Close()
 
 	// make the agent connect to the server via UDP on port 8081
 	serverConn := utils.ResolveUDPAddrAndDial("localhost", "8081")
 	registerAgent(serverConn, ip)
 
-	for {
-		data := make([]byte, 1024)
-		agentConn.Read(data)
-		log.Println("[AGENT] [MAIN READ THREAD] Data received from server", ":", string(data))
-	}
+	handleTasks(agentConn)
 }

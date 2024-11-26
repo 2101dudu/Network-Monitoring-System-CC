@@ -1,10 +1,10 @@
 package jsonParse
 
 type PingParameters struct {
-	Enabled     bool   `json:"enabled"`
-	Destination string `json:"destination"`
-	PacketCount uint16 `json:"packet_count"`
-	Frequency   byte   `json:"frequency"`
+	Enabled     bool    `json:"enabled"`
+	Destination string  `json:"destination"`
+	PacketCount uint16  `json:"packet_count"`
+	Frequency   float32 `json:"frequency"`
 }
 
 func validatePingParameters(pingParameters PingParameters) bool {

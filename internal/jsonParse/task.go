@@ -42,8 +42,8 @@ func validateTask(task Task) bool {
 			return false
 		}
 
-		// check if packet count / frequency is more than metric gathering frequency
-		if task.Frequency < task.Devices[0].LinkMetrics.PingParameters.PacketCount/uint16(task.Devices[0].LinkMetrics.PingParameters.Frequency) {
+		// check if packet count * frequency is more than metric gathering frequency
+		if task.Frequency < task.Devices[0].LinkMetrics.PingParameters.PacketCount*uint16(task.Devices[0].LinkMetrics.PingParameters.Frequency) {
 			return false
 		}
 	}

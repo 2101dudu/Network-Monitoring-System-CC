@@ -28,7 +28,9 @@ func ConvertTaskIntoPingPacket(task parse.Task) PingPacket {
 
 	// build ping command
 	destination := task.Devices[0].LinkMetrics.PingParameters.Destination
-	pingCommand := fmt.Sprintf("ping -c %d -i %d %s", task.Devices[0].LinkMetrics.PingParameters.PacketCount, task.Devices[0].LinkMetrics.PingParameters.Frequency, destination)
+	packetCount := task.Devices[0].LinkMetrics.PingParameters.PacketCount
+	frequency := task.Devices[0].LinkMetrics.PingParameters.Frequency
+	pingCommand := fmt.Sprintf("ping -c %d -i %.1f %s", packetCount, frequency, destination)
 
 	// build ping packet
 	pingPacket := NewPingPacketBuilder().
