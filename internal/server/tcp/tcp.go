@@ -3,6 +3,7 @@ package server
 import (
 	"log"
 	"net"
+	"nms/internal/utils"
 )
 
 func StartTCPServer(port string) {
@@ -32,7 +33,7 @@ func handleTCPConnection(conn net.Conn) {
 
 	// decode and process registration request from agent
 
-	regData := make([]byte, 1024)
+	regData := make([]byte, utils.BUFFERSIZE)
 	_, err := conn.Read(regData)
 	if err != nil {
 		log.Fatalln("[TCP] [ERROR] Unable to read data:", err)

@@ -22,7 +22,7 @@ func WriteUDP(conn *net.UDPConn, udpAddr *net.UDPAddr, data []byte, successMessa
 }
 
 func ReadUDP(conn *net.UDPConn, successMessage string, errorMessage string) (int, *net.UDPAddr, []byte) {
-	newData := make([]byte, 1024)
+	newData := make([]byte, BUFFERSIZE)
 	n, udpAddr, err := conn.ReadFromUDP(newData)
 	if err != nil {
 		log.Fatalln(errorMessage, ":", err)

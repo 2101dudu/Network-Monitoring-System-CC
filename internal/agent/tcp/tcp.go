@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 	registration "nms/internal/packet/registration"
+	"nms/internal/utils"
 )
 
 func ConnectTCP(serverAddr string) {
@@ -25,7 +26,7 @@ func ConnectTCP(serverAddr string) {
 	log.Println("[TCP] Registration request sent")
 
 	// decode new registration request from server and update registration
-	newRegData := make([]byte, 1024)
+	newRegData := make([]byte, utils.BUFFERSIZE)
 	n, err := conn.Read(newRegData)
 	if err != nil {
 		log.Fatalln("[TCP] [ERROR] Unable to read data:", err)
