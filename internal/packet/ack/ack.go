@@ -117,12 +117,14 @@ func SendPacketAndWaitForAck(packetID byte, packetsWaitingAck map[byte]bool, pMu
 		}
 
 		if !waiting || time.Since(packetSent) >= utils.TIMEOUTSECONDS*time.Second {
-			//log.Println("\n\nHQEKROE\n\n")
 			utils.WriteUDP(conn, udpAddr, packetData, successMessage, errorMessage)
 
 			utils.PacketIsWaiting(packetID, packetsWaitingAck, pMutex, true)
 
 			packetSent = time.Now()
 		}
+
+		// add a small delay to prevent the loop from running too fast
+		time.Sleep(1 * time.Millisecond)
 	}
 }

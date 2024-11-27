@@ -3,7 +3,6 @@ package udp
 import (
 	"log"
 	"net"
-	ack "nms/internal/packet/ack"
 	task "nms/internal/packet/task"
 	utils "nms/internal/utils"
 	"os/exec"
@@ -26,7 +25,7 @@ func handleTasks(agentConn *net.UDPConn) {
 
 		switch taskType {
 		case utils.PING:
-			handlePingTask(taskPayload, agentConn, udpAddr)
+			handlePingTask(taskPayload)
 		case utils.IPERFCLIENT:
 			handleIperfClientTask(taskPayload, agentConn, udpAddr)
 		case utils.IPERFSERVER:
@@ -35,13 +34,8 @@ func handleTasks(agentConn *net.UDPConn) {
 	}
 }
 
-func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDPAddr) {
+func handlePingTask(taskPayload []byte) {
 	packet, err := task.DecodePingPacket(taskPayload)
-
-	// valida ping: tudo bem?
-	newAck := ack.NewAckBuilder().SetPacketID(packet.PacketID).SetSenderID(packet.AgentID).HasAcknowledged().Build()
-	ack.EncodeAndSendAck(agentConn, udpAddr, newAck)
-
 	if err != nil {
 		log.Fatalln("[AGENT] [ERROR 81] Decoding ping packet")
 	}

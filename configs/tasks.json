@@ -21,8 +21,8 @@
                     "ping_parameters": { 
                         "enabled": true,
                         "destination": "www.google.com",
-                        "packet_count": 60,
-                        "frequency": 0.1
+                        "packet_count": 4,
+                        "frequency": 0.5
                     }
                 },
                 "alertflow_conditions": {
