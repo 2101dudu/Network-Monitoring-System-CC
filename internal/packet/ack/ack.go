@@ -107,24 +107,53 @@ func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.
 	return true
 }
 
-func SendPacketAndWaitForAck(packetID byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, conn *net.UDPConn, udpAddr *net.UDPAddr, packetData []byte, successMessage string, errorMessage string) {
-	packetSent := time.Now()
-	for {
-		waiting, exists := utils.GetPacketStatus(packetID, packetsWaitingAck, pMutex)
+func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, conn *net.UDPConn, udpAddr *net.UDPAddr, packetData []byte, successMessage string, errorMessage string) {
+	// set the status of the packet to "not" waiting for ack, because it is yet to be sent
+	utils.PacketIsWaiting(packetID, packetsWaitingAck, pMutex, false)
 
-		if !exists { // registration packet has been removed from map
+	packetSentInstant := time.Now()
+	go func() {
+		for {
+			waiting, exists := utils.GetPacketStatus(packetID, packetsWaitingAck, pMutex)
+
+			if !exists { // registration packet has been removed from map
+				return
+			}
+
+			if !waiting || time.Since(packetSentInstant) >= utils.TIMEOUTSECONDS*time.Second {
+				utils.WriteUDP(conn, udpAddr, packetData, successMessage, errorMessage)
+
+				utils.PacketIsWaiting(packetID, packetsWaitingAck, pMutex, true)
+
+				packetSentInstant = time.Now()
+			}
+
+			// add a small delay to prevent the loop from running too fast
+			//time.Sleep(1 * time.Millisecond)
+		}
+	}()
+
+	ackWasSent := false
+	for !ackWasSent {
+		log.Println("[UDP] Waiting for ack")
+
+		// read packet
+		n, _, data := utils.ReadUDP(conn, "[UDP] Ack received", "[UDP] [ERROR 5] Unable to read ack")
+
+		// Check if data was received
+		if n == 0 {
+			log.Println("[UDP] [ERROR 6] No data received")
 			return
 		}
 
-		if !waiting || time.Since(packetSent) >= utils.TIMEOUTSECONDS*time.Second {
-			utils.WriteUDP(conn, udpAddr, packetData, successMessage, errorMessage)
+		// get ACK contents
+		packetType := utils.PacketType(data[0])
+		packetPayload := data[1:n]
 
-			utils.PacketIsWaiting(packetID, packetsWaitingAck, pMutex, true)
-
-			packetSent = time.Now()
+		if packetType != utils.ACK {
+			log.Println("[UDP] [ERROR 17] Unexpected packet type received")
+			return
 		}
-
-		// add a small delay to prevent the loop from running too fast
-		time.Sleep(1 * time.Millisecond)
+		ackWasSent = HandleAck(packetPayload, packetsWaitingAck, pMutex, senderID, conn)
 	}
 }

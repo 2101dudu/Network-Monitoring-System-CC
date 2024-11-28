@@ -28,5 +28,5 @@ func handleRegistrations(conn *net.UDPConn) {
 		}
 		handleRegistration(packetPayload, conn, udpAddr)
 	}
-	conn.Close()
+	//conn.Close()
 }

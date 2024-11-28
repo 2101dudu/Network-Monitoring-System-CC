@@ -4,6 +4,12 @@ import (
 	"log"
 	parse "nms/internal/jsonParse"
 	utils "nms/internal/utils"
+	"sync"
+)
+
+var (
+	packetsWaitingAck = make(map[byte]bool)
+	pMutex            sync.Mutex
 )
 
 var agentsIPs map[byte][4]byte
@@ -21,14 +27,19 @@ func StartUDPServer(port string) {
 	// Initialize the map
 	agentsIPs = make(map[byte][4]byte)
 
+	// make the server open an UDP connection via port 8081
 	serverConn := utils.ResolveUDPAddrAndListen("localhost", "8081")
+
+	// handle registrations from agents
 	handleRegistrations(serverConn)
 
 	//serverConn.SetDeadline(time.Now().Add(5 * time.Second))
 
-	//serverConn.Close()
-
+	// connect and send tasks to agents
 	handleTasks(taskList)
 
-	// go Receive metrics
+	// go Receive metrics from agents
+
+	// close the server connection
+	serverConn.Close()
 }
