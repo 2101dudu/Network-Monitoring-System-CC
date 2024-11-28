@@ -3,15 +3,20 @@ package udp
 import (
 	"log"
 	parse "nms/internal/jsonParse"
-	task "nms/internal/packet/task"
 	utils "nms/internal/utils"
+	"sync"
+)
+
+var (
+	packetsWaitingAck = make(map[byte]bool)
+	pMutex            sync.Mutex
 )
 
 var agentsIPs map[byte][4]byte
 
 func StartUDPServer(port string) {
 	// incldude "| log.Lshortfile" in the log flags to include the file name and line of code in the log
-	log.SetFlags(log.Ltime | log.Lmicroseconds)
+	log.SetFlags(log.Ltime | log.Lmicroseconds | log.Lshortfile)
 
 	jsonData := parse.GetDataFromJson("configs/tasks.json")
 	var taskList []parse.Task = parse.ParseDataFromJson(jsonData)
@@ -19,19 +24,22 @@ func StartUDPServer(port string) {
 	// validate tasks
 	parse.ValidateTaskList(taskList)
 
-	task.HandleTasks(taskList)
-
 	// Initialize the map
 	agentsIPs = make(map[byte][4]byte)
 
+	// make the server open an UDP connection via port 8081
 	serverConn := utils.ResolveUDPAddrAndListen("localhost", "8081")
+
+	// handle registrations from agents
 	handleRegistrations(serverConn)
 
 	//serverConn.SetDeadline(time.Now().Add(5 * time.Second))
 
-	//serverConn.Close()
+	// connect and send tasks to agents
+	handleTasks(taskList)
 
-	// go Send tasks
+	// go Receive metrics from agents
 
-	// go Receive metrics
+	// close the server connection
+	serverConn.Close()
 }

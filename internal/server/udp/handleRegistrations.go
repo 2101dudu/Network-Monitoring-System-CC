@@ -16,7 +16,7 @@ func handleRegistrations(conn *net.UDPConn) {
 		// Check if there is data
 		if n == 0 {
 			log.Println("[SERVER] [MAIN READ THREAD] [ERROR 11] No data received")
-			return
+			continue
 		}
 
 		// type cast the data to the appropriate packet type
@@ -24,10 +24,9 @@ func handleRegistrations(conn *net.UDPConn) {
 		packetPayload := data[1:n]
 
 		if packetType != utils.REGISTRATION {
-			log.Println("[AGENT] [ERROR 18] Unexpected packet type received from server")
-			return
+			log.Fatalln("[AGENT] [ERROR 18] Unexpected packet type received from server")
 		}
 		handleRegistration(packetPayload, conn, udpAddr)
 	}
-	conn.Close()
+	//conn.Close()
 }

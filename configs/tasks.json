@@ -1,71 +1,5 @@
 [
     {
-        "task_id": 202, 
-        "frequency": 20,
-        "devices": [
-            {
-                "device_id": 1,
-                "device_metrics": {
-                    "cpu_usage": true,
-                    "ram_usage": true,
-                    "interface_stats": ["eth0", "eth1", "eth2"]
-                },
-                "link_metrics": {
-                    "iperf_parameters": {
-                        "bandwidth": false,
-                        "jitter": true,
-                        "packet_loss": true,
-                        "is_server": true,
-                        "test_duration": 12
-                    },
-                    "ping_parameters": { 
-                        "enabled": false,
-                        "destination": "",
-                        "packet_count": 50,
-                        "frequency": 20
-                    }
-                },
-                "alertflow_conditions": {
-                    "cpu_usage": 90,
-                    "ram_usage": 90,
-                    "interface_stats": 2000,
-                    "packet_loss": 5,
-                    "jitter": 100
-                }
-            },
-            {
-                "device_id": 2,
-                "device_metrics": {
-                    "cpu_usage": true,
-                    "ram_usage": true,
-                    "interface_stats": ["eth0", "eth1", "eth2"]
-                },
-                "link_metrics": {
-                    "iperf_parameters": {
-                        "bandwidth": false,
-                        "jitter": true,
-                        "packet_loss": true,
-                        "is_server": false,
-                        "test_duration": 12
-                    },
-                    "ping_parameters": { 
-                        "enabled": false,
-                        "destination": "",
-                        "packet_count": 50,
-                        "frequency": 20
-                    }
-                },
-                "alertflow_conditions": {
-                    "cpu_usage": 80,
-                    "ram_usage": 90,
-                    "interface_stats": 2000,
-                    "packet_loss": 5,
-                    "jitter": 100
-                }
-            }
-        ]
-    },    
-    {
         "task_id": 203, 
         "frequency": 20,
         "devices": [
@@ -86,9 +20,9 @@
                     },
                     "ping_parameters": { 
                         "enabled": true,
-                        "destination": "192.168.1.2",
-                        "packet_count": 60,
-                        "frequency": 20
+                        "destination": "www.google.com",
+                        "packet_count": 10,
+                        "frequency": 0.1
                     }
                 },
                 "alertflow_conditions": {

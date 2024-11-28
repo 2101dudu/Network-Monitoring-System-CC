@@ -4,7 +4,7 @@ import (
 	parse "nms/internal/jsonParse"
 )
 
-func convertTaskIntoIperfServerPacket(task parse.Task, serverIndex byte) IperfServerPacket {
+func ConvertTaskIntoIperfServerPacket(task parse.Task, serverIndex byte) IperfServerPacket {
 	// main fields
 	aID := task.Devices[serverIndex].DeviceID
 	tID := task.TaskID
