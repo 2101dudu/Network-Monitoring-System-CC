@@ -46,7 +46,7 @@ func registerAgent(conn *net.UDPConn, agentIP string) {
 		packetPayload := data[1:n]
 
 		if packetType != utils.ACK {
-			log.Println("[AGENT] [ERROR 17] Unexpected packet type received from server")
+			log.Println("[AGENT] [MAIN READ THREAD] [ERROR 17] Unexpected packet type received from server")
 			return
 		}
 		ackWasSent = ack.HandleAck(packetPayload, packetsWaitingAck, &pMutex, agentID, conn)
