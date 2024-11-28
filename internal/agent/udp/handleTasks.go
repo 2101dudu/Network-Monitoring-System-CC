@@ -47,14 +47,13 @@ func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDP
 	// ELSE !VALIDAPACKET -> ENVIA NOACK, RETURN
 
 	// execute the pingPacket's command
-	cmd := exec.Command("sh", "-c", packet.PingCommand)
+	output, err := ExecuteCommandWithMonitoring(packet.PingCommand, packet.DeviceMetrics, packet.AlertFlowConditions)
 
-	stdout, stderr := cmd.CombinedOutput()
-	if stderr != nil {
-		log.Fatalln("[AGENT] [ERROR 82] Executing ping command")
+	if err != nil {
+		log.Fatalln("[AGENT] [ERROR 81] Executing ping command")
 	}
 
-	log.Println(string(stdout))
+	log.Println(output)
 }
 
 func handleIperfClientTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDPAddr) {
