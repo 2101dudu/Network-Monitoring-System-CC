@@ -21,6 +21,7 @@ const (
 const (
 	TIMEOUTSECONDS = 2
 	MAXAGENTS      = 1
+  BUFFERSIZE     = 1024
 )
 
 func BoolToByte(b bool) byte {
