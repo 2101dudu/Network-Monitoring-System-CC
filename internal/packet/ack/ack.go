@@ -80,8 +80,7 @@ func EncodeAndSendAck(conn *net.UDPConn, udpAddr *net.UDPAddr, ack Ack) {
 func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, senderID byte) bool {
 	ack, err := DecodeAck(ackPayload)
 	if err != nil {
-		log.Println("[ERROR 15] Unable to decode Ack")
-		return false
+		log.Fatalln("[ERROR 15] Unable to decode Ack")
 	}
 
 	_, exist := utils.GetPacketStatus(ack.PacketID, packetsWaitingAck, pMutex)
@@ -112,7 +111,9 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 	go func() {
 		defer wg.Done()
 		// set the status of the packet to "not" waiting for ack, because it is yet to be sent
-		utils.PacketIsWaiting(packetID, packetsWaitingAck, pMutex, false)
+		pMutex.Lock()
+		packetsWaitingAck[packetID] = false
+		pMutex.Unlock()
 
 		packetSentInstant := time.Now()
 		for {

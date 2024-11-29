@@ -24,8 +24,7 @@ func handleMetrics(conn *net.UDPConn) {
 
 		// Check if the packet type is correct
 		if packetType != utils.METRICSGATHERING {
-			log.Println(packetType)
-			log.Fatalln("[AGENT] [ERROR 18] Unexpected packet type received from server")
+			log.Fatalln("[AGENT] [ERROR 18] Unexpected packet type received from server", packetType)
 		}
 		handleMetricsGathering(packetPayload, conn, udpAddr)
 	}

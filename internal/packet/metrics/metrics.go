@@ -2,7 +2,6 @@ package metrics
 
 import (
 	"errors"
-	"nms/internal/utils"
 )
 
 type Metrics struct {
@@ -57,5 +56,5 @@ func DecodeMetrics(packet []byte) (Metrics, error) {
 }
 
 func EncodeMetrics(metrics Metrics) []byte {
-	return append([]byte{byte(utils.METRICSGATHERING), metrics.PacketID, metrics.AgentID}, []byte(metrics.Metrics)...)
+	return append([]byte{byte(2), metrics.PacketID, metrics.AgentID}, []byte(metrics.Metrics)...)
 }
