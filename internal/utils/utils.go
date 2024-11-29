@@ -16,12 +16,14 @@ const (
 	IPERFCLIENT
 	IPERFSERVER
 	PING
+	ALERT
 )
 
 const (
 	TIMEOUTSECONDS = 2
 	MAXAGENTS      = 1
-  BUFFERSIZE     = 1024
+	BUFFERSIZE     = 1024
+	SERVERTCP      = "8080"
 )
 
 func BoolToByte(b bool) byte {

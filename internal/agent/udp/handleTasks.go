@@ -3,7 +3,9 @@ package udp
 import (
 	"log"
 	"net"
+	tcp "nms/internal/agent/tcp"
 	ack "nms/internal/packet/ack"
+	alert "nms/internal/packet/alert"
 	task "nms/internal/packet/task"
 	utils "nms/internal/utils"
 	"os/exec"
@@ -36,9 +38,9 @@ func handleTasks(agentConn *net.UDPConn) {
 }
 
 func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDPAddr) {
-	packet, err := task.DecodePingPacket(taskPayload)
-	if err != nil {
-		log.Fatalln("[AGENT] [ERROR 81] Decoding ping packet")
+	packet, errDecode := task.DecodePingPacket(taskPayload)
+	if errDecode != nil {
+		log.Println("[AGENT] [ERROR 81] Decoding ping packet")
 	}
 
 	// IF VALIDAPACKET -> ENVIA ACK
@@ -47,12 +49,36 @@ func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDP
 	// ELSE !VALIDAPACKET -> ENVIA NOACK, RETURN
 
 	// execute the pingPacket's command
-	output, err := ExecuteCommandWithMonitoring(packet.PingCommand, packet.DeviceMetrics, packet.AlertFlowConditions)
+	output, cpuAlert, ramAlert, err := ExecuteCommandWithMonitoring(packet.PingCommand, packet.DeviceMetrics, packet.AlertFlowConditions)
 
 	if err != nil {
-		log.Fatalln("[AGENT] [ERROR 81] Executing ping command")
+		log.Println("[AGENT] [ERROR] Executing ping command")
 	}
 
+	if cpuAlert || ramAlert || err != nil {
+
+		agentID, errAgent := utils.GetAgentID()
+		if errAgent != nil {
+			log.Fatalln("[AGENT] Unable to get agent ID:", errAgent)
+		}
+
+		buildAlert := alert.NewAlertBuilder().
+			SetPacketID(packet.PacketID).
+			SetSenderID(agentID).
+			SetTaskID(packet.TaskID).
+			SetCpuAlert(cpuAlert).
+			SetRamAlert(ramAlert)
+
+		if err != nil || errDecode != nil || errAgent != nil {
+			buildAlert.SetErrorAlert(true)
+		}
+		//No iperf convém verificar no parse do output os outros dados como jitter e packetloss
+
+		newAlert := buildAlert.Build()                        // build full alert with given sets
+		tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
+	}
+
+	//parse of output and send
 	log.Println(output)
 }
 

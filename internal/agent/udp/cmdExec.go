@@ -2,6 +2,7 @@ package udp
 
 import (
 	"fmt"
+	"log"
 	"os/exec"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 	"github.com/shirou/gopsutil/mem"
 )
 
-func ExecuteCommandWithMonitoring(command string, metrics task.DeviceMetrics, conditions task.AlertFlowConditions) (string, error) {
+func ExecuteCommandWithMonitoring(command string, metrics task.DeviceMetrics, conditions task.AlertFlowConditions) (string, bool, bool, error) {
 	done := make(chan struct{})
 	alertResults := make(chan struct {
 		cpuAlert bool
@@ -21,7 +22,7 @@ func ExecuteCommandWithMonitoring(command string, metrics task.DeviceMetrics, co
 	go monitorSystemMetrics(metrics, conditions, done, alertResults)
 
 	cmd := exec.Command("sh", "-c", command)
-	fmt.Println("Executing command:", command)
+	log.Println("Executing command:", command)
 	stdout, err := cmd.CombinedOutput()
 
 	close(done)
@@ -29,31 +30,18 @@ func ExecuteCommandWithMonitoring(command string, metrics task.DeviceMetrics, co
 	finalAlerts := <-alertResults
 
 	if err != nil {
-		return string(stdout), err
+		return string(stdout), finalAlerts.cpuAlert, finalAlerts.ramAlert, err
 	}
 
-	if finalAlerts.cpuAlert {
-		fmt.Println("[ALERT] CPU usage exceeded.")
-	}
+	/* 	if finalAlerts.cpuAlert {
+	   		log.Println("alerta cpu.")
+	   	}
+	   	if finalAlerts.ramAlert {
+	   		log.Println("alerta ram.")
+	   	} */
 
-	if finalAlerts.ramAlert {
-		fmt.Println("[ALERT] RAM exceeded.")
-	}
-
-	//em vez destes ifs envia um byte com 0-> cpu excedido 1-> ram excedida ou 2-> os dois
-
-	/* type Alert struct { // + type of message
-		PacketID byte
-		SenderID byte
-		TaskID   byte //? Só para depois saber de que tarefa é
-		CpuAlert bool
-		RamAlert bool
-		Jitter   bool // Estes últimos dois para posteriormente verificarmos no parse do stdout
-		PacketLoss bool
-	} */
-
-	fmt.Println("Command executed.")
-	return string(stdout), nil //os alertas poderemos retornar aqui para depois enviar um alerta geral com todas as coisas em que houve erro como mostrado na struct anterior
+	log.Println("Command executed.")
+	return string(stdout), finalAlerts.cpuAlert, finalAlerts.ramAlert, nil //os alertas poderemos retornar aqui para depois enviar um alerta geral com todas as coisas em que houve erro como mostrado na struct anterior
 }
 
 func monitorSystemMetrics(metrics task.DeviceMetrics, conditions task.AlertFlowConditions, done chan struct{}, alertResults chan struct {
@@ -66,8 +54,13 @@ func monitorSystemMetrics(metrics task.DeviceMetrics, conditions task.AlertFlowC
 	cpuAlert := false
 	ramAlert := false
 
-	fmt.Println("[MONITOR] Start")
+	log.Println("[MONITOR] Start")
 	for {
+
+		if ramAlert && cpuAlert { // If both alerts happened then can stop
+			return
+		}
+
 		select {
 		case <-done:
 
@@ -75,7 +68,7 @@ func monitorSystemMetrics(metrics task.DeviceMetrics, conditions task.AlertFlowC
 				cpuAlert bool
 				ramAlert bool
 			}{cpuAlert, ramAlert}
-			fmt.Println("[MONITOR] End")
+			log.Println("[MONITOR] End")
 			return
 
 		case <-ticker.C:

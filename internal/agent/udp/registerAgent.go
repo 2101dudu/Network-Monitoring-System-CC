@@ -16,7 +16,4 @@ func registerAgent(conn *net.UDPConn, agentIP string) {
 	successMessage := "[AGENT] Registration request sent"
 	errorMessage := "[AGENT] [ERROR 4] Unable to send registration request"
 	ack.SendPacketAndWaitForAck(firstPacketID, agentID, packetsWaitingAck, &pMutex, conn, nil, registrationData, successMessage, errorMessage)
-
-	// ack was received, close connection
-	conn.Close()
 }
