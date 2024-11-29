@@ -26,15 +26,18 @@ func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDP
 	// execute the pingPacket's command
 	cmd := exec.Command("sh", "-c", pingPacket.PingCommand)
 
-	std, err := cmd.CombinedOutput()
+	outputData, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Fatalln("[AGENT] [ERROR 82] Executing ping command")
 	}
 
+	preparedOutput := parsePingOutput(string(outputData))
+
 	serverConn := utils.ResolveUDPAddrAndDial("localhost", "8081")
 
 	var metricsID byte = 99
-	newMetrics := metrics.NewMetricsBuilder().SetPacketID(metricsID).SetAgentID(agentID).SetMetrics(string(std)).Build()
-	data := metrics.EncodeMetrics(newMetrics)
-	ack.SendPacketAndWaitForAck(metricsID, agentID, packetsWaitingAck, &pMutex, serverConn, nil, data, "[SERVER] [MAIN READ THREAD] Metrics packet sent", "[SERVER] [ERROR 31] Unable to send metrics packet")
+	newMetrics := metrics.NewMetricsBuilder().SetPacketID(metricsID).SetAgentID(agentID).SetMetrics(preparedOutput).Build()
+
+	packetData := metrics.EncodeMetrics(newMetrics)
+	ack.SendPacketAndWaitForAck(metricsID, agentID, packetsWaitingAck, &pMutex, serverConn, nil, packetData, "[SERVER] [MAIN READ THREAD] Metrics packet sent", "[SERVER] [ERROR 31] Unable to send metrics packet")
 }

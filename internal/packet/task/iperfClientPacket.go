@@ -19,7 +19,7 @@ type IperfClientPacket struct {
 	DeviceMetrics       DeviceMetrics
 	AlertFlowConditions AlertFlowConditions
 	IperfClientCommand  string
-	Bandwith            bool
+	Bandwidth           bool
 	Jitter              bool
 	PacketLoss          bool
 }
@@ -38,7 +38,7 @@ func NewIperfClientPacketBuilder() *IperfClientPacketBuilder {
 			DeviceMetrics:       DeviceMetrics{},
 			AlertFlowConditions: AlertFlowConditions{},
 			IperfClientCommand:  "",
-			Bandwith:            false,
+			Bandwidth:           false,
 			Jitter:              false,
 			PacketLoss:          false,
 		},
@@ -81,7 +81,7 @@ func (b *IperfClientPacketBuilder) SetIperfClientCommand(cmd string) *IperfClien
 }
 
 func (b *IperfClientPacketBuilder) SetBandwidth(bandwidth bool) *IperfClientPacketBuilder {
-	b.IperfClientPacket.Bandwith = bandwidth
+	b.IperfClientPacket.Bandwidth = bandwidth
 	return b
 }
 
@@ -108,7 +108,7 @@ func EncodeIperfClientPacket(msg IperfClientPacket) ([]byte, error) {
 	buf.WriteByte(msg.AgentID)
 	binary.Write(buf, binary.BigEndian, msg.TaskID)
 	binary.Write(buf, binary.BigEndian, msg.Frequency)
-	buf.WriteByte(utils.BoolToByte(msg.Bandwith))
+	buf.WriteByte(utils.BoolToByte(msg.Bandwidth))
 	buf.WriteByte(utils.BoolToByte(msg.Jitter))
 	buf.WriteByte(utils.BoolToByte(msg.PacketLoss))
 
@@ -169,7 +169,7 @@ func DecodeIperfClientPacket(data []byte) (IperfClientPacket, error) {
 	}
 	msg.PacketID = packetID
 	msg.AgentID = agentID
-	msg.Bandwith = bandwidth == 1
+	msg.Bandwidth = bandwidth == 1
 	msg.Jitter = jitter == 1
 	msg.PacketLoss = packetLoss == 1
 
