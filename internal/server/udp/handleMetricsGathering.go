@@ -2,6 +2,7 @@ package udp
 
 import (
 	"encoding/json"
+	"io"
 	"log"
 	"net"
 	"nms/internal/packet/ack"
@@ -42,15 +43,27 @@ func handleMetricsGathering(packetPayload []byte, conn *net.UDPConn, udpAddr *ne
 		OutputString: met.Metrics,
 	}
 
-	file, err := os.OpenFile("output/metrics.json", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	file, err := os.OpenFile("output/metrics.json", os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		log.Fatalln("[SERVER] [ERROR 90] Unable to open metrics file:", err)
 	}
 	defer file.Close()
 
+	var metricsArray []MetricsData
+
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(&metricsArray); err != nil && err != io.EOF {
+		log.Fatalln("[SERVER] [ERROR 92] Unable to decode metrics data:", err)
+	}
+
+	metricsArray = append(metricsArray, metricsData)
+
+	file.Seek(0, 0)
+	file.Truncate(0)
+
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ") // Set indentation for pretty-printing
-	if err := encoder.Encode(metricsData); err != nil {
+	if err := encoder.Encode(metricsArray); err != nil {
 		log.Fatalln("[SERVER] [ERROR 91] Unable to encode metrics data:", err)
 	}
 }
