@@ -12,11 +12,13 @@ server: build-server run-server
 build-agent:
 	@echo "Building agent..."
 	@mkdir -p out/bin
+	@mkdir -p output
 	go build -o out/bin/agent $(AGENT_RUNNER)
 
 build-server:
 	@echo "Building server..."
 	@mkdir -p out/bin
+	@mkdir -p output
 	go build -o out/bin/server $(SERVER_RUNNER)
 
 run-agent:
@@ -30,6 +32,7 @@ run-server:
 clean:
 	@echo "Cleaning up..."
 	rm -rf out
+	rm -rf output
 	@echo "Clean complete."
 
 

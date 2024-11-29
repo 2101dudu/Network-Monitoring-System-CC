@@ -18,6 +18,5 @@ func handlePingTask(task parse.Task) {
 		log.Fatalln("[ERROR 21] Encoding ping packet")
 	}
 
-	//utils.WriteUDP(agentConn, nil, data, "[SERVER] [MAIN READ THREAD] Ping packet sent", "[SERVER] [ERROR 32] Unable to send ping packet")
 	ack.SendPacketAndWaitForAck(pingPacket.PacketID, 0, packetsWaitingAck, &pMutex, agentConn, nil, data, "[SERVER] [MAIN READ THREAD] Ping packet sent", "[SERVER] [ERROR 31] Unable to send ping packet")
 }

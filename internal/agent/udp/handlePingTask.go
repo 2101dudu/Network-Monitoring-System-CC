@@ -28,7 +28,7 @@ func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDP
 
 	outputData, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Fatalln("[AGENT] [ERROR 82] Executing ping command")
+		log.Fatalln("[AGENT] [ERROR 82] Executing ping command", err)
 	}
 
 	preparedOutput := parsePingOutput(string(outputData))

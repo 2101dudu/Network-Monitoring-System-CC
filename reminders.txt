@@ -34,10 +34,10 @@ Perguntas ao professor:
 
 
 A fazer:
-	- separar Tasks de parser
     - trocar o que seja de IPs para DNS
     - relembrar que os packetIDs não estão a incrementar
-    - separa funções do handletask.go
+    - VERIFICAR SE BYTE É SUFICIENTE PARA AGUENTAR COM TUDO — EM TODO O LADO
+    - mudar a estrutura do json
 
 
 
