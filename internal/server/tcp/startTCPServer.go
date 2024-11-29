@@ -1,31 +1,30 @@
-package server
+package tcp
 
 import (
 	"log"
-	"net"
-	"nms/internal/utils"
+	utils "nms/internal/utils"
 )
 
-func StartTCPServer(port string) {
-	listener, err := net.Listen("tcp", ":"+port)
-	if err != nil {
-		log.Fatalln("[TCP] [ERROR] Unable to initialize the server:", err)
-	}
-	defer listener.Close()
-
-	log.Println("[TCP] Server listening on port", port)
+func StartTCPServer(port string, done chan struct{}) {
+	listener := utils.ResolveTCPAddr("localhost", utils.SERVERTCP)
 
 	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			log.Println("[TCP] [ERROR] Unable to accept connection:", err)
-			continue
+		select {
+		case <-done:
+			//log.Println("[TCP] Shutdown signal received. Closing TCP server.")
+			return
+		default:
+			conn, err := listener.AcceptTCP()
+			if err != nil {
+				log.Println("[TCP] [ERROR] Unable to accept connection:", err)
+				continue
+			}
+			go handleTCPConnection(conn)
 		}
-		go handleTCPConnection(conn)
 	}
 }
 
-// Função para tratar conexões TCP
+/* // Função para tratar conexões TCP
 func handleTCPConnection(conn net.Conn) {
 	defer conn.Close()
 
@@ -64,4 +63,4 @@ func handleTCPConnection(conn net.Conn) {
 	// send ACK
 	log.Println("[TCP] New registration request sent")
 
-}
+} */

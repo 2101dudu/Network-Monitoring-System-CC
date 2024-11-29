@@ -1,13 +1,19 @@
-package agent
+package tcp
 
 import (
-	"log"
-	"net"
-	registration "nms/internal/packet/registration"
-	"nms/internal/utils"
+	alertTcp "nms/internal/packet/alert"
+	utils "nms/internal/utils"
 )
 
-func ConnectTCP(serverAddr string) {
+func ConnectTCPAndSendAlert(serverTCPPort string, alert alertTcp.Alert) {
+
+	conn := utils.ResolveTCPAddrAndDial("localhost", serverTCPPort)
+	defer conn.Close()
+
+	alertTcp.EncodeAndSendAlert(conn, alert)
+}
+
+/* func ConnectTCP(serverAddr string) {
 	conn, err := net.Dial("tcp", serverAddr)
 	if err != nil {
 		log.Fatalln("[TCP] [ERROR] Unable to connect:", err)
@@ -44,4 +50,4 @@ func ConnectTCP(serverAddr string) {
 
 	// send ACK
 	log.Println(newReg)
-}
+} */
