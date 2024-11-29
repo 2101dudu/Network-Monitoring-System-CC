@@ -19,14 +19,13 @@ func handleRegistrations(conn *net.UDPConn) {
 			continue
 		}
 
-		// type cast the data to the appropriate packet type
 		packetType := utils.PacketType(data[0])
 		packetPayload := data[1:n]
 
+		// Check if the packet type is correct
 		if packetType != utils.REGISTRATION {
 			log.Fatalln("[AGENT] [ERROR 18] Unexpected packet type received from server")
 		}
 		handleRegistration(packetPayload, conn, udpAddr)
 	}
-	//conn.Close()
 }

@@ -77,7 +77,7 @@ func EncodeAndSendAck(conn *net.UDPConn, udpAddr *net.UDPAddr, ack Ack) {
 	utils.WriteUDP(conn, udpAddr, ackData, "[UDP] Ack sent", "[ERROR 14] Unable to send ack")
 }
 
-func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, senderID byte, conn *net.UDPConn) bool {
+func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, senderID byte) bool {
 	ack, err := DecodeAck(ackPayload)
 	if err != nil {
 		log.Println("[ERROR 15] Unable to decode Ack")
@@ -102,17 +102,19 @@ func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.
 	pMutex.Unlock()
 	log.Println("[UDP] Sender acknowledged packet", ack.PacketID)
 
-	// if the packet was acknowledged, the connection can be closed, as it's no longer needed
-	conn.Close()
 	return true
 }
 
 func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, conn *net.UDPConn, udpAddr *net.UDPAddr, packetData []byte, successMessage string, errorMessage string) {
-	// set the status of the packet to "not" waiting for ack, because it is yet to be sent
-	utils.PacketIsWaiting(packetID, packetsWaitingAck, pMutex, false)
+	var wg sync.WaitGroup
+	wg.Add(1)
 
-	packetSentInstant := time.Now()
 	go func() {
+		defer wg.Done()
+		// set the status of the packet to "not" waiting for ack, because it is yet to be sent
+		utils.PacketIsWaiting(packetID, packetsWaitingAck, pMutex, false)
+
+		packetSentInstant := time.Now()
 		for {
 			waiting, exists := utils.GetPacketStatus(packetID, packetsWaitingAck, pMutex)
 
@@ -127,9 +129,6 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 
 				packetSentInstant = time.Now()
 			}
-
-			// add a small delay to prevent the loop from running too fast
-			//time.Sleep(1 * time.Millisecond)
 		}
 	}()
 
@@ -154,6 +153,11 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 			log.Println("[UDP] [ERROR 17] Unexpected packet type received")
 			return
 		}
-		ackWasSent = HandleAck(packetPayload, packetsWaitingAck, pMutex, senderID, conn)
+		ackWasSent = HandleAck(packetPayload, packetsWaitingAck, pMutex, senderID)
 	}
+
+	// Wait for the goroutine to finish
+	wg.Wait()
+	// Now it is safe to close the connection
+	conn.Close()
 }

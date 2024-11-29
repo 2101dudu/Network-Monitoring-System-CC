@@ -36,9 +36,10 @@ func StartUDPServer(port string) {
 	//serverConn.SetDeadline(time.Now().Add(5 * time.Second))
 
 	// connect and send tasks to agents
-	handleTasks(taskList)
+	go handleTasks(taskList)
 
-	// go Receive metrics from agents
+	// receive metrics from agents
+	handleMetrics(serverConn)
 
 	// close the server connection
 	serverConn.Close()

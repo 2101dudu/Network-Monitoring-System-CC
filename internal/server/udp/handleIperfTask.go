@@ -3,6 +3,7 @@ package udp
 import (
 	"log"
 	parse "nms/internal/jsonParse"
+	"nms/internal/packet/ack"
 	t "nms/internal/packet/task"
 	utils "nms/internal/utils"
 )
@@ -28,6 +29,6 @@ func handleIperfTask(task parse.Task) {
 		log.Fatalln("[ERROR 23] Encoding iperf client packet")
 	}
 
-	utils.WriteUDP(agentSConn, nil, dataServer, "[SERVER] [MAIN READ THREAD] Iperf server packet sent", "[SERVER] [ERROR 33] Unable to send iperf server packet")
-	utils.WriteUDP(agentCConn, nil, dataClient, "[SERVER] [MAIN READ THREAD] Iperf client packet sent", "[SERVER] [ERROR 34] Unable to send iperf client packet")
+	ack.SendPacketAndWaitForAck(iperfServerPacket.PacketID, 0, packetsWaitingAck, &pMutex, agentSConn, nil, dataServer, "[SERVER] [MAIN READ THREAD] Iperf server packet sent", "[SERVER] [ERROR 33] Unable to send iperf server packet")
+	ack.SendPacketAndWaitForAck(iperfClientPacket.PacketID, 0, packetsWaitingAck, &pMutex, agentCConn, nil, dataClient, "[SERVER] [MAIN READ THREAD] Iperf client packet sent", "[SERVER] [ERROR 34] Unable to send iperf client packet")
 }

@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 	ack "nms/internal/packet/ack"
+	"nms/internal/packet/metrics"
 	task "nms/internal/packet/task"
 	utils "nms/internal/utils"
 	"os/exec"
@@ -20,6 +21,7 @@ func handleTasks(agentConn *net.UDPConn) {
 		taskType := utils.PacketType(taskData[0])
 		taskPayload := taskData[1:n]
 
+		// Check if the packet type is correct
 		if taskType != utils.PING && taskType != utils.IPERFCLIENT && taskType != utils.IPERFSERVER {
 			log.Fatalln("[AGENT] [ERROR 80] Unexpected packet type received from server")
 		}
@@ -36,25 +38,32 @@ func handleTasks(agentConn *net.UDPConn) {
 }
 
 func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDPAddr) {
-	packet, err := task.DecodePingPacket(taskPayload)
+	pingPacket, err := task.DecodePingPacket(taskPayload)
 	if err != nil {
 		log.Fatalln("[AGENT] [ERROR 81] Decoding ping packet")
 	}
 
-	// IF VALIDAPACKET -> ENVIA ACK
-	newAck := ack.NewAckBuilder().SetPacketID(packet.PacketID).SetSenderID(0).HasAcknowledged().Build()
+	// TODO: CHECKSUM
+	// noack := ack.NewAckBuilder().SetPacketID(reg.PacketID).SetSenderID(reg.AgentID).Build()
+	// ack.EncodeAndSendAck(conn, udpAddr, noack)
+
+	newAck := ack.NewAckBuilder().SetPacketID(pingPacket.PacketID).SetSenderID(0).HasAcknowledged().Build()
 	ack.EncodeAndSendAck(agentConn, udpAddr, newAck)
-	// ELSE !VALIDAPACKET -> ENVIA NOACK, RETURN
 
 	// execute the pingPacket's command
-	cmd := exec.Command("sh", "-c", packet.PingCommand)
+	cmd := exec.Command("sh", "-c", pingPacket.PingCommand)
 
-	stdout, stderr := cmd.CombinedOutput()
-	if stderr != nil {
+	std, err := cmd.CombinedOutput()
+	if err != nil {
 		log.Fatalln("[AGENT] [ERROR 82] Executing ping command")
 	}
 
-	log.Println(string(stdout))
+	serverConn := utils.ResolveUDPAddrAndDial("localhost", "8081")
+
+	var metricsID byte = 99
+	newMetrics := metrics.NewMetricsBuilder().SetPacketID(metricsID).SetAgentID(agentID).SetMetrics(string(std)).Build()
+	data := metrics.EncodeMetrics(newMetrics)
+	ack.SendPacketAndWaitForAck(metricsID, agentID, packetsWaitingAck, &pMutex, serverConn, nil, data, "[SERVER] [MAIN READ THREAD] Metrics packet sent", "[SERVER] [ERROR 31] Unable to send metrics packet")
 }
 
 func handleIperfClientTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDPAddr) {
@@ -63,8 +72,15 @@ func handleIperfClientTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *
 		log.Fatalln("[AGENT] [ERROR 81] Decoding ping packet")
 	}
 
+	// TODO: CHECKSUM
+	// noack := ack.NewAckBuilder().SetPacketID(reg.PacketID).SetSenderID(reg.AgentID).Build()
+	// ack.EncodeAndSendAck(conn, udpAddr, noack)
+
+	newAck := ack.NewAckBuilder().SetPacketID(iperfClient.PacketID).SetSenderID(0).HasAcknowledged().Build()
+	ack.EncodeAndSendAck(agentConn, udpAddr, newAck)
+
 	// execute the pingPacket's command
-	cmd := exec.Command(iperfClient.IperfClientCommand)
+	cmd := exec.Command("sh", "-c", iperfClient.IperfClientCommand)
 
 	data, err := cmd.Output()
 	if err != nil {
@@ -79,8 +95,15 @@ func handleIperfServerTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *
 		log.Fatalln("[AGENT] [ERROR 81] Decoding ping packet")
 	}
 
+	// TODO: CHECKSUM
+	// noack := ack.NewAckBuilder().SetPacketID(reg.PacketID).SetSenderID(reg.AgentID).Build()
+	// ack.EncodeAndSendAck(conn, udpAddr, noack)
+
+	newAck := ack.NewAckBuilder().SetPacketID(iperfServer.PacketID).SetSenderID(0).HasAcknowledged().Build()
+	ack.EncodeAndSendAck(agentConn, udpAddr, newAck)
+
 	// execute the pingPacket's command
-	cmd := exec.Command(iperfServer.IperfServerCommand)
+	cmd := exec.Command("sh", "-c", iperfServer.IperfServerCommand)
 
 	data, err := cmd.Output()
 	if err != nil {
