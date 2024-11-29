@@ -9,7 +9,6 @@ import (
 	"nms/internal/packet/metrics"
 	"os"
 	"strconv"
-	"time"
 )
 
 // MetricsData represents the structure of the metrics data to be stored in the JSON file
@@ -39,7 +38,7 @@ func handleMetricsGathering(packetPayload []byte, conn *net.UDPConn, udpAddr *ne
 	metricsData := MetricsData{
 		TaskID:       "task-" + strconv.Itoa(int(met.TaskID)),
 		AgentID:      met.AgentID,
-		LogTime:      time.Now().Format("15:04:05.000000000"),
+		LogTime:      met.Time,
 		OutputString: met.Metrics,
 	}
 

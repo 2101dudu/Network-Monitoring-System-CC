@@ -8,6 +8,7 @@ import (
 	"nms/internal/packet/task"
 	"nms/internal/utils"
 	"os/exec"
+	"time"
 )
 
 func handleIperfServerTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDPAddr) {
@@ -23,6 +24,9 @@ func handleIperfServerTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *
 	newAck := ack.NewAckBuilder().SetPacketID(iperfServer.PacketID).SetSenderID(0).HasAcknowledged().Build()
 	ack.EncodeAndSendAck(agentConn, udpAddr, newAck)
 
+	// keep track of the start time
+	startTime := time.Now()
+
 	// execute the pingPacket's command
 	cmd := exec.Command("sh", "-c", iperfServer.IperfServerCommand)
 
@@ -36,7 +40,7 @@ func handleIperfServerTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *
 	serverConn := utils.ResolveUDPAddrAndDial("localhost", "8081")
 
 	var metricsID byte = 97
-	newMetrics := metrics.NewMetricsBuilder().SetPacketID(metricsID).SetAgentID(agentID).SetMetrics(preparedOutput).Build()
+	newMetrics := metrics.NewMetricsBuilder().SetPacketID(metricsID).SetAgentID(agentID).SetTime(startTime.Format("15:04:05.000000000")).SetMetrics(preparedOutput).Build()
 
 	packetData := metrics.EncodeMetrics(newMetrics)
 	ack.SendPacketAndWaitForAck(metricsID, agentID, packetsWaitingAck, &pMutex, serverConn, nil, packetData, "[SERVER] [MAIN READ THREAD] Metrics packet sent", "[SERVER] [ERROR 35] Unable to send metrics packet")

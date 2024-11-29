@@ -35,9 +35,11 @@ Perguntas ao professor:
 
 A fazer:
     - trocar o que seja de IPs para DNS
-    - relembrar que os packetIDs não estão a incrementar
     - VERIFICAR SE BYTE É SUFICIENTE PARA AGUENTAR COM TUDO — EM TODO O LADO
-    - mudar a estrutura do json
+    
+    
+    - relembrar que os packetIDs não estão a incrementar
+    - checksum
 
 
 
