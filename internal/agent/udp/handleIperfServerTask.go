@@ -39,7 +39,7 @@ func handleIperfServerTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *
 
 	serverConn := utils.ResolveUDPAddrAndDial("localhost", "8081")
 
-	var metricsID byte = 97
+	metricsID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
 	newMetrics := metrics.NewMetricsBuilder().SetPacketID(metricsID).SetAgentID(agentID).SetTime(startTime.Format("15:04:05.000000000")).SetMetrics(preparedOutput).Build()
 
 	packetData := metrics.EncodeMetrics(newMetrics)

@@ -12,11 +12,11 @@ func handlePingTask(task parse.Task) {
 	agentIP := getAgentIP(task.Devices[0].DeviceID)
 	agentConn := utils.ResolveUDPAddrAndDial(agentIP, "9091")
 
-	pingPacket := t.ConvertTaskIntoPingPacket(task)
+	pingPacket := ConvertTaskIntoPingPacket(task)
 	data, err := t.EncodePingPacket(pingPacket)
 	if err != nil {
 		log.Fatalln("[ERROR 21] Encoding ping packet")
 	}
 
-	ack.SendPacketAndWaitForAck(pingPacket.PacketID, 0, packetsWaitingAck, &pMutex, agentConn, nil, data, "[SERVER] [MAIN READ THREAD] Ping packet sent", "[SERVER] [ERROR 31] Unable to send ping packet")
+	ack.SendPacketAndWaitForAck(pingPacket.PacketID, utils.SERVERID, packetsWaitingAck, &pMutex, agentConn, nil, data, "[SERVER] [MAIN READ THREAD] Ping packet sent", "[SERVER] [ERROR 31] Unable to send ping packet")
 }

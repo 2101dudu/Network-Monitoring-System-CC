@@ -10,12 +10,14 @@ import (
 var (
 	packetsWaitingAck = make(map[byte]bool)
 	pMutex            sync.Mutex
+	packetID          = byte(1)
+	packetMutex       sync.Mutex
 )
 
 var agentsIPs map[byte][4]byte
 
 func StartUDPServer(port string) {
-	// incldude "| log.Lshortfile" in the log flags to include the file name and line of code in the log
+	// include "| log.Lshortfile" in the log flags to include the file name and line of code in the log
 	log.SetFlags(log.Ltime | log.Lmicroseconds | log.Lshortfile)
 
 	jsonData := parse.GetDataFromJson("configs/tasks.json")

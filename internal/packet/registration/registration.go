@@ -72,7 +72,7 @@ func EncodeRegistration(reg Registration) []byte {
 	}
 }
 
-func CreateRegistrationPacket(ID byte, ip string) (byte, []byte) {
+func CreateRegistrationPacket(packetID byte, ip string) (byte, []byte) {
 	byteIP, err := utils.IPStringToByte(ip)
 	if err != nil {
 		log.Fatalln("[AGENT] [ERROR 2] Unable to convert IP to byte:", err)
@@ -85,7 +85,8 @@ func CreateRegistrationPacket(ID byte, ip string) (byte, []byte) {
 	}
 
 	// create registration request
-	registration := NewRegistrationBuilder().SetPacketID(ID).SetAgentID(agentID).SetIP(byteIP).Build()
+	registration := NewRegistrationBuilder().SetPacketID(packetID).SetAgentID(agentID).SetIP(byteIP).Build()
+
 	// encode registration request
 	regData := EncodeRegistration(registration)
 

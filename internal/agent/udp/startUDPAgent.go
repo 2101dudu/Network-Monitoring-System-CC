@@ -9,10 +9,12 @@ import (
 var (
 	packetsWaitingAck = make(map[byte]bool)
 	pMutex            sync.Mutex
+	packetID          = byte(1)
+	packetMutex       sync.Mutex
 )
 
 func StartUDPAgent() {
-	// incldude "| log.Lshortfile" in the log flags to include the file name and line of code in the log
+	// include "| log.Lshortfile" in the log flags to include the file name and line of code in the log
 	log.SetFlags(log.Ltime | log.Lmicroseconds | log.Lshortfile)
 
 	// get the IP address of the agent

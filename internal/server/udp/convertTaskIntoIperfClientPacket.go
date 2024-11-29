@@ -1,11 +1,13 @@
-package task
+package udp
 
 import (
 	"fmt"
 	parse "nms/internal/jsonParse"
+	t "nms/internal/packet/task"
+	"nms/internal/utils"
 )
 
-func ConvertTaskIntoIperfClientPacket(task parse.Task, clientIndex byte) IperfClientPacket {
+func ConvertTaskIntoIperfClientPacket(task parse.Task, clientIndex byte) t.IperfClientPacket {
 	// main fields
 	aID := task.Devices[clientIndex].DeviceID
 	tID := task.TaskID
@@ -15,7 +17,7 @@ func ConvertTaskIntoIperfClientPacket(task parse.Task, clientIndex byte) IperfCl
 	cpu := task.Devices[clientIndex].DeviceMetrics.CpuUsage
 	ram := task.Devices[clientIndex].DeviceMetrics.RamUsage
 	inter := task.Devices[clientIndex].DeviceMetrics.InterfaceStats
-	devM := NewDeviceMetricsBuilder().SetCpuUsage(cpu).SetRamUsage(ram).SetInterfaceStats(inter).Build()
+	devM := t.NewDeviceMetricsBuilder().SetCpuUsage(cpu).SetRamUsage(ram).SetInterfaceStats(inter).Build()
 
 	// build alert flow conditions
 	cpuUsage := task.Devices[clientIndex].AlertFlowConditions.CpuUsage
@@ -23,7 +25,7 @@ func ConvertTaskIntoIperfClientPacket(task parse.Task, clientIndex byte) IperfCl
 	interStats := task.Devices[clientIndex].AlertFlowConditions.InterfaceStats
 	packetLoss := task.Devices[clientIndex].AlertFlowConditions.PacketLoss
 	jitter := task.Devices[clientIndex].AlertFlowConditions.Jitter
-	alert := NewAlertFlowConditionsBuilder().SetCpuUsage(cpuUsage).SetRamUsage(ramUsage).SetInterfaceStats(interStats).SetPacketLoss(packetLoss).SetJitter(jitter).Build()
+	alert := t.NewAlertFlowConditionsBuilder().SetCpuUsage(cpuUsage).SetRamUsage(ramUsage).SetInterfaceStats(interStats).SetPacketLoss(packetLoss).SetJitter(jitter).Build()
 
 	// build iperf client command
 	serverIndex := 1 - clientIndex
@@ -35,17 +37,17 @@ func ConvertTaskIntoIperfClientPacket(task parse.Task, clientIndex byte) IperfCl
 	}
 
 	// build iperf client packet
-	iperfPacket := NewIperfClientPacketBuilder().
+	iperfPacket := t.NewIperfClientPacketBuilder().
 		SetAgentID(aID).
-		SetPacketID(1).
+		SetPacketID(utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)).
 		SetTaskID(tID).
 		SetFrequency(freq).
 		SetDeviceMetrics(devM).
 		SetAlertFlowConditions(alert).
 		SetIperfClientCommand(iperfCommand).
-		SetBandwidth(task.Devices[0].LinkMetrics.IperfParameters.Bandwidth).
-		SetJitter(task.Devices[0].LinkMetrics.IperfParameters.Jitter).
-		SetPacketLoss(task.Devices[0].LinkMetrics.IperfParameters.PacketLoss).
+		SetBandwidth(task.Devices[clientIndex].LinkMetrics.IperfParameters.Bandwidth).
+		SetJitter(task.Devices[clientIndex].LinkMetrics.IperfParameters.Jitter).
+		SetPacketLoss(task.Devices[clientIndex].LinkMetrics.IperfParameters.PacketLoss).
 		Build()
 
 	return iperfPacket

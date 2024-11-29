@@ -16,8 +16,8 @@ func handleIperfTask(task parse.Task) {
 	agentSConn := utils.ResolveUDPAddrAndDial(agentSIP, "9091")
 	agentCConn := utils.ResolveUDPAddrAndDial(agentCIP, "9091")
 
-	iperfServerPacket := t.ConvertTaskIntoIperfServerPacket(task, serverIndex)
-	iperfClientPacket := t.ConvertTaskIntoIperfClientPacket(task, clientIndex)
+	iperfServerPacket := ConvertTaskIntoIperfServerPacket(task, serverIndex)
+	iperfClientPacket := ConvertTaskIntoIperfClientPacket(task, clientIndex)
 
 	dataServer, err := t.EncodeIperfServerPacket(iperfServerPacket)
 	if err != nil {
@@ -29,6 +29,6 @@ func handleIperfTask(task parse.Task) {
 		log.Fatalln("[ERROR 23] Encoding iperf client packet")
 	}
 
-	ack.SendPacketAndWaitForAck(iperfServerPacket.PacketID, 0, packetsWaitingAck, &pMutex, agentSConn, nil, dataServer, "[SERVER] [MAIN READ THREAD] Iperf server packet sent", "[SERVER] [ERROR 33] Unable to send iperf server packet")
-	ack.SendPacketAndWaitForAck(iperfClientPacket.PacketID, 0, packetsWaitingAck, &pMutex, agentCConn, nil, dataClient, "[SERVER] [MAIN READ THREAD] Iperf client packet sent", "[SERVER] [ERROR 34] Unable to send iperf client packet")
+	ack.SendPacketAndWaitForAck(iperfServerPacket.PacketID, utils.SERVERID, packetsWaitingAck, &pMutex, agentSConn, nil, dataServer, "[SERVER] [MAIN READ THREAD] Iperf server packet sent", "[SERVER] [ERROR 33] Unable to send iperf server packet")
+	ack.SendPacketAndWaitForAck(iperfClientPacket.PacketID, utils.SERVERID, packetsWaitingAck, &pMutex, agentCConn, nil, dataClient, "[SERVER] [MAIN READ THREAD] Iperf client packet sent", "[SERVER] [ERROR 34] Unable to send iperf client packet")
 }
