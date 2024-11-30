@@ -27,7 +27,7 @@ func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDP
 		return
 	}
 
-	newAck := ack.NewAckBuilder().SetPacketID(pingPacket.PacketID).SetSenderID(0).HasAcknowledged().Build()
+	newAck := ack.NewAckBuilder().SetPacketID(pingPacket.PacketID).SetSenderID(utils.SERVERID).HasAcknowledged().Build()
 	hash := ack.CreateHashAckPacket(newAck)
 	newAck.Hash = (string(hash))
 	ack.EncodeAndSendAck(agentConn, udpAddr, newAck)

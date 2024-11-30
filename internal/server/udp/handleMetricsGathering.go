@@ -7,7 +7,6 @@ import (
 	"net"
 	"nms/internal/packet/ack"
 	"nms/internal/packet/metrics"
-	"nms/internal/utils"
 	"os"
 	"strconv"
 )
@@ -28,7 +27,7 @@ func handleMetricsGathering(packetPayload []byte, conn *net.UDPConn, udpAddr *ne
 	}
 
 	if !metrics.ValidateHashMetricsPacket(met) {
-		noack := ack.NewAckBuilder().SetPacketID(met.PacketID).SetSenderID(utils.SERVERID).Build()
+		noack := ack.NewAckBuilder().SetPacketID(met.PacketID).SetSenderID(met.AgentID).Build()
 		hash := ack.CreateHashAckPacket(noack)
 		noack.Hash = (string(hash))
 		ack.EncodeAndSendAck(conn, udpAddr, noack)

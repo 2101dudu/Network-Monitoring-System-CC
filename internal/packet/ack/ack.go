@@ -201,11 +201,11 @@ func CreateHashAckPacket(ack Ack) []byte {
 }
 
 func ValidateHashAckPacket(ack Ack) bool {
-	beforeHash := ack.removeHash()
+	hash := ack.removeHash()
 
 	byteData := EncodeAck(ack)
 
-	afterHash := sha256.Sum256(byteData)
+	newHash := sha256.Sum256(byteData)
 
-	return string(afterHash[:utils.HASHSIZE]) == beforeHash
+	return string(newHash[:utils.HASHSIZE]) == hash
 }

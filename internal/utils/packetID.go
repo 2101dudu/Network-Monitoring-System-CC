@@ -4,12 +4,12 @@ import (
 	"sync"
 )
 
-func ReadAndIncrementPacketID(data *byte, packetMutex *sync.Mutex, increment bool) byte {
+func ReadAndIncrementPacketID(packetID *byte, packetMutex *sync.Mutex, increment bool) byte {
 	packetMutex.Lock()
 	defer packetMutex.Unlock()
-	id := *data
+	id := *packetID
 	if increment {
-		*data++
+		*packetID++
 	}
 	return id
 }
