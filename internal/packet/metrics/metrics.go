@@ -2,6 +2,7 @@ package metrics
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/binary"
 	"errors"
 	"nms/internal/utils"
@@ -13,6 +14,7 @@ type Metrics struct {
 	TaskID   uint16
 	Time     string
 	Metrics  string
+	Hash     string
 }
 
 type MetricsBuilder struct {
@@ -27,6 +29,7 @@ func NewMetricsBuilder() *MetricsBuilder {
 			TaskID:   0,
 			Time:     "",
 			Metrics:  "",
+			Hash:     "",
 		},
 	}
 }
@@ -54,6 +57,12 @@ func (m *MetricsBuilder) SetTime(time string) *MetricsBuilder {
 func (m *MetricsBuilder) SetMetrics(metrics string) *MetricsBuilder {
 	m.Metrics.Metrics = metrics
 	return m
+}
+
+func (m *Metrics) removeHash() string {
+	hash := m.Hash
+	m.Hash = ""
+	return hash
 }
 
 func (m *MetricsBuilder) Build() Metrics {
@@ -104,6 +113,17 @@ func DecodeMetrics(packet []byte) (Metrics, error) {
 	}
 	metrics.Metrics = string(metricsBytes)
 
+	// Decode Hash
+	var hashLen byte
+	if err := binary.Read(buf, binary.BigEndian, &hashLen); err != nil {
+		return metrics, err
+	}
+	hashBytes := make([]byte, hashLen)
+	if _, err := buf.Read(hashBytes); err != nil {
+		return metrics, err
+	}
+	metrics.Hash = string(hashBytes)
+
 	return metrics, nil
 }
 
@@ -125,5 +145,28 @@ func EncodeMetrics(metrics Metrics) []byte {
 	binary.Write(buf, binary.BigEndian, metricsLen)
 	buf.Write(metricsBytes)
 
+	// Encode Hash
+	hashBytes := []byte(metrics.Hash)
+	buf.WriteByte(byte(len(hashBytes)))
+	buf.Write(hashBytes)
+
 	return buf.Bytes()
+}
+
+func CreateHashMetricsPacket(metricsPacket Metrics) []byte {
+	byteData := EncodeMetrics(metricsPacket)
+
+	hash := sha256.Sum256(byteData)
+
+	return hash[:utils.HASHSIZE]
+}
+
+func ValidateHashMetricsPacket(metricsPacket Metrics) bool {
+	beforeHash := metricsPacket.removeHash()
+
+	byteData := EncodeMetrics(metricsPacket)
+
+	afterHash := sha256.Sum256(byteData)
+
+	return string(afterHash[:utils.HASHSIZE]) == beforeHash
 }

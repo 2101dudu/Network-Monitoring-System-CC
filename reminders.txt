@@ -13,7 +13,7 @@ A fazer:
     - trocar o que seja de IPs para DNS
     - VERIFICAR SE BYTE É SUFICIENTE PARA AGUENTAR COM TUDO — EM TODO O LADO
     
-    - checksum
+    - ctrl+f todos "(0)" e mudar para utils.SERVERID
 
 
 

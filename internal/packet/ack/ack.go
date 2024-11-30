@@ -1,6 +1,7 @@
 package ack
 
 import (
+	"crypto/sha256"
 	"errors"
 	"log"
 	"net"
@@ -13,6 +14,7 @@ type Ack struct {
 	PacketID     byte // [0, 255]
 	SenderID     byte // [0, 255]
 	Acknowledged bool
+	Hash         string
 }
 
 type AckBuilder struct {
@@ -24,7 +26,9 @@ func NewAckBuilder() *AckBuilder {
 		Ack: Ack{
 			PacketID:     0,
 			SenderID:     0,
-			Acknowledged: false},
+			Acknowledged: false,
+			Hash:         "",
+		},
 	}
 }
 
@@ -43,13 +47,19 @@ func (a *AckBuilder) HasAcknowledged() *AckBuilder {
 	return a
 }
 
+func (a *Ack) removeHash() string {
+	hash := a.Hash
+	a.Hash = ""
+	return hash
+}
+
 func (a *AckBuilder) Build() Ack {
 	return a.Ack
 }
 
 // receives the data without the header
 func DecodeAck(packet []byte) (Ack, error) {
-	if len(packet) != 3 {
+	if len(packet) < 4 {
 		return Ack{}, errors.New("invalid packet length")
 	}
 
@@ -59,17 +69,31 @@ func DecodeAck(packet []byte) (Ack, error) {
 		Acknowledged: packet[2] == 1,
 	}
 
+	// Decode Hash
+	hashLen := packet[3]
+	if len(packet) != int(4+hashLen) {
+		return Ack{}, errors.New("invalid packet length")
+	}
+	ack.Hash = string(packet[4 : 4+hashLen])
+
 	return ack, nil
 }
 
 // receives the data the header
 func EncodeAck(ack Ack) []byte {
-	return []byte{
+	packet := []byte{
 		byte(utils.ACK),
 		ack.PacketID,
 		ack.SenderID,
 		utils.BoolToByte(ack.Acknowledged),
 	}
+
+	// Encode Hash
+	hashBytes := []byte(ack.Hash)
+	packet = append(packet, byte(len(hashBytes)))
+	packet = append(packet, hashBytes...)
+
+	return packet
 }
 
 func EncodeAndSendAck(conn *net.UDPConn, udpAddr *net.UDPAddr, ack Ack) {
@@ -81,6 +105,11 @@ func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.
 	ack, err := DecodeAck(ackPayload)
 	if err != nil {
 		log.Fatalln("[ERROR 15] Unable to decode Ack")
+	}
+
+	if !ValidateHashAckPacket(ack) {
+		log.Println("[ERROR 118] Invalid hash in ack packet")
+		return false
 	}
 
 	_, exist := utils.GetPacketStatus(ack.PacketID, packetsWaitingAck, pMutex)
@@ -161,4 +190,22 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 	wg.Wait()
 	// Now it is safe to close the connection
 	conn.Close()
+}
+
+func CreateHashAckPacket(ack Ack) []byte {
+	byteData := EncodeAck(ack)
+
+	hash := sha256.Sum256(byteData)
+
+	return hash[:utils.HASHSIZE]
+}
+
+func ValidateHashAckPacket(ack Ack) bool {
+	beforeHash := ack.removeHash()
+
+	byteData := EncodeAck(ack)
+
+	afterHash := sha256.Sum256(byteData)
+
+	return string(afterHash[:utils.HASHSIZE]) == beforeHash
 }

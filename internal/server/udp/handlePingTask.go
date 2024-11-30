@@ -13,6 +13,9 @@ func handlePingTask(task parse.Task) {
 	agentConn := utils.ResolveUDPAddrAndDial(agentIP, "9091")
 
 	pingPacket := ConvertTaskIntoPingPacket(task)
+	clientHash := t.CreateHashPingPacket(pingPacket)
+	pingPacket.Hash = (string(clientHash))
+
 	data, err := t.EncodePingPacket(pingPacket)
 	if err != nil {
 		log.Fatalln("[ERROR 21] Encoding ping packet")

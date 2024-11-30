@@ -7,6 +7,7 @@ import (
 	"net"
 	"nms/internal/packet/ack"
 	"nms/internal/packet/metrics"
+	"nms/internal/utils"
 	"os"
 	"strconv"
 )
@@ -26,12 +27,20 @@ func handleMetricsGathering(packetPayload []byte, conn *net.UDPConn, udpAddr *ne
 		log.Fatalln("[SERVER] [ERROR 12] Unable to decode metrics data:", err)
 	}
 
-	// TODO: CHECKSUM
-	// noack := ack.NewAckBuilder().SetPacketID(reg.PacketID).SetSenderID(reg.AgentID).Build()
-	// ack.EncodeAndSendAck(conn, udpAddr, noack)
+	if !metrics.ValidateHashMetricsPacket(met) {
+		noack := ack.NewAckBuilder().SetPacketID(met.PacketID).SetSenderID(utils.SERVERID).Build()
+		hash := ack.CreateHashAckPacket(noack)
+		noack.Hash = (string(hash))
+		ack.EncodeAndSendAck(conn, udpAddr, noack)
+
+		log.Println("[AGENT] [ERROR 100] Invalid hash in ping packet")
+		return
+	}
 
 	// send ack
 	newAck := ack.NewAckBuilder().SetPacketID(met.PacketID).SetSenderID(met.AgentID).HasAcknowledged().Build()
+	hash := ack.CreateHashAckPacket(newAck)
+	newAck.Hash = (string(hash))
 	ack.EncodeAndSendAck(conn, udpAddr, newAck)
 
 	// store metrics

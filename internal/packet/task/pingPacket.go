@@ -2,6 +2,7 @@ package task
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/binary"
 	utils "nms/internal/utils"
 )
@@ -20,6 +21,7 @@ type PingPacket struct {
 	DeviceMetrics       DeviceMetrics
 	AlertFlowConditions AlertFlowConditions
 	PingCommand         string
+	Hash                string
 }
 
 type PingPacketBuilder struct {
@@ -36,6 +38,7 @@ func NewPingPacketBuilder() *PingPacketBuilder {
 			DeviceMetrics:       DeviceMetrics{},
 			AlertFlowConditions: AlertFlowConditions{},
 			PingCommand:         "",
+			Hash:                "",
 		},
 	}
 }
@@ -79,6 +82,12 @@ func (b *PingPacketBuilder) Build() PingPacket {
 	return b.PingPacket
 }
 
+func (b *PingPacket) removeHash() string {
+	hash := b.Hash
+	b.Hash = ""
+	return hash
+}
+
 func EncodePingPacket(msg PingPacket) ([]byte, error) {
 	buf := new(bytes.Buffer)
 
@@ -109,6 +118,11 @@ func EncodePingPacket(msg PingPacket) ([]byte, error) {
 	cmdBytes := []byte(msg.PingCommand)
 	buf.WriteByte(byte(len(cmdBytes)))
 	buf.Write(cmdBytes)
+
+	// Encode Hash
+	hashBytes := []byte(msg.Hash)
+	buf.WriteByte(byte(len(hashBytes)))
+	buf.Write(hashBytes)
 
 	return buf.Bytes(), nil
 }
@@ -175,5 +189,34 @@ func DecodePingPacket(data []byte) (PingPacket, error) {
 	}
 	msg.PingCommand = string(cmdBytes)
 
+	// Decode Hash
+	var hashLen byte
+	if err := binary.Read(buf, binary.BigEndian, &hashLen); err != nil {
+		return msg, err
+	}
+	hashBytes := make([]byte, hashLen)
+	if _, err := buf.Read(hashBytes); err != nil {
+		return msg, err
+	}
+	msg.Hash = string(hashBytes)
+
 	return msg, nil
+}
+
+func CreateHashPingPacket(pingPacket PingPacket) []byte {
+	byteData, _ := EncodePingPacket(pingPacket)
+
+	hash := sha256.Sum256(byteData)
+
+	return hash[:utils.HASHSIZE]
+}
+
+func ValidateHashPingPacket(pingPacket PingPacket) bool {
+	beforeHash := pingPacket.removeHash()
+
+	byteData, _ := EncodePingPacket(pingPacket)
+
+	afterHash := sha256.Sum256(byteData)
+
+	return string(afterHash[:utils.HASHSIZE]) == beforeHash
 }

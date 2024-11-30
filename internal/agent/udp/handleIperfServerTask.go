@@ -17,11 +17,18 @@ func handleIperfServerTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *
 		log.Fatalln("[AGENT] [ERROR 83] Decoding ping packet")
 	}
 
-	// TODO: CHECKSUM
-	// noack := ack.NewAckBuilder().SetPacketID(reg.PacketID).SetSenderID(reg.AgentID).Build()
-	// ack.EncodeAndSendAck(conn, udpAddr, noack)
+	if !task.ValidateHashIperfServerPacket(iperfServer) {
+		noack := ack.NewAckBuilder().SetPacketID(iperfServer.PacketID).SetSenderID(utils.SERVERID).Build()
+		hash := ack.CreateHashAckPacket(noack)
+		noack.Hash = (string(hash))
+		ack.EncodeAndSendAck(agentConn, udpAddr, noack)
 
+		log.Println("[AGENT] [ERROR 101] Invalid hash in iperf server packet")
+		return
+	}
 	newAck := ack.NewAckBuilder().SetPacketID(iperfServer.PacketID).SetSenderID(0).HasAcknowledged().Build()
+	hash := ack.CreateHashAckPacket(newAck)
+	newAck.Hash = (string(hash))
 	ack.EncodeAndSendAck(agentConn, udpAddr, newAck)
 
 	// keep track of the start time
@@ -41,6 +48,9 @@ func handleIperfServerTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *
 
 	metricsID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
 	newMetrics := metrics.NewMetricsBuilder().SetPacketID(metricsID).SetAgentID(agentID).SetTime(startTime.Format("15:04:05.000000000")).SetMetrics(preparedOutput).Build()
+
+	hash = metrics.CreateHashMetricsPacket(newMetrics)
+	newMetrics.Hash = (string(hash))
 
 	packetData := metrics.EncodeMetrics(newMetrics)
 	ack.SendPacketAndWaitForAck(metricsID, agentID, packetsWaitingAck, &pMutex, serverConn, nil, packetData, "[SERVER] [MAIN READ THREAD] Metrics packet sent", "[SERVER] [ERROR 35] Unable to send metrics packet")

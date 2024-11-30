@@ -17,7 +17,12 @@ func handleIperfTask(task parse.Task) {
 	agentCConn := utils.ResolveUDPAddrAndDial(agentCIP, "9091")
 
 	iperfServerPacket := ConvertTaskIntoIperfServerPacket(task, serverIndex)
+	serverHash := t.CreateHashIperfServerPacket(iperfServerPacket)
+	iperfServerPacket.Hash = (string(serverHash))
+
 	iperfClientPacket := ConvertTaskIntoIperfClientPacket(task, clientIndex)
+	clientHash := t.CreateHashIperfClientPacket(iperfClientPacket)
+	iperfClientPacket.Hash = (string(clientHash))
 
 	dataServer, err := t.EncodeIperfServerPacket(iperfServerPacket)
 	if err != nil {

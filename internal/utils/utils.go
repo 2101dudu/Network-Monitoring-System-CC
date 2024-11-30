@@ -22,6 +22,7 @@ const (
 	MAXAGENTS           = 1
 	BUFFERSIZE          = 1024
 	SERVERID       byte = 0
+	HASHSIZE            = 12
 )
 
 func BoolToByte(b bool) byte {
