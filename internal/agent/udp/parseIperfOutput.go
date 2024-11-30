@@ -4,11 +4,11 @@ import "strings"
 
 func parseIperfOutput(bandwidth bool, jitter bool, packetLoss bool, output string) string {
 	if bandwidth {
-		line := findInLines([]string{"sec"}, output)
+		line := findInLines("sec", output)
 		separatedLine := strings.Fields(line)
 		return separatedLine[6] + " " + separatedLine[7]
 	} else {
-		line := findInLines([]string{"%"}, output)
+		line := findInLines("%", output)
 		separatedLine := strings.Fields(line)
 
 		newOutput := ""
