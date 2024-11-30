@@ -1,6 +1,7 @@
 package registration
 
 import (
+	"crypto/sha256"
 	"errors"
 	"log"
 	utils "nms/internal/utils"
@@ -10,6 +11,7 @@ type Registration struct {
 	PacketID byte
 	AgentID  byte // [0, 255]
 	IP       [4]byte
+	Hash     string
 }
 
 type RegistrationBuilder struct {
@@ -22,6 +24,7 @@ func NewRegistrationBuilder() *RegistrationBuilder {
 			PacketID: 0,
 			AgentID:  0,
 			IP:       [4]byte{0, 0, 0, 0},
+			Hash:     "",
 		},
 	}
 }
@@ -41,13 +44,19 @@ func (r *RegistrationBuilder) SetIP(ip [4]byte) *RegistrationBuilder {
 	return r
 }
 
+func (r *Registration) removeHash() string {
+	hash := r.Hash
+	r.Hash = ""
+	return hash
+}
+
 func (r *RegistrationBuilder) Build() Registration {
 	return r.Registration
 }
 
 // receives the data without the header
 func DecodeRegistration(packet []byte) (Registration, error) {
-	if len(packet) != 6 {
+	if len(packet) < 7 {
 		return Registration{}, errors.New("invalid packet length")
 	}
 
@@ -57,11 +66,18 @@ func DecodeRegistration(packet []byte) (Registration, error) {
 		IP:       [4]byte{packet[2], packet[3], packet[4], packet[5]},
 	}
 
+	// Decode Hash
+	hashLen := packet[6]
+	if len(packet) != int(7+hashLen) {
+		return Registration{}, errors.New("invalid packet length")
+	}
+	reg.Hash = string(packet[7 : 7+hashLen])
+
 	return reg, nil
 }
 
 func EncodeRegistration(reg Registration) []byte {
-	return []byte{
+	packet := []byte{
 		byte(utils.REGISTRATION),
 		reg.PacketID,
 		reg.AgentID,
@@ -70,9 +86,16 @@ func EncodeRegistration(reg Registration) []byte {
 		reg.IP[2],
 		reg.IP[3],
 	}
+
+	// Encode Hash
+	hashBytes := []byte(reg.Hash)
+	packet = append(packet, byte(len(hashBytes)))
+	packet = append(packet, hashBytes...)
+
+	return packet
 }
 
-func CreateRegistrationPacket(ID byte, ip string) (byte, []byte) {
+func CreateRegistrationPacket(packetID byte, ip string) (byte, []byte) {
 	byteIP, err := utils.IPStringToByte(ip)
 	if err != nil {
 		log.Fatalln("[AGENT] [ERROR 2] Unable to convert IP to byte:", err)
@@ -85,9 +108,32 @@ func CreateRegistrationPacket(ID byte, ip string) (byte, []byte) {
 	}
 
 	// create registration request
-	registration := NewRegistrationBuilder().SetPacketID(ID).SetAgentID(agentID).SetIP(byteIP).Build()
+	registration := NewRegistrationBuilder().SetPacketID(packetID).SetAgentID(agentID).SetIP(byteIP).Build()
+
+	hash := CreateHashRegistrationPacket(registration)
+
+	registration.Hash = (string(hash))
+
 	// encode registration request
 	regData := EncodeRegistration(registration)
 
 	return agentID, regData
+}
+
+func CreateHashRegistrationPacket(reg Registration) []byte {
+	byteData := EncodeRegistration(reg)
+
+	hash := sha256.Sum256(byteData)
+
+	return hash[:utils.HASHSIZE]
+}
+
+func ValidateHashRegistrationPacket(reg Registration) bool {
+	beforeHash := reg.removeHash()
+
+	byteData := EncodeRegistration(reg)
+
+	afterHash := sha256.Sum256(byteData)
+
+	return string(afterHash[:utils.HASHSIZE]) == beforeHash
 }

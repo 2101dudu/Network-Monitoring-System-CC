@@ -3,10 +3,7 @@ package udp
 import (
 	"log"
 	"net"
-	ack "nms/internal/packet/ack"
-	task "nms/internal/packet/task"
-	utils "nms/internal/utils"
-	"os/exec"
+	"nms/internal/utils"
 )
 
 func handleTasks(agentConn *net.UDPConn) {
@@ -20,6 +17,7 @@ func handleTasks(agentConn *net.UDPConn) {
 		taskType := utils.PacketType(taskData[0])
 		taskPayload := taskData[1:n]
 
+		// Check if the packet type is correct
 		if taskType != utils.PING && taskType != utils.IPERFCLIENT && taskType != utils.IPERFSERVER {
 			log.Fatalln("[AGENT] [ERROR 80] Unexpected packet type received from server")
 		}
@@ -33,59 +31,4 @@ func handleTasks(agentConn *net.UDPConn) {
 			handleIperfServerTask(taskPayload, agentConn, udpAddr)
 		}
 	}
-}
-
-func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDPAddr) {
-	packet, err := task.DecodePingPacket(taskPayload)
-	if err != nil {
-		log.Fatalln("[AGENT] [ERROR 81] Decoding ping packet")
-	}
-
-	// IF VALIDAPACKET -> ENVIA ACK
-	newAck := ack.NewAckBuilder().SetPacketID(packet.PacketID).SetSenderID(0).HasAcknowledged().Build()
-	ack.EncodeAndSendAck(agentConn, udpAddr, newAck)
-	// ELSE !VALIDAPACKET -> ENVIA NOACK, RETURN
-
-	// execute the pingPacket's command
-	cmd := exec.Command("sh", "-c", packet.PingCommand)
-
-	stdout, stderr := cmd.CombinedOutput()
-	if stderr != nil {
-		log.Fatalln("[AGENT] [ERROR 82] Executing ping command")
-	}
-
-	log.Println(string(stdout))
-}
-
-func handleIperfClientTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDPAddr) {
-	iperfClient, err := task.DecodeIperfClientPacket(taskPayload)
-	if err != nil {
-		log.Fatalln("[AGENT] [ERROR 81] Decoding ping packet")
-	}
-
-	// execute the pingPacket's command
-	cmd := exec.Command(iperfClient.IperfClientCommand)
-
-	data, err := cmd.Output()
-	if err != nil {
-		log.Fatalln("[AGENT] [ERROR 82] Executing ping command")
-	}
-
-	log.Println(string(data))
-}
-func handleIperfServerTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDPAddr) {
-	iperfServer, err := task.DecodeIperfServerPacket(taskPayload)
-	if err != nil {
-		log.Fatalln("[AGENT] [ERROR 81] Decoding ping packet")
-	}
-
-	// execute the pingPacket's command
-	cmd := exec.Command(iperfServer.IperfServerCommand)
-
-	data, err := cmd.Output()
-	if err != nil {
-		log.Fatalln("[AGENT] [ERROR 82] Executing ping command")
-	}
-
-	log.Println(string(data))
 }

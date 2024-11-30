@@ -11,11 +11,16 @@ func handleRegistration(packetPayload []byte, conn *net.UDPConn, udpAddr *net.UD
 	// Decode registration request
 	reg, err := registration.DecodeRegistration(packetPayload)
 	if err != nil {
-		log.Println("[SERVER] [ERROR 12] Unable to decode registration data:", err)
+		log.Fatalln("[SERVER] [ERROR 12] Unable to decode registration data:", err)
+	}
 
-		// send noack
+	if !registration.ValidateHashRegistrationPacket(reg) {
 		noack := ack.NewAckBuilder().SetPacketID(reg.PacketID).SetSenderID(reg.AgentID).Build()
+		hash := ack.CreateHashAckPacket(noack)
+		noack.Hash = (string(hash))
 		ack.EncodeAndSendAck(conn, udpAddr, noack)
+
+		log.Println("[SERVER] [ERROR 99] Invalid hash in registration packet")
 		return
 	}
 
@@ -24,20 +29,7 @@ func handleRegistration(packetPayload []byte, conn *net.UDPConn, udpAddr *net.UD
 
 	// send ack
 	newAck := ack.NewAckBuilder().SetPacketID(reg.PacketID).SetSenderID(reg.AgentID).HasAcknowledged().Build()
+	hash := ack.CreateHashAckPacket(newAck)
+	newAck.Hash = (string(hash))
 	ack.EncodeAndSendAck(conn, udpAddr, newAck)
-
-	// Verify if isServer on any task - if so then sign all clients conected to that task that are already on the map!
-	// If not server - verify if server already is running (after the agent server starts running iperf -s, sends to this server an ACK)
-	// If server already running, send task to this client
-	// If not, this client awaits with cond.wait (CHECK IT)
-	// Maybe int that map of agents we can add more things like (just to make it easier):
-	/* type Agent struct {
-		AgentID byte
-		IsServer bool
-		Tasks []byte
-	}
-
-	var agents = make (map[byte] *Agent) with mutex */
-	// If we the task just wants to know latency on this client, then we can just send it (because its just the command ping)
-
 }

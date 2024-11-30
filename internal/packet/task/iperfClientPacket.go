@@ -2,6 +2,7 @@ package task
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/binary"
 	utils "nms/internal/utils"
 )
@@ -19,9 +20,10 @@ type IperfClientPacket struct {
 	DeviceMetrics       DeviceMetrics
 	AlertFlowConditions AlertFlowConditions
 	IperfClientCommand  string
-	Bandwith            bool
+	Bandwidth           bool
 	Jitter              bool
 	PacketLoss          bool
+	Hash                string
 }
 
 type IperfClientPacketBuilder struct {
@@ -38,7 +40,7 @@ func NewIperfClientPacketBuilder() *IperfClientPacketBuilder {
 			DeviceMetrics:       DeviceMetrics{},
 			AlertFlowConditions: AlertFlowConditions{},
 			IperfClientCommand:  "",
-			Bandwith:            false,
+			Bandwidth:           false,
 			Jitter:              false,
 			PacketLoss:          false,
 		},
@@ -81,7 +83,7 @@ func (b *IperfClientPacketBuilder) SetIperfClientCommand(cmd string) *IperfClien
 }
 
 func (b *IperfClientPacketBuilder) SetBandwidth(bandwidth bool) *IperfClientPacketBuilder {
-	b.IperfClientPacket.Bandwith = bandwidth
+	b.IperfClientPacket.Bandwidth = bandwidth
 	return b
 }
 
@@ -93,6 +95,12 @@ func (b *IperfClientPacketBuilder) SetJitter(jitter bool) *IperfClientPacketBuil
 func (b *IperfClientPacketBuilder) SetPacketLoss(packetLoss bool) *IperfClientPacketBuilder {
 	b.IperfClientPacket.PacketLoss = packetLoss
 	return b
+}
+
+func (b *IperfClientPacket) removeHash() string {
+	hash := b.Hash
+	b.Hash = ""
+	return hash
 }
 
 func (b *IperfClientPacketBuilder) Build() IperfClientPacket {
@@ -108,7 +116,7 @@ func EncodeIperfClientPacket(msg IperfClientPacket) ([]byte, error) {
 	buf.WriteByte(msg.AgentID)
 	binary.Write(buf, binary.BigEndian, msg.TaskID)
 	binary.Write(buf, binary.BigEndian, msg.Frequency)
-	buf.WriteByte(utils.BoolToByte(msg.Bandwith))
+	buf.WriteByte(utils.BoolToByte(msg.Bandwidth))
 	buf.WriteByte(utils.BoolToByte(msg.Jitter))
 	buf.WriteByte(utils.BoolToByte(msg.PacketLoss))
 
@@ -132,6 +140,11 @@ func EncodeIperfClientPacket(msg IperfClientPacket) ([]byte, error) {
 	cmdBytes := []byte(msg.IperfClientCommand)
 	buf.WriteByte(byte(len(cmdBytes)))
 	buf.Write(cmdBytes)
+
+	// Encode Hash
+	hashBytes := []byte(msg.Hash)
+	buf.WriteByte(byte(len(hashBytes)))
+	buf.Write(hashBytes)
 
 	return buf.Bytes(), nil
 }
@@ -169,7 +182,7 @@ func DecodeIperfClientPacket(data []byte) (IperfClientPacket, error) {
 	}
 	msg.PacketID = packetID
 	msg.AgentID = agentID
-	msg.Bandwith = bandwidth == 1
+	msg.Bandwidth = bandwidth == 1
 	msg.Jitter = jitter == 1
 	msg.PacketLoss = packetLoss == 1
 
@@ -214,5 +227,34 @@ func DecodeIperfClientPacket(data []byte) (IperfClientPacket, error) {
 	}
 	msg.IperfClientCommand = string(cmdBytes)
 
+	// Decode Hash
+	var hashLen byte
+	if err := binary.Read(buf, binary.BigEndian, &hashLen); err != nil {
+		return msg, err
+	}
+	hashBytes := make([]byte, hashLen)
+	if _, err := buf.Read(hashBytes); err != nil {
+		return msg, err
+	}
+	msg.Hash = string(hashBytes)
+
 	return msg, nil
+}
+
+func CreateHashIperfClientPacket(iperfClient IperfClientPacket) []byte {
+	byteData, _ := EncodeIperfClientPacket(iperfClient)
+
+	hash := sha256.Sum256(byteData)
+
+	return hash[:utils.HASHSIZE]
+}
+
+func ValidateHashIperfClientPacket(iperfClient IperfClientPacket) bool {
+	beforeHash := iperfClient.removeHash()
+
+	byteData, _ := EncodeIperfClientPacket(iperfClient)
+
+	afterHash := sha256.Sum256(byteData)
+
+	return string(afterHash[:utils.HASHSIZE]) == beforeHash
 }

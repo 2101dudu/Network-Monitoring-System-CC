@@ -2,6 +2,7 @@ package task
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/binary"
 	utils "nms/internal/utils"
 )
@@ -15,6 +16,10 @@ type IperfServerPacket struct {
 	DeviceMetrics       DeviceMetrics
 	AlertFlowConditions AlertFlowConditions
 	IperfServerCommand  string
+	Bandwidth           bool
+	Jitter              bool
+	PacketLoss          bool
+	Hash                string
 }
 
 type IperfServerPacketBuilder struct {
@@ -31,6 +36,10 @@ func NewIperfServerPacketBuilder() *IperfServerPacketBuilder {
 			DeviceMetrics:       DeviceMetrics{},
 			AlertFlowConditions: AlertFlowConditions{},
 			IperfServerCommand:  "",
+			Bandwidth:           false,
+			Jitter:              false,
+			PacketLoss:          false,
+			Hash:                "",
 		},
 	}
 }
@@ -70,6 +79,27 @@ func (b *IperfServerPacketBuilder) SetIperfServerCommand(cmd string) *IperfServe
 	return b
 }
 
+func (b *IperfServerPacketBuilder) SetBandwidth(bandwidth bool) *IperfServerPacketBuilder {
+	b.IperfServerPacket.Bandwidth = bandwidth
+	return b
+}
+
+func (b *IperfServerPacketBuilder) SetJitter(jitter bool) *IperfServerPacketBuilder {
+	b.IperfServerPacket.Jitter = jitter
+	return b
+}
+
+func (b *IperfServerPacket) removeHash() string {
+	hash := b.Hash
+	b.Hash = ""
+	return hash
+}
+
+func (b *IperfServerPacketBuilder) SetPacketLoss(packetLoss bool) *IperfServerPacketBuilder {
+	b.IperfServerPacket.PacketLoss = packetLoss
+	return b
+}
+
 func (b *IperfServerPacketBuilder) Build() IperfServerPacket {
 	return b.IperfServerPacket
 }
@@ -104,6 +134,15 @@ func EncodeIperfServerPacket(msg IperfServerPacket) ([]byte, error) {
 	cmdBytes := []byte(msg.IperfServerCommand)
 	buf.WriteByte(byte(len(cmdBytes)))
 	buf.Write(cmdBytes)
+
+	buf.WriteByte(utils.BoolToByte(msg.Bandwidth))
+	buf.WriteByte(utils.BoolToByte(msg.Jitter))
+	buf.WriteByte(utils.BoolToByte(msg.PacketLoss))
+
+	// Encode Hash
+	hashBytes := []byte(msg.Hash)
+	buf.WriteByte(byte(len(hashBytes)))
+	buf.Write(hashBytes)
 
 	return buf.Bytes(), nil
 }
@@ -171,5 +210,50 @@ func DecodeIperfServerPacket(data []byte) (IperfServerPacket, error) {
 	}
 	msg.IperfServerCommand = string(cmdBytes)
 
+	bandwidth, err := buf.ReadByte()
+	if err != nil {
+		return msg, err
+	}
+	jitter, err := buf.ReadByte()
+	if err != nil {
+		return msg, err
+	}
+	packetLoss, err := buf.ReadByte()
+	if err != nil {
+		return msg, err
+	}
+	msg.Bandwidth = bandwidth == 1
+	msg.Jitter = jitter == 1
+	msg.PacketLoss = packetLoss == 1
+
+	// Decode Hash
+	var hashLen byte
+	if err := binary.Read(buf, binary.BigEndian, &hashLen); err != nil {
+		return msg, err
+	}
+	hashBytes := make([]byte, hashLen)
+	if _, err := buf.Read(hashBytes); err != nil {
+		return msg, err
+	}
+	msg.Hash = string(hashBytes)
+
 	return msg, nil
+}
+
+func CreateHashIperfServerPacket(iperfServer IperfServerPacket) []byte {
+	byteData, _ := EncodeIperfServerPacket(iperfServer)
+
+	hash := sha256.Sum256(byteData)
+
+	return hash[:utils.HASHSIZE]
+}
+
+func ValidateHashIperfServerPacket(iperfServer IperfServerPacket) bool {
+	beforeHash := iperfServer.removeHash()
+
+	byteData, _ := EncodeIperfServerPacket(iperfServer)
+
+	afterHash := sha256.Sum256(byteData)
+
+	return string(afterHash[:utils.HASHSIZE]) == beforeHash
 }
