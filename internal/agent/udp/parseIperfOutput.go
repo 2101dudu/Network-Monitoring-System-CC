@@ -1,12 +1,19 @@
 package udp
 
-import "strings"
+import (
+	"log"
+	"strconv"
+	"strings"
+)
 
-func parseIperfOutput(bandwidth bool, jitter bool, packetLoss bool, output string) string {
+func parseIperfOutput(bandwidth bool, jitter bool, packetLoss bool, jitterLimit float64, packetLossLimit float64, output string) (string, bool, bool) {
+	jitterHasExceeded := false
+	packetLossHasExceeded := false
+
 	if bandwidth {
 		line := findInLines("sec", output)
 		separatedLine := strings.Fields(line)
-		return separatedLine[6] + " " + separatedLine[7]
+		return separatedLine[6] + " " + separatedLine[7], jitterHasExceeded, packetLossHasExceeded
 	} else {
 		line := findInLines("%", output)
 		separatedLine := strings.Fields(line)
@@ -14,11 +21,29 @@ func parseIperfOutput(bandwidth bool, jitter bool, packetLoss bool, output strin
 		newOutput := ""
 		if jitter {
 			newOutput += separatedLine[8] + " " + separatedLine[9] + " "
-		}
-		if packetLoss {
-			newOutput += separatedLine[10] + " " + separatedLine[11]
+
+			jitterValue, err := strconv.ParseFloat(separatedLine[8], 64)
+			if err != nil {
+				log.Println("[AGENT] [ERROR 155] Transforming jitter string into float")
+			}
+			if jitterValue > jitterLimit { // check if jitter has exceeded
+				jitterHasExceeded = true
+			}
+
 		}
 
-		return newOutput
+		if packetLoss {
+			newOutput += separatedLine[10] + " " + separatedLine[11]
+
+			packetLossValue, err := strconv.ParseFloat(separatedLine[8], 64)
+			if err != nil {
+				log.Println("[AGENT] [ERROR 156] Transforming packet loss string into float")
+			}
+			if packetLossValue > packetLossLimit { // check if packet loss has exceeded
+				packetLossHasExceeded = true
+			}
+		}
+
+		return newOutput, jitterHasExceeded, packetLossHasExceeded
 	}
 }

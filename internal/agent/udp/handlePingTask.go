@@ -18,6 +18,11 @@ func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDP
 		log.Fatalln("[AGENT] [ERROR 81] Decoding ping packet")
 	}
 
+	agentID, errAgent := utils.GetAgentID()
+	if errAgent != nil {
+		log.Fatalln("[AGENT] [ERROR 101] Unable to get agent ID:", errAgent)
+	}
+
 	if !task.ValidateHashPingPacket(pingPacket) {
 		noack := ack.NewAckBuilder().SetPacketID(pingPacket.PacketID).SetSenderID(utils.SERVERID).Build()
 		hash := ack.CreateHashAckPacket(noack)
@@ -37,30 +42,16 @@ func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDP
 	startTime := time.Now()
 
 	// execute the pingPacket's command
-	outputData, cpuAlert, ramAlert, err := ExecuteCommandWithMonitoring(pingPacket.PingCommand, pingPacket.DeviceMetrics, pingPacket.AlertFlowConditions)
+	outputData, err := ExecuteCommandWithMonitoring(pingPacket.PingCommand, pingPacket.DeviceMetrics, pingPacket.AlertFlowConditions, pingPacket.TaskID)
 
-	if err != nil {
-		log.Println("[AGENT] [ERROR] Executing ping command")
-	}
+	if err != nil { // If during command execution happened an error then send an alert
 
-	if cpuAlert || ramAlert || err != nil {
-
-		agentID, errAgent := utils.GetAgentID()
-		if errAgent != nil {
-			log.Fatalln("[AGENT] Unable to get agent ID:", errAgent)
-		}
-
+		newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
 		buildAlert := alert.NewAlertBuilder().
-			SetPacketID(pingPacket.PacketID).
+			SetPacketID(newPacketID).
 			SetSenderID(agentID).
 			SetTaskID(pingPacket.TaskID).
-			SetCpuAlert(cpuAlert).
-			SetRamAlert(ramAlert)
-
-		if err != nil || errAgent != nil {
-			buildAlert.SetErrorAlert(true)
-		}
-		//No iperf convém verificar no parse do output os outros dados como jitter e packetloss
+			SetAlertType(alert.ERROR)
 
 		newAlert := buildAlert.Build()                        // build full alert with given sets
 		tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp

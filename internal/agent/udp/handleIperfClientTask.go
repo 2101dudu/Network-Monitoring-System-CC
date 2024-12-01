@@ -3,11 +3,12 @@ package udp
 import (
 	"log"
 	"net"
+	tcp "nms/internal/agent/tcp"
 	ack "nms/internal/packet/ack"
-	"nms/internal/packet/metrics"
-	"nms/internal/packet/task"
-	"nms/internal/utils"
-	"os/exec"
+	alert "nms/internal/packet/alert"
+	metrics "nms/internal/packet/metrics"
+	task "nms/internal/packet/task"
+	utils "nms/internal/utils"
 	"time"
 )
 
@@ -35,15 +36,48 @@ func handleIperfClientTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *
 	// keep track of the start time
 	startTime := time.Now()
 
-	// execute the pingPacket's command
-	cmd := exec.Command("sh", "-c", iperfClient.IperfClientCommand)
+	// execute the iperfPacket's command
+	outputData, err := ExecuteCommandWithMonitoring(iperfClient.IperfClientCommand, iperfClient.DeviceMetrics, iperfClient.AlertFlowConditions, iperfClient.TaskID)
 
-	outputData, err := cmd.CombinedOutput()
-	if err != nil {
-		log.Fatalln("[AGENT] [ERROR 86] Executing ping command")
+	if err != nil { // If during command execution happened an error, send an alert
+
+		newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
+		buildAlert := alert.NewAlertBuilder().
+			SetPacketID(newPacketID).
+			SetSenderID(agentID).
+			SetTaskID(iperfClient.TaskID).
+			SetAlertType(alert.ERROR)
+
+		newAlert := buildAlert.Build()                        // build full alert with given sets
+		tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
 	}
 
-	preparedOutput := parseIperfOutput(iperfClient.Bandwidth, iperfClient.Jitter, iperfClient.PacketLoss, string(outputData))
+	// Prepare output and check if jitter and packet loss exceeded
+	preparedOutput, jitterHasExceeded, packetLossHasExceeded := parseIperfOutput(iperfClient.Bandwidth, iperfClient.Jitter, iperfClient.PacketLoss, float64(iperfClient.AlertFlowConditions.Jitter), float64(iperfClient.AlertFlowConditions.PacketLoss), string(outputData))
+
+	if jitterHasExceeded {
+		newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
+		buildAlert := alert.NewAlertBuilder().
+			SetPacketID(newPacketID).
+			SetSenderID(agentID).
+			SetTaskID(iperfClient.TaskID).
+			SetAlertType(alert.PACKETLOSS)
+
+		newAlert := buildAlert.Build()                        // build full alert with given sets
+		tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
+	}
+
+	if packetLossHasExceeded {
+		newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
+		buildAlert := alert.NewAlertBuilder().
+			SetPacketID(newPacketID).
+			SetSenderID(agentID).
+			SetTaskID(iperfClient.TaskID).
+			SetAlertType(alert.PACKETLOSS)
+
+		newAlert := buildAlert.Build()                        // build full alert with given sets
+		tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
+	}
 
 	serverConn := utils.ResolveUDPAddrAndDial("localhost", "8081")
 
