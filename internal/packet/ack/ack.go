@@ -138,7 +138,7 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 	wg.Add(1)
 
 	// Variable to track retransmissions
-	var retransmissions int
+	retransmissions := 0
 
 	// Channel to signal the main thread to stop reading
 	stopReadingChan := make(chan struct{})
