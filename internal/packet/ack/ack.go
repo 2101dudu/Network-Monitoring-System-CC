@@ -137,59 +137,93 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 	var wg sync.WaitGroup
 	wg.Add(1)
 
+	// Variable to track retransmissions
+	retransmissions := 0
+
+	// Channel to signal the main thread to stop reading
+	stopReadingChan := make(chan struct{})
+
 	go func() {
 		defer wg.Done()
-		// set the status of the packet to "not" waiting for ack, because it is yet to be sent
+
+		// Set the status of the packet to "not" waiting for ack, because it is yet to be sent
 		pMutex.Lock()
 		packetsWaitingAck[packetID] = false
 		pMutex.Unlock()
 
 		packetSentInstant := time.Now()
+		i := 0
 		for {
 			waiting, exists := utils.GetPacketStatus(packetID, packetsWaitingAck, pMutex)
 
-			if !exists { // registration packet has been removed from map
+			if !exists { // Registration packet has been removed from map
 				return
 			}
 
 			if !waiting || time.Since(packetSentInstant) >= utils.TIMEOUTSECONDS*time.Second {
+				if i >= utils.MAXRETRANSMISSIONS {
+					retransmissions = i // Update retransmissions count
+
+					// Notify the main thread to stop reading
+					close(stopReadingChan)
+					return
+				}
+
 				utils.WriteUDP(conn, udpAddr, packetData, successMessage, errorMessage)
 
 				utils.PacketIsWaiting(packetID, packetsWaitingAck, pMutex, true)
 
 				packetSentInstant = time.Now()
+
+				i++
 			}
 		}
 	}()
 
-	ackWasSent := false
-	for !ackWasSent {
+	continueReadingAck := true
+	for continueReadingAck {
 		log.Println("[UDP] Waiting for ack")
 
-		// read packet
-		n, _, data := utils.ReadUDP(conn, "[UDP] Ack received", "[UDP] [ERROR 5] Unable to read ack")
+		select {
+		case <-stopReadingChan:
+			// Goroutine has finished retransmissions; stop reading
+			log.Println("[UDP] Retransmissions exhausted")
+            continueReadingAck = false
+            break
 
-		// Check if data was received
-		if n == 0 {
-			log.Println("[UDP] [ERROR 6] No data received")
-			return
+		default:
+			// Read packet
+			n, _, data := utils.ReadUDP(conn, "[UDP] Ack received", "[UDP] [ERROR 5] Unable to read ack")
+
+			// Check if data was received
+			if n == 0 {
+				log.Println("[UDP] [ERROR 6] No data received")
+				return
+			}
+
+			// Get ACK contents
+			packetType := utils.PacketType(data[0])
+			packetPayload := data[1:n]
+
+			if packetType != utils.ACK {
+				log.Println("[UDP] [ERROR 17] Unexpected packet type received")
+				continue
+			}
+
+			continueReadingAck = !HandleAck(packetPayload, packetsWaitingAck, pMutex, senderID)
 		}
-
-		// get ACK contents
-		packetType := utils.PacketType(data[0])
-		packetPayload := data[1:n]
-
-		if packetType != utils.ACK {
-			log.Println("[UDP] [ERROR 17] Unexpected packet type received")
-			return
-		}
-		ackWasSent = HandleAck(packetPayload, packetsWaitingAck, pMutex, senderID)
 	}
 
 	// Wait for the goroutine to finish
 	wg.Wait()
+
 	// Now it is safe to close the connection
 	conn.Close()
+
+	// Check retransmission count
+	if retransmissions >= utils.MAXRETRANSMISSIONS {
+		log.Fatalln("[ERROR] Unable to send packet after maximum retransmission attempts")
+	}
 }
 
 func CreateHashAckPacket(ack Ack) []byte {
