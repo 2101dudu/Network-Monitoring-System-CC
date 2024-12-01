@@ -153,7 +153,7 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 
 		packetSentInstant := time.Now()
 		i := 0
-		for i < utils.MAXRETRANSMISSIONS {
+		for {
 			waiting, exists := utils.GetPacketStatus(packetID, packetsWaitingAck, pMutex)
 
 			if !exists { // Registration packet has been removed from map
@@ -162,6 +162,14 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 			}
 
 			if !waiting || time.Since(packetSentInstant) >= utils.TIMEOUTSECONDS*time.Second {
+				if i >= utils.MAXRETRANSMISSIONS {
+					retransmissions = i // Update retransmissions count
+
+					// Notify the main thread to stop reading
+					close(stopReadingChan)
+					return
+				}
+
 				utils.WriteUDP(conn, udpAddr, packetData, successMessage, errorMessage)
 
 				utils.PacketIsWaiting(packetID, packetsWaitingAck, pMutex, true)
@@ -171,10 +179,6 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 				i++
 			}
 		}
-		retransmissions = i // Update retransmissions count
-
-		// Notify the main thread to stop reading
-		close(stopReadingChan)
 	}()
 
 	ackWasSent := false
