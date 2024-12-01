@@ -15,6 +15,7 @@ const (
 	IPERFCLIENT
 	IPERFSERVER
 	PING
+	ALERT
 )
 
 const (
@@ -23,6 +24,7 @@ const (
 	BUFFERSIZE          = 1024
 	SERVERID       byte = 0
 	HASHSIZE            = 12
+	SERVERTCP           = "8080"
 )
 
 func BoolToByte(b bool) byte {

@@ -3,11 +3,12 @@ package udp
 import (
 	"log"
 	"net"
+	tcp "nms/internal/agent/tcp"
 	ack "nms/internal/packet/ack"
-	"nms/internal/packet/metrics"
-	"nms/internal/packet/task"
-	"nms/internal/utils"
-	"os/exec"
+	alert "nms/internal/packet/alert"
+	metrics "nms/internal/packet/metrics"
+	task "nms/internal/packet/task"
+	utils "nms/internal/utils"
 	"time"
 )
 
@@ -36,11 +37,33 @@ func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDP
 	startTime := time.Now()
 
 	// execute the pingPacket's command
-	cmd := exec.Command("sh", "-c", pingPacket.PingCommand)
+	outputData, cpuAlert, ramAlert, err := ExecuteCommandWithMonitoring(pingPacket.PingCommand, pingPacket.DeviceMetrics, pingPacket.AlertFlowConditions)
 
-	outputData, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Fatalln("[AGENT] [ERROR 82] Executing ping command", err)
+		log.Println("[AGENT] [ERROR] Executing ping command")
+	}
+
+	if cpuAlert || ramAlert || err != nil {
+
+		agentID, errAgent := utils.GetAgentID()
+		if errAgent != nil {
+			log.Fatalln("[AGENT] Unable to get agent ID:", errAgent)
+		}
+
+		buildAlert := alert.NewAlertBuilder().
+			SetPacketID(pingPacket.PacketID).
+			SetSenderID(agentID).
+			SetTaskID(pingPacket.TaskID).
+			SetCpuAlert(cpuAlert).
+			SetRamAlert(ramAlert)
+
+		if err != nil || errAgent != nil {
+			buildAlert.SetErrorAlert(true)
+		}
+		//No iperf convém verificar no parse do output os outros dados como jitter e packetloss
+
+		newAlert := buildAlert.Build()                        // build full alert with given sets
+		tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
 	}
 
 	preparedOutput := parsePingOutput(string(outputData))
