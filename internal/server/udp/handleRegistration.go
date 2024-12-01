@@ -15,7 +15,7 @@ func handleRegistration(packetPayload []byte, conn *net.UDPConn, udpAddr *net.UD
 	}
 
 	if !registration.ValidateHashRegistrationPacket(reg) {
-		noack := ack.NewAckBuilder().SetPacketID(reg.PacketID).SetSenderID(reg.AgentID).Build()
+		noack := ack.NewAckBuilder().SetPacketID(reg.PacketID).SetReceiverID(reg.AgentID).Build()
 		hash := ack.CreateHashAckPacket(noack)
 		noack.Hash = (string(hash))
 		ack.EncodeAndSendAck(conn, udpAddr, noack)
@@ -28,7 +28,7 @@ func handleRegistration(packetPayload []byte, conn *net.UDPConn, udpAddr *net.UD
 	agentsIPs[reg.AgentID] = reg.IP
 
 	// send ack
-	newAck := ack.NewAckBuilder().SetPacketID(reg.PacketID).SetSenderID(reg.AgentID).HasAcknowledged().Build()
+	newAck := ack.NewAckBuilder().SetPacketID(reg.PacketID).SetReceiverID(reg.AgentID).HasAcknowledged().Build()
 	hash := ack.CreateHashAckPacket(newAck)
 	newAck.Hash = (string(hash))
 	ack.EncodeAndSendAck(conn, udpAddr, newAck)
