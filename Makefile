@@ -6,6 +6,8 @@ SERVER_RUNNER := ./cmd/nms/server/runner.go
 
 build: build-agent build-server
 
+rebuild: clean build-agent build-server
+
 agent: build-agent run-agent
 
 server: build-server run-server
