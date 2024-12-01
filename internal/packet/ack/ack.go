@@ -157,7 +157,6 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 			waiting, exists := utils.GetPacketStatus(packetID, packetsWaitingAck, pMutex)
 
 			if !exists { // Registration packet has been removed from map
-				close(stopReadingChan)
 				return
 			}
 
@@ -181,16 +180,16 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 		}
 	}()
 
-	ackWasSent := false
-exitloop:
-	for !ackWasSent {
+	continueReadingAck := true
+	for continueReadingAck {
 		log.Println("[UDP] Waiting for ack")
 
 		select {
 		case <-stopReadingChan:
 			// Goroutine has finished retransmissions; stop reading
-			log.Println("[UDP] Retransmissions exhausted; no more ACKs expected")
-			break exitloop
+			log.Println("[UDP] Retransmissions exhausted")
+            continueReadingAck = false
+            break
 
 		default:
 			// Read packet
@@ -211,7 +210,7 @@ exitloop:
 				continue
 			}
 
-			ackWasSent = HandleAck(packetPayload, packetsWaitingAck, pMutex, senderID)
+			continueReadingAck = !HandleAck(packetPayload, packetsWaitingAck, pMutex, senderID)
 		}
 	}
 
