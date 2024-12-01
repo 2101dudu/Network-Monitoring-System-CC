@@ -18,11 +18,12 @@ const (
 )
 
 const (
-	TIMEOUTSECONDS      = 2
-	MAXAGENTS           = 1
-	BUFFERSIZE          = 1024
-	SERVERID       byte = 0
-	HASHSIZE            = 12
+	TIMEOUTSECONDS          = 2
+	MAXAGENTS               = 1
+	BUFFERSIZE              = 1024
+	SERVERID           byte = 0
+	HASHSIZE                = 12
+	MAXRETRANSMISSIONS      = 3
 )
 
 func BoolToByte(b bool) byte {
