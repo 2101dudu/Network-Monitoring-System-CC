@@ -8,17 +8,16 @@ import (
 	"strings"
 	"time"
 
+	tcp "nms/internal/agent/tcp"
+	alert "nms/internal/packet/alert"
 	task "nms/internal/packet/task"
+	utils "nms/internal/utils"
 )
 
-func ExecuteCommandWithMonitoring(command string, metrics task.DeviceMetrics, conditions task.AlertFlowConditions) (string, bool, bool, error) {
+func ExecuteCommandWithMonitoring(command string, metrics task.DeviceMetrics, conditions task.AlertFlowConditions, taskID uint16) (string, error) {
 	done := make(chan struct{})
-	alertResults := make(chan struct {
-		cpuAlert bool
-		ramAlert bool
-	})
 
-	go monitorSystemMetrics(metrics, conditions, done, alertResults)
+	go monitorSystemMetrics(metrics, conditions, taskID, done)
 
 	cmd := exec.Command("sh", "-c", command)
 	//log.Println("Executing command:", command)
@@ -26,27 +25,15 @@ func ExecuteCommandWithMonitoring(command string, metrics task.DeviceMetrics, co
 
 	close(done)
 
-	finalAlerts := <-alertResults
-
 	if err != nil {
-		return string(stdout), finalAlerts.cpuAlert, finalAlerts.ramAlert, err
+		return string(stdout), err
 	}
 
-	/* 	if finalAlerts.cpuAlert {
-	   		log.Println("alerta cpu.")
-	   	}
-	   	if finalAlerts.ramAlert {
-	   		log.Println("alerta ram.")
-	   	} */
-
 	//log.Println("Command executed.")
-	return string(stdout), finalAlerts.cpuAlert, finalAlerts.ramAlert, nil //os alertas poderemos retornar aqui para depois enviar um alerta geral com todas as coisas em que houve erro como mostrado na struct anterior
+	return string(stdout), nil
 }
 
-func monitorSystemMetrics(metrics task.DeviceMetrics, conditions task.AlertFlowConditions, done chan struct{}, alertResults chan struct {
-	cpuAlert bool
-	ramAlert bool
-}) {
+func monitorSystemMetrics(metrics task.DeviceMetrics, conditions task.AlertFlowConditions, taskID uint16, done chan struct{}) {
 	ticker := time.NewTicker(100 * time.Millisecond)
 	defer ticker.Stop()
 
@@ -56,51 +43,65 @@ func monitorSystemMetrics(metrics task.DeviceMetrics, conditions task.AlertFlowC
 	//log.Println("[MONITOR] Start")
 	for {
 
-		if ramAlert && cpuAlert { // If both alerts happened then can stop
+		if (ramAlert || !metrics.RamUsage) && (cpuAlert || !metrics.CpuUsage) { // If both alerts happened then can stop
 			return
 		}
 
 		select {
-		case <-done:
-
-			alertResults <- struct {
-				cpuAlert bool
-				ramAlert bool
-			}{cpuAlert, ramAlert}
+		case <-done: // Command finished
 			//log.Println("[MONITOR] End")
 			return
 
 		case <-ticker.C:
-			cpuUsage, ramUsage := getCpuAndRamUsage()
+			// if there is not an alert of cpu and cpu Usage is a metric
+			if !cpuAlert && metrics.CpuUsage {
+				cpuUsage, errorCpu := getCpuUsage()
+				if errorCpu != nil {
+					fmt.Println("[AGENT] [MONITOR] [ERROR 180] Error getting CPU usage:", errorCpu)
+					cpuUsage = 0
+				}
 
-			if !cpuAlert && metrics.CpuUsage && cpuUsage > float64(conditions.CpuUsage) {
-				cpuAlert = true
-				// fmt.Printf("[ALERT] CPU Usage exceeded: %.2f%% (limit: %d%%)\n", cpuUsage, conditions.CpuUsage)
+				if cpuUsage > float64(conditions.CpuUsage) { // Build and send cpu alert
+					cpuAlert = true
+
+					newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
+					buildAlert := alert.NewAlertBuilder().
+						SetPacketID(newPacketID).
+						SetSenderID(agentID).
+						SetTaskID(taskID).
+						SetAlertType(alert.CPU)
+
+					newAlert := buildAlert.Build()                        // build full alert with given sets
+					tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
+					// fmt.Printf("[ALERT] CPU Usage exceeded: %.2f%% (limit: %d%%)\n", cpuUsage, conditions.CpuUsage)
+				}
 			}
-			if !ramAlert && metrics.RamUsage && ramUsage > float64(conditions.RamUsage) {
-				ramAlert = true
-				// fmt.Printf("[ALERT] RAM Usage exceeded: %.2f%% (limit: %d%%)\n", ramUsage, conditions.RamUsage)
+
+			// if there is not an alert of ram and ram usage is a metric
+			if !ramAlert && metrics.RamUsage {
+				ramUsage, errorRam := getRamUsage()
+				if errorRam != nil {
+					fmt.Println("[AGENT] [MONITOR] [ERROR 181] Error getting RAM usage:", errorRam)
+					ramUsage = 0
+				}
+
+				if ramUsage > float64(conditions.RamUsage) { // Build and send cpu alert
+					ramAlert = true
+
+					newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
+					buildAlert := alert.NewAlertBuilder().
+						SetPacketID(newPacketID).
+						SetSenderID(agentID).
+						SetTaskID(taskID).
+						SetAlertType(alert.RAM)
+
+					newAlert := buildAlert.Build()                        // build full alert with given sets
+					tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
+					// fmt.Printf("[ALERT] RAM Usage exceeded: %.2f%% (limit: %d%%)\n", ramUsage, conditions.RamUsage)
+				}
 			}
 		}
 	}
-}
-
-func getCpuAndRamUsage() (float64, float64) {
-	// Uso da CPU
-	cpuPercent, err := getCpuUsage()
-	if err != nil {
-		fmt.Println("[MONITOR] Error getting CPU usage:", err)
-		cpuPercent = 0
-	}
-
-	// Uso de RAM
-	memInfo, err := getRamUsage()
-	if err != nil {
-		fmt.Println("[MONITOR] Error getting RAM Usage:", err)
-		return cpuPercent, 0
-	}
-
-	return cpuPercent, memInfo
 }
 
 func getCpuUsage() (float64, error) {

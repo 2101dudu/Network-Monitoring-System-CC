@@ -9,16 +9,23 @@ import (
 )
 
 // Alert struct
-type Alert struct { // + type of message
-	PacketID   byte
-	SenderID   byte
-	TaskID     uint16
-	CpuAlert   bool
-	RamAlert   bool
-	Jitter     bool
-	PacketLoss bool
-	Error      bool
+type Alert struct {
+	PacketID  byte
+	SenderID  byte
+	TaskID    uint16
+	AlertType AlertType
 }
+
+// AlertType defines the type of the alert
+type AlertType byte
+
+const (
+	CPU AlertType = iota
+	RAM
+	JITTER
+	PACKETLOSS
+	ERROR
+)
 
 // AlertBuilder struct
 type AlertBuilder struct {
@@ -29,14 +36,10 @@ type AlertBuilder struct {
 func NewAlertBuilder() *AlertBuilder {
 	return &AlertBuilder{
 		Alert: Alert{
-			PacketID:   0,
-			SenderID:   0,
-			TaskID:     0,
-			CpuAlert:   false,
-			RamAlert:   false,
-			Jitter:     false,
-			PacketLoss: false,
-			Error:      false,
+			PacketID:  0,
+			SenderID:  0,
+			TaskID:    0,
+			AlertType: ERROR, // Default to ERROR, can be changed
 		},
 	}
 }
@@ -57,28 +60,8 @@ func (b *AlertBuilder) SetTaskID(id uint16) *AlertBuilder {
 	return b
 }
 
-func (b *AlertBuilder) SetCpuAlert(alert bool) *AlertBuilder {
-	b.Alert.CpuAlert = alert
-	return b
-}
-
-func (b *AlertBuilder) SetRamAlert(alert bool) *AlertBuilder {
-	b.Alert.RamAlert = alert
-	return b
-}
-
-func (b *AlertBuilder) SetJitterAlert(alert bool) *AlertBuilder {
-	b.Alert.Jitter = alert
-	return b
-}
-
-func (b *AlertBuilder) SetPacketLossAlert(alert bool) *AlertBuilder {
-	b.Alert.PacketLoss = alert
-	return b
-}
-
-func (b *AlertBuilder) SetErrorAlert(alert bool) *AlertBuilder {
-	b.Alert.Error = alert
+func (b *AlertBuilder) SetAlertType(alertType AlertType) *AlertBuilder {
+	b.Alert.AlertType = alertType
 	return b
 }
 
@@ -86,6 +69,7 @@ func (b *AlertBuilder) Build() Alert {
 	return b.Alert
 }
 
+// EncodeAlert serializes the Alert struct into a byte slice
 func EncodeAlert(alert Alert) ([]byte, error) {
 	buf := new(bytes.Buffer)
 
@@ -93,21 +77,19 @@ func EncodeAlert(alert Alert) ([]byte, error) {
 	buf.WriteByte(byte(utils.ALERT))
 	buf.WriteByte(alert.PacketID)
 	buf.WriteByte(alert.SenderID)
+
 	// Encode TaskID
 	if err := binary.Write(buf, binary.BigEndian, alert.TaskID); err != nil {
 		return nil, err
 	}
 
-	// Encode boolean fields
-	buf.WriteByte(utils.BoolToByte(alert.CpuAlert))
-	buf.WriteByte(utils.BoolToByte(alert.RamAlert))
-	buf.WriteByte(utils.BoolToByte(alert.Jitter))
-	buf.WriteByte(utils.BoolToByte(alert.PacketLoss))
-	buf.WriteByte(utils.BoolToByte(alert.Error))
+	// Encode AlertType
+	buf.WriteByte(byte(alert.AlertType))
 
 	return buf.Bytes(), nil
 }
 
+// DecodeAlert deserializes the Alert struct from a byte slice
 func DecodeAlert(data []byte) (Alert, error) {
 	buf := bytes.NewReader(data)
 	var alert Alert
@@ -123,36 +105,19 @@ func DecodeAlert(data []byte) (Alert, error) {
 		return alert, err
 	}
 
-	// Decode boolean fields
-	var cpuAlert, ramAlert, jitter, packetLoss, errorAlert byte
-	if err := binary.Read(buf, binary.BigEndian, &cpuAlert); err != nil {
+	// Decode AlertType
+	var alertType byte
+	if err := binary.Read(buf, binary.BigEndian, &alertType); err != nil {
 		return alert, err
 	}
-	if err := binary.Read(buf, binary.BigEndian, &ramAlert); err != nil {
-		return alert, err
-	}
-	if err := binary.Read(buf, binary.BigEndian, &jitter); err != nil {
-		return alert, err
-	}
-	if err := binary.Read(buf, binary.BigEndian, &packetLoss); err != nil {
-		return alert, err
-	}
-	if err := binary.Read(buf, binary.BigEndian, &errorAlert); err != nil {
-		return alert, err
-	}
-
-	alert.CpuAlert = cpuAlert == 1
-	alert.RamAlert = ramAlert == 1
-	alert.Jitter = jitter == 1
-	alert.PacketLoss = packetLoss == 1
-	alert.Error = errorAlert == 1
+	alert.AlertType = AlertType(alertType)
 
 	return alert, nil
 }
 
+// EncodeAndSendAlert serializes and sends the alert via a TCP connection
 func EncodeAndSendAlert(conn *net.TCPConn, alert Alert) {
 	alertData, err := EncodeAlert(alert)
-
 	if err != nil {
 		log.Println("[TCP][ENCODE][ERROR] Unable to encode alert")
 		return
