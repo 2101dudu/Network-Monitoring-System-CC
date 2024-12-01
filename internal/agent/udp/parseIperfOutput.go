@@ -35,11 +35,12 @@ func parseIperfOutput(bandwidth bool, jitter bool, packetLoss bool, jitterLimit 
 		if packetLoss {
 			newOutput += separatedLine[10] + " " + separatedLine[11]
 
-			packetLossValue, err := strconv.ParseFloat(separatedLine[8], 64)
+			packetLossPercentageStr := strings.Trim(separatedLine[11], "()%")
+			packetLossPercentage, err := strconv.ParseFloat(packetLossPercentageStr, 64)
 			if err != nil {
-				log.Println("[AGENT] [ERROR 156] Transforming packet loss string into float")
+				log.Println("[AGENT] [ERROR 156] Transforming packet loss percentage string into float")
 			}
-			if packetLossValue > packetLossLimit { // check if packet loss has exceeded
+			if packetLossPercentage > packetLossLimit { // Check if packet loss has exceeded
 				packetLossHasExceeded = true
 			}
 		}
