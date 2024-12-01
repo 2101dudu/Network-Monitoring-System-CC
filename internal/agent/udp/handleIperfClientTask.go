@@ -61,7 +61,7 @@ func handleIperfClientTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *
 			SetPacketID(newPacketID).
 			SetSenderID(agentID).
 			SetTaskID(iperfClient.TaskID).
-			SetAlertType(alert.PACKETLOSS)
+			SetAlertType(alert.JITTER)
 
 		newAlert := buildAlert.Build()                        // build full alert with given sets
 		tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
