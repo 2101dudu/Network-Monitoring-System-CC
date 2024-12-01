@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/binary"
+	"log"
 	utils "nms/internal/utils"
 )
 
@@ -107,7 +108,7 @@ func (b *IperfClientPacketBuilder) Build() IperfClientPacket {
 	return b.IperfClientPacket
 }
 
-func EncodeIperfClientPacket(msg IperfClientPacket) ([]byte, error) {
+func EncodeIperfClientPacket(msg IperfClientPacket) []byte {
 	buf := new(bytes.Buffer)
 
 	// Encode fixed fields
@@ -121,18 +122,14 @@ func EncodeIperfClientPacket(msg IperfClientPacket) ([]byte, error) {
 	buf.WriteByte(utils.BoolToByte(msg.PacketLoss))
 
 	// Encode DeviceMetrics
-	deviceMetricsBytes, err := EncodeDeviceMetrics(msg.DeviceMetrics)
-	if err != nil {
-		return nil, err
-	}
+	deviceMetricsBytes := EncodeDeviceMetrics(msg.DeviceMetrics)
+
 	buf.WriteByte(byte(len(deviceMetricsBytes))) // Add size byte
 	buf.Write(deviceMetricsBytes)
 
 	// Encode AlertFlowConditions
-	alertFlowConditionsBytes, err := EncodeAlertFlowConditions(msg.AlertFlowConditions)
-	if err != nil {
-		return nil, err
-	}
+	alertFlowConditionsBytes := EncodeAlertFlowConditions(msg.AlertFlowConditions)
+
 	buf.WriteByte(byte(len(alertFlowConditionsBytes))) // Add size byte
 	buf.Write(alertFlowConditionsBytes)
 
@@ -146,7 +143,13 @@ func EncodeIperfClientPacket(msg IperfClientPacket) ([]byte, error) {
 	buf.WriteByte(byte(len(hashBytes)))
 	buf.Write(hashBytes)
 
-	return buf.Bytes(), nil
+	packet := buf.Bytes()
+
+	if len(packet) > utils.BUFFERSIZE {
+		log.Fatalln("[ERROR 206] Packet size too large")
+	}
+
+	return packet
 }
 
 func DecodeIperfClientPacket(data []byte) (IperfClientPacket, error) {
@@ -242,7 +245,7 @@ func DecodeIperfClientPacket(data []byte) (IperfClientPacket, error) {
 }
 
 func CreateHashIperfClientPacket(iperfClient IperfClientPacket) []byte {
-	byteData, _ := EncodeIperfClientPacket(iperfClient)
+	byteData := EncodeIperfClientPacket(iperfClient)
 
 	hash := sha256.Sum256(byteData)
 
@@ -252,7 +255,7 @@ func CreateHashIperfClientPacket(iperfClient IperfClientPacket) []byte {
 func ValidateHashIperfClientPacket(iperfClient IperfClientPacket) bool {
 	beforeHash := iperfClient.removeHash()
 
-	byteData, _ := EncodeIperfClientPacket(iperfClient)
+	byteData := EncodeIperfClientPacket(iperfClient)
 
 	afterHash := sha256.Sum256(byteData)
 

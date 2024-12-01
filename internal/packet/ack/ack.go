@@ -93,6 +93,10 @@ func EncodeAck(ack Ack) []byte {
 	packet = append(packet, byte(len(hashBytes)))
 	packet = append(packet, hashBytes...)
 
+	if len(packet) > utils.BUFFERSIZE {
+		log.Fatalln("[ERROR 201] Packet size too large")
+	}
+
 	return packet
 }
 
