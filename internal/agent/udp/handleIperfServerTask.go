@@ -14,7 +14,7 @@ import (
 func handleIperfServerTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDPAddr) {
 	iperfServer, err := task.DecodeIperfServerPacket(taskPayload)
 	if err != nil {
-		log.Fatalln("[AGENT] [ERROR 83] Decoding ping packet")
+		log.Fatalln("[AGENT] [ERROR 83] Decoding iperf server packet")
 	}
 
 	if !task.ValidateHashIperfServerPacket(iperfServer) {
@@ -34,12 +34,12 @@ func handleIperfServerTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *
 	// keep track of the start time
 	startTime := time.Now()
 
-	// execute the pingPacket's command
+	// execute the iperf server packet's command
 	cmd := exec.Command("sh", "-c", iperfServer.IperfServerCommand)
 
 	outputData, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Fatalln("[AGENT] [ERROR 84] Executing ping command")
+		log.Fatalln("[AGENT] [ERROR 84] Executing iperf server command")
 	}
 
 	preparedOutput := parseIperfOutput(iperfServer.Bandwidth, iperfServer.Jitter, iperfServer.PacketLoss, string(outputData))
@@ -47,7 +47,7 @@ func handleIperfServerTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *
 	serverConn := utils.ResolveUDPAddrAndDial("localhost", "8081")
 
 	metricsID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
-	newMetrics := metrics.NewMetricsBuilder().SetPacketID(metricsID).SetAgentID(agentID).SetTime(startTime.Format("15:04:05.000000000")).SetMetrics(preparedOutput).Build()
+	newMetrics := metrics.NewMetricsBuilder().SetPacketID(metricsID).SetAgentID(agentID).SetTaskID(iperfServer.TaskID).SetTime(startTime.Format("15:04:05.000000000")).SetMetrics(preparedOutput).Build()
 
 	hash = metrics.CreateHashMetricsPacket(newMetrics)
 	newMetrics.Hash = (string(hash))

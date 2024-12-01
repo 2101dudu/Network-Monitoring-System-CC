@@ -14,7 +14,7 @@ import (
 func handleIperfClientTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDPAddr) {
 	iperfClient, err := task.DecodeIperfClientPacket(taskPayload)
 	if err != nil {
-		log.Fatalln("[AGENT] [ERROR 85] Decoding ping packet")
+		log.Fatalln("[AGENT] [ERROR 85] Decoding iperf client packet")
 	}
 
 	if !task.ValidateHashIperfClientPacket(iperfClient) {
@@ -35,12 +35,12 @@ func handleIperfClientTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *
 	// keep track of the start time
 	startTime := time.Now()
 
-	// execute the pingPacket's command
+	// execute the iperf client packets's command
 	cmd := exec.Command("sh", "-c", iperfClient.IperfClientCommand)
 
 	outputData, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Fatalln("[AGENT] [ERROR 86] Executing ping command")
+		log.Fatalln("[AGENT] [ERROR 86] Executing iperf client command")
 	}
 
 	preparedOutput := parseIperfOutput(iperfClient.Bandwidth, iperfClient.Jitter, iperfClient.PacketLoss, string(outputData))
