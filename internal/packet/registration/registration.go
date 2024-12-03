@@ -92,6 +92,10 @@ func EncodeRegistration(reg Registration) []byte {
 	packet = append(packet, byte(len(hashBytes)))
 	packet = append(packet, hashBytes...)
 
+	if len(packet) > utils.BUFFERSIZE {
+		log.Fatalln("[ERROR 203] Packet size too large")
+	}
+
 	return packet
 }
 

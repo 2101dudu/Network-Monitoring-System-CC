@@ -1,7 +1,6 @@
 package udp
 
 import (
-	"log"
 	parse "nms/internal/jsonParse"
 	"nms/internal/packet/ack"
 	t "nms/internal/packet/task"
@@ -16,10 +15,7 @@ func handlePingTask(task parse.Task) {
 	clientHash := t.CreateHashPingPacket(pingPacket)
 	pingPacket.Hash = (string(clientHash))
 
-	data, err := t.EncodePingPacket(pingPacket)
-	if err != nil {
-		log.Fatalln("[ERROR 21] Encoding ping packet")
-	}
+	data := t.EncodePingPacket(pingPacket)
 
 	ack.SendPacketAndWaitForAck(pingPacket.PacketID, utils.SERVERID, packetsWaitingAck, &pMutex, agentConn, nil, data, "[SERVER] [MAIN READ THREAD] Ping packet sent", "[SERVER] [ERROR 31] Unable to send ping packet")
 }

@@ -15,11 +15,11 @@ import (
 func handleIperfClientTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDPAddr) {
 	iperfClient, err := task.DecodeIperfClientPacket(taskPayload)
 	if err != nil {
-		log.Fatalln("[AGENT] [ERROR 85] Decoding ping packet")
+		log.Fatalln("[AGENT] [ERROR 85] Decoding iperf client packet")
 	}
 
 	if !task.ValidateHashIperfClientPacket(iperfClient) {
-		noack := ack.NewAckBuilder().SetPacketID(iperfClient.PacketID).SetSenderID(utils.SERVERID).Build()
+		noack := ack.NewAckBuilder().SetPacketID(iperfClient.PacketID).SetReceiverID(utils.SERVERID).Build()
 		hash := ack.CreateHashAckPacket(noack)
 		noack.Hash = (string(hash))
 		ack.EncodeAndSendAck(agentConn, udpAddr, noack)
@@ -28,7 +28,7 @@ func handleIperfClientTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *
 		return
 	}
 
-	newAck := ack.NewAckBuilder().SetPacketID(iperfClient.PacketID).SetSenderID(utils.SERVERID).HasAcknowledged().Build()
+	newAck := ack.NewAckBuilder().SetPacketID(iperfClient.PacketID).SetReceiverID(utils.SERVERID).HasAcknowledged().Build()
 	hash := ack.CreateHashAckPacket(newAck)
 	newAck.Hash = (string(hash))
 	ack.EncodeAndSendAck(agentConn, udpAddr, newAck)

@@ -12,7 +12,7 @@ import (
 
 type Ack struct {
 	PacketID     byte // [0, 255]
-	SenderID     byte // [0, 255]
+	ReceiverID   byte // [0, 255]
 	Acknowledged bool
 	Hash         string
 }
@@ -25,7 +25,7 @@ func NewAckBuilder() *AckBuilder {
 	return &AckBuilder{
 		Ack: Ack{
 			PacketID:     0,
-			SenderID:     0,
+			ReceiverID:   0,
 			Acknowledged: false,
 			Hash:         "",
 		},
@@ -37,8 +37,8 @@ func (a *AckBuilder) SetPacketID(id byte) *AckBuilder {
 	return a
 }
 
-func (a *AckBuilder) SetSenderID(id byte) *AckBuilder {
-	a.Ack.SenderID = id
+func (a *AckBuilder) SetReceiverID(id byte) *AckBuilder {
+	a.Ack.ReceiverID = id
 	return a
 }
 
@@ -65,7 +65,7 @@ func DecodeAck(packet []byte) (Ack, error) {
 
 	ack := Ack{
 		PacketID:     packet[0],
-		SenderID:     packet[1],
+		ReceiverID:   packet[1],
 		Acknowledged: packet[2] == 1,
 	}
 
@@ -84,7 +84,7 @@ func EncodeAck(ack Ack) []byte {
 	packet := []byte{
 		byte(utils.ACK),
 		ack.PacketID,
-		ack.SenderID,
+		ack.ReceiverID,
 		utils.BoolToByte(ack.Acknowledged),
 	}
 
@@ -92,6 +92,10 @@ func EncodeAck(ack Ack) []byte {
 	hashBytes := []byte(ack.Hash)
 	packet = append(packet, byte(len(hashBytes)))
 	packet = append(packet, hashBytes...)
+
+	if len(packet) > utils.BUFFERSIZE {
+		log.Fatalln("[ERROR 201] Packet size too large")
+	}
 
 	return packet
 }
@@ -114,7 +118,7 @@ func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.
 
 	_, exist := utils.GetPacketStatus(ack.PacketID, packetsWaitingAck, pMutex)
 
-	if !exist || ack.SenderID != senderID {
+	if !exist || ack.ReceiverID != senderID {
 		log.Println("[ERROR 16] Invalid acknowledgement")
 		return false
 	}
@@ -188,8 +192,7 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 		case <-stopReadingChan:
 			// Goroutine has finished retransmissions; stop reading
 			log.Println("[UDP] Retransmissions exhausted")
-            continueReadingAck = false
-            break
+			continueReadingAck = false
 
 		default:
 			// Read packet

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/binary"
+	"log"
 	utils "nms/internal/utils"
 )
 
@@ -104,7 +105,7 @@ func (b *IperfServerPacketBuilder) Build() IperfServerPacket {
 	return b.IperfServerPacket
 }
 
-func EncodeIperfServerPacket(msg IperfServerPacket) ([]byte, error) {
+func EncodeIperfServerPacket(msg IperfServerPacket) []byte {
 	buf := new(bytes.Buffer)
 
 	// Encode fixed fields
@@ -115,18 +116,14 @@ func EncodeIperfServerPacket(msg IperfServerPacket) ([]byte, error) {
 	binary.Write(buf, binary.BigEndian, msg.Frequency)
 
 	// Encode DeviceMetrics
-	deviceMetricsBytes, err := EncodeDeviceMetrics(msg.DeviceMetrics)
-	if err != nil {
-		return nil, err
-	}
+	deviceMetricsBytes := EncodeDeviceMetrics(msg.DeviceMetrics)
+
 	buf.WriteByte(byte(len(deviceMetricsBytes))) // Add size byte
 	buf.Write(deviceMetricsBytes)
 
 	// Encode AlertFlowConditions
-	alertFlowConditionsBytes, err := EncodeAlertFlowConditions(msg.AlertFlowConditions)
-	if err != nil {
-		return nil, err
-	}
+	alertFlowConditionsBytes := EncodeAlertFlowConditions(msg.AlertFlowConditions)
+
 	buf.WriteByte(byte(len(alertFlowConditionsBytes))) // Add size byte
 	buf.Write(alertFlowConditionsBytes)
 
@@ -144,7 +141,13 @@ func EncodeIperfServerPacket(msg IperfServerPacket) ([]byte, error) {
 	buf.WriteByte(byte(len(hashBytes)))
 	buf.Write(hashBytes)
 
-	return buf.Bytes(), nil
+	packet := buf.Bytes()
+
+	if len(packet) > utils.BUFFERSIZE {
+		log.Fatalln("[ERROR 207] Packet size too large")
+	}
+
+	return packet
 }
 
 func DecodeIperfServerPacket(data []byte) (IperfServerPacket, error) {
@@ -241,7 +244,7 @@ func DecodeIperfServerPacket(data []byte) (IperfServerPacket, error) {
 }
 
 func CreateHashIperfServerPacket(iperfServer IperfServerPacket) []byte {
-	byteData, _ := EncodeIperfServerPacket(iperfServer)
+	byteData := EncodeIperfServerPacket(iperfServer)
 
 	hash := sha256.Sum256(byteData)
 
@@ -251,7 +254,7 @@ func CreateHashIperfServerPacket(iperfServer IperfServerPacket) []byte {
 func ValidateHashIperfServerPacket(iperfServer IperfServerPacket) bool {
 	beforeHash := iperfServer.removeHash()
 
-	byteData, _ := EncodeIperfServerPacket(iperfServer)
+	byteData := EncodeIperfServerPacket(iperfServer)
 
 	afterHash := sha256.Sum256(byteData)
 

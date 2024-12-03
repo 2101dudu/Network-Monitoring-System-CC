@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"errors"
+	"log"
 	"nms/internal/utils"
 )
 
@@ -150,7 +151,13 @@ func EncodeMetrics(metrics Metrics) []byte {
 	buf.WriteByte(byte(len(hashBytes)))
 	buf.Write(hashBytes)
 
-	return buf.Bytes()
+	packet := buf.Bytes()
+
+	if len(packet) > utils.BUFFERSIZE {
+		log.Fatalln("[ERROR 202] Packet size too large")
+	}
+
+	return packet
 }
 
 func CreateHashMetricsPacket(metricsPacket Metrics) []byte {

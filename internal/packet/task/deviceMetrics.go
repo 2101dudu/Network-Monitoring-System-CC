@@ -2,6 +2,7 @@ package task
 
 import (
 	"bytes"
+	"log"
 	utils "nms/internal/utils"
 )
 
@@ -44,7 +45,7 @@ func (b *DeviceMetricsBuilder) Build() DeviceMetrics {
 	return b.DeviceMetrics
 }
 
-func EncodeDeviceMetrics(metrics DeviceMetrics) ([]byte, error) {
+func EncodeDeviceMetrics(metrics DeviceMetrics) []byte {
 	buf := new(bytes.Buffer)
 	buf.WriteByte(utils.BoolToByte(metrics.CpuUsage))
 	buf.WriteByte(utils.BoolToByte(metrics.RamUsage))
@@ -54,7 +55,14 @@ func EncodeDeviceMetrics(metrics DeviceMetrics) ([]byte, error) {
 		buf.WriteByte(byte(len(statBytes)))
 		buf.Write(statBytes)
 	}
-	return buf.Bytes(), nil
+
+	packet := buf.Bytes()
+
+	if len(packet) > utils.BUFFERSIZE {
+		log.Fatalln("[ERROR 205] Packet size too large")
+	}
+
+	return packet
 }
 
 func DecodeDeviceMetrics(data []byte) (DeviceMetrics, error) {

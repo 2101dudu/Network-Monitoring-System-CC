@@ -27,7 +27,7 @@ func handleMetricsGathering(packetPayload []byte, conn *net.UDPConn, udpAddr *ne
 	}
 
 	if !metrics.ValidateHashMetricsPacket(met) {
-		noack := ack.NewAckBuilder().SetPacketID(met.PacketID).SetSenderID(met.AgentID).Build()
+		noack := ack.NewAckBuilder().SetPacketID(met.PacketID).SetReceiverID(met.AgentID).Build()
 		hash := ack.CreateHashAckPacket(noack)
 		noack.Hash = (string(hash))
 		ack.EncodeAndSendAck(conn, udpAddr, noack)
@@ -37,7 +37,7 @@ func handleMetricsGathering(packetPayload []byte, conn *net.UDPConn, udpAddr *ne
 	}
 
 	// send ack
-	newAck := ack.NewAckBuilder().SetPacketID(met.PacketID).SetSenderID(met.AgentID).HasAcknowledged().Build()
+	newAck := ack.NewAckBuilder().SetPacketID(met.PacketID).SetReceiverID(met.AgentID).HasAcknowledged().Build()
 	hash := ack.CreateHashAckPacket(newAck)
 	newAck.Hash = (string(hash))
 	ack.EncodeAndSendAck(conn, udpAddr, newAck)
