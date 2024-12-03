@@ -14,6 +14,8 @@ type Alert struct {
 	SenderID  byte
 	TaskID    uint16
 	AlertType AlertType
+	Exceeded  float32
+	Time      string
 }
 
 // AlertType defines the type of the alert
@@ -26,6 +28,23 @@ const (
 	PACKETLOSS
 	ERROR
 )
+
+func (a AlertType) String() string {
+	switch a {
+	case CPU:
+		return "CPU"
+	case RAM:
+		return "RAM"
+	case JITTER:
+		return "Jitter"
+	case PACKETLOSS:
+		return "Packet Loss"
+	case ERROR:
+		return "Error"
+	default:
+		return "Unknown"
+	}
+}
 
 // AlertBuilder struct
 type AlertBuilder struct {
@@ -40,6 +59,8 @@ func NewAlertBuilder() *AlertBuilder {
 			SenderID:  0,
 			TaskID:    0,
 			AlertType: ERROR, // Default to ERROR, can be changed
+			Exceeded:  0.0,
+			Time:      "",
 		},
 	}
 }
@@ -65,6 +86,16 @@ func (b *AlertBuilder) SetAlertType(alertType AlertType) *AlertBuilder {
 	return b
 }
 
+func (b *AlertBuilder) SetExceeded(value float32) *AlertBuilder {
+	b.Alert.Exceeded = value
+	return b
+}
+
+func (b *AlertBuilder) SetTime(timestamp string) *AlertBuilder {
+	b.Alert.Time = timestamp
+	return b
+}
+
 func (b *AlertBuilder) Build() Alert {
 	return b.Alert
 }
@@ -74,7 +105,7 @@ func EncodeAlert(alert Alert) ([]byte, error) {
 	buf := new(bytes.Buffer)
 
 	// Encode fixed fields
-	buf.WriteByte(byte(utils.ALERT))
+	buf.WriteByte(byte(utils.ALERT)) // Packet type
 	buf.WriteByte(alert.PacketID)
 	buf.WriteByte(alert.SenderID)
 
@@ -85,6 +116,17 @@ func EncodeAlert(alert Alert) ([]byte, error) {
 
 	// Encode AlertType
 	buf.WriteByte(byte(alert.AlertType))
+
+	// Encode Exceeded
+	if err := binary.Write(buf, binary.BigEndian, alert.Exceeded); err != nil {
+		return nil, err
+	}
+
+	// Encode Time
+	timeBytes := []byte(alert.Time)
+	timeLen := uint16(len(timeBytes))
+	binary.Write(buf, binary.BigEndian, timeLen) // length of the string
+	buf.Write(timeBytes)                         // string
 
 	return buf.Bytes(), nil
 }
@@ -112,6 +154,22 @@ func DecodeAlert(data []byte) (Alert, error) {
 	}
 	alert.AlertType = AlertType(alertType)
 
+	// Decode Exceeded
+	if err := binary.Read(buf, binary.BigEndian, &alert.Exceeded); err != nil {
+		return alert, err
+	}
+
+	// Decode Time
+	var timeLength uint16
+	if err := binary.Read(buf, binary.BigEndian, &timeLength); err != nil {
+		return alert, err
+	}
+	timeBytes := make([]byte, timeLength)
+	if _, err := buf.Read(timeBytes); err != nil {
+		return alert, err
+	}
+	alert.Time = string(timeBytes)
+
 	return alert, nil
 }
 
@@ -119,7 +177,7 @@ func DecodeAlert(data []byte) (Alert, error) {
 func EncodeAndSendAlert(conn *net.TCPConn, alert Alert) {
 	alertData, err := EncodeAlert(alert)
 	if err != nil {
-		log.Println("[TCP][ENCODE][ERROR] Unable to encode alert")
+		log.Println("[TCP][ENCODE][ERROR 500] Unable to encode alert:", err)
 		return
 	}
 

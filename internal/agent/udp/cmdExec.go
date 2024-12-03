@@ -61,15 +61,19 @@ func monitorSystemMetrics(metrics task.DeviceMetrics, conditions task.AlertFlowC
 					cpuUsage = 0
 				}
 
-				if cpuUsage > float64(conditions.CpuUsage) { // Build and send cpu alert
+				if cpuUsage > float32(conditions.CpuUsage) { // Build and send cpu alert
 					cpuAlert = true
+
+					alertTime := time.Now() // time of the alert
 
 					newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
 					buildAlert := alert.NewAlertBuilder().
 						SetPacketID(newPacketID).
 						SetSenderID(agentID).
 						SetTaskID(taskID).
-						SetAlertType(alert.CPU)
+						SetAlertType(alert.CPU).
+						SetExceeded(cpuUsage).
+						SetTime(alertTime.Format("15:04:05.000000000"))
 
 					newAlert := buildAlert.Build()                        // build full alert with given sets
 					tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
@@ -85,15 +89,19 @@ func monitorSystemMetrics(metrics task.DeviceMetrics, conditions task.AlertFlowC
 					ramUsage = 0
 				}
 
-				if ramUsage > float64(conditions.RamUsage) { // Build and send cpu alert
+				if ramUsage > float32(conditions.RamUsage) { // Build and send cpu alert
 					ramAlert = true
+
+					alertTime := time.Now() // time of the alert
 
 					newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
 					buildAlert := alert.NewAlertBuilder().
 						SetPacketID(newPacketID).
 						SetSenderID(agentID).
 						SetTaskID(taskID).
-						SetAlertType(alert.RAM)
+						SetAlertType(alert.RAM).
+						SetExceeded(ramUsage).
+						SetTime(alertTime.Format("15:04:05.000000000"))
 
 					newAlert := buildAlert.Build()                        // build full alert with given sets
 					tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
@@ -104,7 +112,7 @@ func monitorSystemMetrics(metrics task.DeviceMetrics, conditions task.AlertFlowC
 	}
 }
 
-func getCpuUsage() (float64, error) {
+func getCpuUsage() (float32, error) {
 	// Read the content of /proc/stat
 	data, err := os.ReadFile("/proc/stat")
 	if err != nil {
@@ -135,11 +143,11 @@ func getCpuUsage() (float64, error) {
 	idle := values[3]
 
 	// Calculate CPU usage percentage
-	usage := 100 * float64(total-idle) / float64(total)
+	usage := 100 * float32(total-idle) / float32(total)
 	return usage, nil
 }
 
-func getRamUsage() (float64, error) {
+func getRamUsage() (float32, error) {
 	// Read the content of /proc/meminfo
 	data, err := os.ReadFile("/proc/meminfo")
 	if err != nil {
@@ -157,7 +165,7 @@ func getRamUsage() (float64, error) {
 
 		// Parse MemTotal
 		if fields[0] == "MemTotal:" {
-			memTotal, err = strconv.ParseFloat(fields[1], 64)
+			memTotal, err = strconv.ParseFloat(fields[1], 32)
 			if err != nil {
 				return 0, fmt.Errorf("failed to parse MemTotal: %v", err)
 			}
@@ -165,7 +173,7 @@ func getRamUsage() (float64, error) {
 
 		// Parse MemAvailable
 		if fields[0] == "MemAvailable:" {
-			memAvailable, err = strconv.ParseFloat(fields[1], 64)
+			memAvailable, err = strconv.ParseFloat(fields[1], 32)
 			if err != nil {
 				return 0, fmt.Errorf("failed to parse MemAvailable: %v", err)
 			}
@@ -178,5 +186,5 @@ func getRamUsage() (float64, error) {
 
 	// Calculate RAM usage percentage
 	usage := 100 * (1 - memAvailable/memTotal)
-	return usage, nil
+	return float32(usage), nil
 }

@@ -45,13 +45,15 @@ func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDP
 	outputData, err := ExecuteCommandWithMonitoring(pingPacket.PingCommand, pingPacket.DeviceMetrics, pingPacket.AlertFlowConditions, pingPacket.TaskID)
 
 	if err != nil { // If during command execution happened an error then send an alert
+		errTime := time.Now() // time of alert
 
 		newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
 		buildAlert := alert.NewAlertBuilder().
 			SetPacketID(newPacketID).
 			SetSenderID(agentID).
 			SetTaskID(pingPacket.TaskID).
-			SetAlertType(alert.ERROR)
+			SetAlertType(alert.ERROR).
+			SetTime(errTime.Format("15:04:05.000000000"))
 
 		newAlert := buildAlert.Build()                        // build full alert with given sets
 		tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
