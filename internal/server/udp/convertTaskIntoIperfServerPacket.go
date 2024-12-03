@@ -27,7 +27,7 @@ func ConvertTaskIntoIperfServerPacket(task parse.Task, serverIndex byte) t.Iperf
 	alert := t.NewAlertFlowConditionsBuilder().SetCpuUsage(cpuUsage).SetRamUsage(ramUsage).SetInterfaceStats(interStats).SetPacketLoss(packetLoss).SetJitter(jitter).Build()
 
 	// build iperf server command
-	iperfCommand := "iperf3 -s -p 1"
+	iperfCommand := "iperf -s -P 1"
 	if !task.Devices[serverIndex].LinkMetrics.IperfParameters.Bandwidth {
 		iperfCommand += " -u"
 	}

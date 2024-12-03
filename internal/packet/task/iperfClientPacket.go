@@ -10,8 +10,8 @@ import (
 
 // ------------------------- Iperf Client -----------------------------
 
-// iperf3 -c <ServerIP>     -> Just Bandwidth (TCP adjusts automatically, no packet loss measurement)
-// iperf3 -c <ServerIP> -u  -> Bandwidth, Packet Loss, and Jitter (UDP with a fixed rate set by 10M by default)
+// iperf -c <ServerIP>     -> Just Bandwidth (TCP adjusts automatically, no packet loss measurement)
+// iperf -c <ServerIP> -u  -> Bandwidth, Packet Loss, and Jitter (UDP with a fixed rate set by 10M by default)
 
 type IperfClientPacket struct {
 	PacketID            byte
