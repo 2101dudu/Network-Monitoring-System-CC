@@ -2,6 +2,7 @@ package udp
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"strconv"
@@ -148,43 +149,42 @@ func getCpuUsage() (float32, error) {
 }
 
 func getRamUsage() (float32, error) {
-	// Read the content of /proc/meminfo
-	data, err := os.ReadFile("/proc/meminfo")
-	if err != nil {
-		return 0, fmt.Errorf("failed to read /proc/meminfo: %v", err)
-	}
+    // Read the content of /proc/meminfo
+    data, err := os.ReadFile("/proc/meminfo")
+    if err != nil {
+        return 0, fmt.Errorf("failed to read /proc/meminfo: %v", err)
+    }
 
-	lines := strings.Split(string(data), "\n")
-	var memTotal, memAvailable float64
+    lines := strings.Split(string(data), "\n")
+    var memTotal, memAvailable float64
 
-	for _, line := range lines {
-		fields := strings.Fields(line)
-		if len(fields) < 2 {
-			continue
-		}
+    // Parse MemTotal
+    memTotalFields := strings.Fields(lines[0])
+    if len(memTotalFields) < 2 {
+        log.Println("[ERROR 801] Unexpected /proc/meminfo format")
+    }
 
-		// Parse MemTotal
-		if fields[0] == "MemTotal:" {
-			memTotal, err = strconv.ParseFloat(fields[1], 32)
-			if err != nil {
-				return 0, fmt.Errorf("failed to parse MemTotal: %v", err)
-			}
-		}
+    memTotal, err = strconv.ParseFloat(memTotalFields[1], 32)
+    if err != nil {
+        return 0, fmt.Errorf("failed to parse MemTotal: %v", err)
+    }
+    if memTotal == 0 {
+        return 0, fmt.Errorf("MemTotal is zero, unexpected /proc/meminfo format")
+    }
 
-		// Parse MemAvailable
-		if fields[0] == "MemAvailable:" {
-			memAvailable, err = strconv.ParseFloat(fields[1], 32)
-			if err != nil {
-				return 0, fmt.Errorf("failed to parse MemAvailable: %v", err)
-			}
-		}
-	}
+    // Parse MemAvailable
+    memAvailableFields := strings.Fields(lines[0])
+    if len(memAvailableFields) < 2 {
+        log.Println("[ERROR 802] Unexpected /proc/meminfo format")
+    }
 
-	if memTotal == 0 {
-		return 0, fmt.Errorf("MemTotal is zero, unexpected /proc/meminfo format")
-	}
+    memAvailable, err = strconv.ParseFloat(memAvailableFields[1], 32)
+    if err != nil {
+        return 0, fmt.Errorf("failed to parse MemAvailable: %v", err)
+    }
 
-	// Calculate RAM usage percentage
-	usage := 100 * (1 - memAvailable/memTotal)
-	return float32(usage), nil
+
+    // Calculate RAM usage percentage
+    usage := 100 * (1 - memAvailable/memTotal)
+    return float32(usage), nil
 }
