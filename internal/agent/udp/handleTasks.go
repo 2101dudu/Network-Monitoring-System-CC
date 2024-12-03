@@ -24,11 +24,11 @@ func handleTasks(agentConn *net.UDPConn) {
 
 		switch taskType {
 		case utils.PING:
-			handlePingTask(taskPayload, agentConn, udpAddr)
+			go handlePingTask(taskPayload, agentConn, udpAddr)
 		case utils.IPERFCLIENT:
-			handleIperfClientTask(taskPayload, agentConn, udpAddr)
+			go handleIperfClientTask(taskPayload, agentConn, udpAddr)
 		case utils.IPERFSERVER:
-			handleIperfServerTask(taskPayload, agentConn, udpAddr)
+			go handleIperfServerTask(taskPayload, agentConn, udpAddr)
 		}
 	}
 }

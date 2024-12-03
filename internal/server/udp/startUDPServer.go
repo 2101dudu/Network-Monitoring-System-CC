@@ -20,12 +20,6 @@ func StartUDPServer(port string) {
 	// include "| log.Lshortfile" in the log flags to include the file name and line of code in the log
 	log.SetFlags(log.Ltime | log.Lmicroseconds | log.Lshortfile)
 
-	jsonData := parse.GetDataFromJson("configs/tasks.json")
-	var taskList []parse.Task = parse.ParseDataFromJson(jsonData)
-
-	// validate tasks
-	parse.ValidateTaskList(taskList)
-
 	// Initialize the map
 	agentsIPs = make(map[byte][4]byte)
 
@@ -34,6 +28,13 @@ func StartUDPServer(port string) {
 
 	// handle registrations from agents
 	handleRegistrations(serverConn)
+
+	// parse the tasks from the json file
+	jsonData := parse.GetDataFromJson("configs/tasks.json")
+	var taskList []parse.Task = parse.ParseDataFromJson(jsonData)
+
+	// validate the tasks
+	parse.ValidateTaskList(taskList)
 
 	//serverConn.SetDeadline(time.Now().Add(5 * time.Second))
 
