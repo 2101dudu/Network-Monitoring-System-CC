@@ -3,11 +3,12 @@ package udp
 import (
 	"log"
 	"net"
+	tcp "nms/internal/agent/tcp"
 	ack "nms/internal/packet/ack"
-	"nms/internal/packet/metrics"
-	"nms/internal/packet/task"
-	"nms/internal/utils"
-	"os/exec"
+	alert "nms/internal/packet/alert"
+	metrics "nms/internal/packet/metrics"
+	task "nms/internal/packet/task"
+	utils "nms/internal/utils"
 	"time"
 )
 
@@ -15,6 +16,11 @@ func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDP
 	pingPacket, err := task.DecodePingPacket(taskPayload)
 	if err != nil {
 		log.Fatalln("[AGENT] [ERROR 81] Decoding ping packet")
+	}
+
+	agentID, errAgent := utils.GetAgentID()
+	if errAgent != nil {
+		log.Fatalln("[AGENT] [ERROR 101] Unable to get agent ID:", errAgent)
 	}
 
 	if !task.ValidateHashPingPacket(pingPacket) {
@@ -37,13 +43,23 @@ func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDP
 		// keep track of the start time
 		startTime := time.Now()
 
-		// execute the pingPacket's command
-		cmd := exec.Command("sh", "-c", pingPacket.PingCommand)
+	// execute the pingPacket's command
+	outputData, err := ExecuteCommandWithMonitoring(pingPacket.PingCommand, pingPacket.DeviceMetrics, pingPacket.AlertFlowConditions, pingPacket.TaskID)
 
-		outputData, err := cmd.CombinedOutput()
-		if err != nil {
-			log.Fatalln("[AGENT] [ERROR 82] Executing ping command", err)
-		}
+	if err != nil { // If during command execution happened an error then send an alert
+		errTime := time.Now() // time of alert
+
+		newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
+		buildAlert := alert.NewAlertBuilder().
+			SetPacketID(newPacketID).
+			SetSenderID(agentID).
+			SetTaskID(pingPacket.TaskID).
+			SetAlertType(alert.ERROR).
+			SetTime(errTime.Format("15:04:05.000000000"))
+
+		newAlert := buildAlert.Build()                        // build full alert with given sets
+		tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
+	}
 
 		preparedOutput := parsePingOutput(string(outputData))
 
@@ -56,9 +72,9 @@ func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDP
 
 		serverConn := utils.ResolveUDPAddrAndDial("localhost", "8081")
 
-		metricsID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
-		newMetrics := metrics.NewMetricsBuilder().SetPacketID(metricsID).SetAgentID(agentID).SetTaskID(pingPacket.TaskID).SetTime(startTime.Format("15:04:05.000000000")).SetMetrics(preparedOutput).Build()
-
+	  metricsID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
+	  newMetrics := metrics.NewMetricsBuilder().SetPacketID(metricsID).SetAgentID(agentID).SetTaskID(pingPacket.TaskID).SetTime(startTime.Format("15:04:05.000000000")).SetCommand(pingPacket.PingCommand).SetMetrics(preparedOutput).Build()
+    
 		hash = metrics.CreateHashMetricsPacket(newMetrics)
 		newMetrics.Hash = (string(hash))
 

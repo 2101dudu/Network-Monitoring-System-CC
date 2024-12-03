@@ -14,6 +14,7 @@ type Metrics struct {
 	AgentID  byte
 	TaskID   uint16
 	Time     string
+	Command  string
 	Metrics  string
 	Hash     string
 }
@@ -29,6 +30,7 @@ func NewMetricsBuilder() *MetricsBuilder {
 			AgentID:  0,
 			TaskID:   0,
 			Time:     "",
+			Command:  "",
 			Metrics:  "",
 			Hash:     "",
 		},
@@ -52,6 +54,11 @@ func (m *MetricsBuilder) SetTaskID(taskID uint16) *MetricsBuilder {
 
 func (m *MetricsBuilder) SetTime(time string) *MetricsBuilder {
 	m.Metrics.Time = time
+	return m
+}
+
+func (m *MetricsBuilder) SetCommand(command string) *MetricsBuilder {
+	m.Metrics.Command = command
 	return m
 }
 
@@ -103,6 +110,17 @@ func DecodeMetrics(packet []byte) (Metrics, error) {
 	}
 	metrics.Time = string(timeBytes)
 
+	var commandLen uint16
+	if err := binary.Read(buf, binary.BigEndian, &commandLen); err != nil {
+		return metrics, err
+	}
+
+	commandBytes := make([]byte, commandLen)
+	if _, err := buf.Read(commandBytes); err != nil {
+		return metrics, err
+	}
+	metrics.Command = string(commandBytes)
+
 	var metricsLen uint16
 	if err := binary.Read(buf, binary.BigEndian, &metricsLen); err != nil {
 		return metrics, err
@@ -140,6 +158,11 @@ func EncodeMetrics(metrics Metrics) []byte {
 	timeLen := uint16(len(timeBytes))
 	binary.Write(buf, binary.BigEndian, timeLen)
 	buf.Write(timeBytes)
+
+	commandBytes := []byte(metrics.Command)
+	commandLen := uint16(len(commandBytes))
+	binary.Write(buf, binary.BigEndian, commandLen)
+	buf.Write(commandBytes)
 
 	metricsBytes := []byte(metrics.Metrics)
 	metricsLen := uint16(len(metricsBytes))
