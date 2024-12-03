@@ -1,7 +1,7 @@
 [
     {
         "task_id": 203, 
-        "frequency": 20,
+        "frequency": 2,
         "devices": [
             {
                 "device_id": 1,
@@ -26,8 +26,44 @@
                     }
                 },
                 "alertflow_conditions": {
-                    "cpu_usage": 1,
-                    "ram_usage": 20,
+                    "cpu_usage": 20,
+                    "ram_usage": 40,
+                    "interface_stats": 2000,
+                    "packet_loss": 5,
+                    "jitter": 100
+                }
+            }
+        ]
+    },
+    {
+        "task_id": 204, 
+        "frequency": 4,
+        "devices": [
+            {
+                "device_id": 1,
+                "device_metrics": {
+                    "cpu_usage": true,
+                    "ram_usage": true,
+                    "interface_stats": ["eth0", "eth1", "eth2"]
+                },
+                "link_metrics": {
+                    "iperf_parameters": {
+                        "bandwidth": false,
+                        "jitter": false,
+                        "packet_loss": false,
+                        "is_server": false,
+                        "test_duration": 1
+                    },
+                    "ping_parameters": { 
+                        "enabled": true,
+                        "destination": "www.google.com",
+                        "packet_count": 10,
+                        "frequency": 0.1
+                    }
+                },
+                "alertflow_conditions": {
+                    "cpu_usage": 20,
+                    "ram_usage": 40,
                     "interface_stats": 2000,
                     "packet_loss": 5,
                     "jitter": 100
