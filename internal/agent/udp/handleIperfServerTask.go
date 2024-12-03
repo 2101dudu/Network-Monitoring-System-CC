@@ -32,8 +32,10 @@ func handleIperfServerTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *
 	newAck.Hash = (string(hash))
 	ack.EncodeAndSendAck(agentConn, udpAddr, newAck)
 
-	// keep track of the start time
-	startTime := time.Now()
+	// reexecute the ping command every iperfServer.Frequency seconds
+	for {
+		// keep track of the start time
+		startTime := time.Now()
 
 	// execute the iperfPacket's command
 	outputData, err := ExecuteCommandWithMonitoring(iperfServer.IperfServerCommand, iperfServer.DeviceMetrics, iperfServer.AlertFlowConditions, iperfServer.TaskID)
@@ -84,14 +86,22 @@ func handleIperfServerTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *
 		tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
 	}
 
-	serverConn := utils.ResolveUDPAddrAndDial("localhost", "8081")
+		// calculate the elapsed time and sleep for the remaining time to ensure the loop runs every iperfServer.Frequency seconds
+		elapsedTime := time.Since(startTime)
+		sleepDuration := time.Duration(iperfServer.Frequency)*time.Second - elapsedTime
+		if sleepDuration > 0 {
+			time.Sleep(sleepDuration)
+		}
 
-	metricsID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
-	newMetrics := metrics.NewMetricsBuilder().SetPacketID(metricsID).SetAgentID(agentID).SetTaskID(iperfServer.TaskID).SetTime(startTime.Format("15:04:05.000000000")).SetCommand(iperfServer.IperfServerCommand).SetMetrics(preparedOutput).Build()
+		serverConn := utils.ResolveUDPAddrAndDial("localhost", "8081")
+    
+	  metricsID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
+	  newMetrics := metrics.NewMetricsBuilder().SetPacketID(metricsID).SetAgentID(agentID).SetTaskID(iperfServer.TaskID).SetTime(startTime.Format("15:04:05.000000000")).SetCommand(iperfServer.IperfServerCommand).SetMetrics(preparedOutput).Build()
+    
+		hash = metrics.CreateHashMetricsPacket(newMetrics)
+		newMetrics.Hash = (string(hash))
 
-	hash = metrics.CreateHashMetricsPacket(newMetrics)
-	newMetrics.Hash = (string(hash))
-
-	packetData := metrics.EncodeMetrics(newMetrics)
-	ack.SendPacketAndWaitForAck(metricsID, agentID, packetsWaitingAck, &pMutex, serverConn, nil, packetData, "[SERVER] [MAIN READ THREAD] Metrics packet sent", "[SERVER] [ERROR 35] Unable to send metrics packet")
+		packetData := metrics.EncodeMetrics(newMetrics)
+		ack.SendPacketAndWaitForAck(metricsID, agentID, packetsWaitingAck, &pMutex, serverConn, nil, packetData, "[SERVER] [MAIN READ THREAD] Metrics packet sent", "[SERVER] [ERROR 35] Unable to send metrics packet")
+	}
 }
