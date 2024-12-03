@@ -173,7 +173,7 @@ func getRamUsage() (float32, error) {
     }
 
     // Parse MemAvailable
-    memAvailableFields := strings.Fields(lines[0])
+    memAvailableFields := strings.Fields(lines[2])
     if len(memAvailableFields) < 2 {
         log.Println("[ERROR 802] Unexpected /proc/meminfo format")
     }
