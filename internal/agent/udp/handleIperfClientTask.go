@@ -88,7 +88,7 @@ func handleIperfClientTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *
 	serverConn := utils.ResolveUDPAddrAndDial("localhost", "8081")
 
 	metricsID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
-	newMetrics := metrics.NewMetricsBuilder().SetPacketID(metricsID).SetAgentID(agentID).SetTaskID(iperfClient.TaskID).SetTime(startTime.Format("15:04:05.000000000")).SetMetrics(preparedOutput).Build()
+	newMetrics := metrics.NewMetricsBuilder().SetPacketID(metricsID).SetAgentID(agentID).SetTaskID(iperfClient.TaskID).SetTime(startTime.Format("15:04:05.000000000")).SetCommand(iperfClient.IperfClientCommand).SetMetrics(preparedOutput).Build()
 
 	hash = metrics.CreateHashMetricsPacket(newMetrics)
 	newMetrics.Hash = (string(hash))

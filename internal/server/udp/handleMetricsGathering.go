@@ -16,6 +16,7 @@ type MetricsData struct {
 	TaskID       string `json:"task_id"`
 	AgentID      byte   `json:"agent_id"`
 	LogTime      string `json:"log_time"`
+	Command      string `json:"command"`
 	OutputString string `json:"output_string"`
 }
 
@@ -47,6 +48,7 @@ func handleMetricsGathering(packetPayload []byte, conn *net.UDPConn, udpAddr *ne
 		TaskID:       "task-" + strconv.Itoa(int(met.TaskID)),
 		AgentID:      met.AgentID,
 		LogTime:      met.Time,
+		Command:      met.Command,
 		OutputString: met.Metrics,
 	}
 
