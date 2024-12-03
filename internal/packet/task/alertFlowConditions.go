@@ -3,6 +3,8 @@ package task
 import (
 	"bytes"
 	"encoding/binary"
+	"log"
+	utils "nms/internal/utils"
 )
 
 type AlertFlowConditions struct {
@@ -58,14 +60,21 @@ func (b *AlertFlowConditionsBuilder) Build() AlertFlowConditions {
 	return b.AlertFlowConditions
 }
 
-func EncodeAlertFlowConditions(conditions AlertFlowConditions) ([]byte, error) {
+func EncodeAlertFlowConditions(conditions AlertFlowConditions) []byte {
 	buf := new(bytes.Buffer)
 	buf.WriteByte(conditions.CpuUsage)
 	buf.WriteByte(conditions.RamUsage)
 	binary.Write(buf, binary.BigEndian, conditions.InterfaceStats)
 	buf.WriteByte(conditions.PacketLoss)
 	binary.Write(buf, binary.BigEndian, conditions.Jitter)
-	return buf.Bytes(), nil
+
+	packet := buf.Bytes()
+
+	if len(packet) > utils.BUFFERSIZE {
+		log.Fatalln("[ERROR 204] Packet size too large")
+	}
+
+	return packet
 }
 
 func DecodeAlertFlowConditions(data []byte) (AlertFlowConditions, error) {

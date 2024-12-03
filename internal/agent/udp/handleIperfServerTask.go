@@ -18,7 +18,7 @@ func handleIperfServerTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *
 	}
 
 	if !task.ValidateHashIperfServerPacket(iperfServer) {
-		noack := ack.NewAckBuilder().SetPacketID(iperfServer.PacketID).SetSenderID(utils.SERVERID).Build()
+		noack := ack.NewAckBuilder().SetPacketID(iperfServer.PacketID).SetReceiverID(utils.SERVERID).Build()
 		hash := ack.CreateHashAckPacket(noack)
 		noack.Hash = (string(hash))
 		ack.EncodeAndSendAck(agentConn, udpAddr, noack)
@@ -26,7 +26,7 @@ func handleIperfServerTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *
 		log.Println("[AGENT] [ERROR 101] Invalid hash in iperf server packet")
 		return
 	}
-	newAck := ack.NewAckBuilder().SetPacketID(iperfServer.PacketID).SetSenderID(utils.SERVERID).HasAcknowledged().Build()
+	newAck := ack.NewAckBuilder().SetPacketID(iperfServer.PacketID).SetReceiverID(utils.SERVERID).HasAcknowledged().Build()
 	hash := ack.CreateHashAckPacket(newAck)
 	newAck.Hash = (string(hash))
 	ack.EncodeAndSendAck(agentConn, udpAddr, newAck)

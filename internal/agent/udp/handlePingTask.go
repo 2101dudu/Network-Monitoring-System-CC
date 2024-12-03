@@ -18,7 +18,7 @@ func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDP
 	}
 
 	if !task.ValidateHashPingPacket(pingPacket) {
-		noack := ack.NewAckBuilder().SetPacketID(pingPacket.PacketID).SetSenderID(utils.SERVERID).Build()
+		noack := ack.NewAckBuilder().SetPacketID(pingPacket.PacketID).SetReceiverID(utils.SERVERID).Build()
 		hash := ack.CreateHashAckPacket(noack)
 		noack.Hash = (string(hash))
 		ack.EncodeAndSendAck(agentConn, udpAddr, noack)
@@ -27,7 +27,7 @@ func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDP
 		return
 	}
 
-	newAck := ack.NewAckBuilder().SetPacketID(pingPacket.PacketID).SetSenderID(utils.SERVERID).HasAcknowledged().Build()
+	newAck := ack.NewAckBuilder().SetPacketID(pingPacket.PacketID).SetReceiverID(utils.SERVERID).HasAcknowledged().Build()
 	hash := ack.CreateHashAckPacket(newAck)
 	newAck.Hash = (string(hash))
 	ack.EncodeAndSendAck(agentConn, udpAddr, newAck)

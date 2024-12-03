@@ -2,8 +2,11 @@
 AGENT_RUNNER := ./cmd/nms/agent/runner.go
 SERVER_RUNNER := ./cmd/nms/server/runner.go
 
-.PHONY: all build build-agent build-server agent server clean
-all: build-agent build-server
+.PHONY: rebuild build build-agent build-server agent server clean
+
+build: build-agent build-server
+
+rebuild: clean build-agent build-server
 
 agent: build-agent run-agent
 

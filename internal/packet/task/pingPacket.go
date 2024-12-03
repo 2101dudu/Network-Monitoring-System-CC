@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/binary"
+	"log"
 	utils "nms/internal/utils"
 )
 
@@ -88,7 +89,7 @@ func (b *PingPacket) removeHash() string {
 	return hash
 }
 
-func EncodePingPacket(msg PingPacket) ([]byte, error) {
+func EncodePingPacket(msg PingPacket) []byte {
 	buf := new(bytes.Buffer)
 
 	// Encode fixed fields
@@ -99,18 +100,14 @@ func EncodePingPacket(msg PingPacket) ([]byte, error) {
 	binary.Write(buf, binary.BigEndian, msg.Frequency)
 
 	// Encode DeviceMetrics
-	deviceMetricsBytes, err := EncodeDeviceMetrics(msg.DeviceMetrics)
-	if err != nil {
-		return nil, err
-	}
+	deviceMetricsBytes := EncodeDeviceMetrics(msg.DeviceMetrics)
+
 	buf.WriteByte(byte(len(deviceMetricsBytes))) // Add size byte
 	buf.Write(deviceMetricsBytes)
 
 	// Encode AlertFlowConditions
-	alertFlowConditionsBytes, err := EncodeAlertFlowConditions(msg.AlertFlowConditions)
-	if err != nil {
-		return nil, err
-	}
+	alertFlowConditionsBytes := EncodeAlertFlowConditions(msg.AlertFlowConditions)
+
 	buf.WriteByte(byte(len(alertFlowConditionsBytes))) // Add size byte
 	buf.Write(alertFlowConditionsBytes)
 
@@ -124,7 +121,13 @@ func EncodePingPacket(msg PingPacket) ([]byte, error) {
 	buf.WriteByte(byte(len(hashBytes)))
 	buf.Write(hashBytes)
 
-	return buf.Bytes(), nil
+	packet := buf.Bytes()
+
+	if len(packet) > utils.BUFFERSIZE {
+		log.Fatalln("[ERROR 208] Packet size too large")
+	}
+
+	return packet
 }
 
 func DecodePingPacket(data []byte) (PingPacket, error) {
@@ -204,7 +207,7 @@ func DecodePingPacket(data []byte) (PingPacket, error) {
 }
 
 func CreateHashPingPacket(pingPacket PingPacket) []byte {
-	byteData, _ := EncodePingPacket(pingPacket)
+	byteData := EncodePingPacket(pingPacket)
 
 	hash := sha256.Sum256(byteData)
 
@@ -214,7 +217,7 @@ func CreateHashPingPacket(pingPacket PingPacket) []byte {
 func ValidateHashPingPacket(pingPacket PingPacket) bool {
 	beforeHash := pingPacket.removeHash()
 
-	byteData, _ := EncodePingPacket(pingPacket)
+	byteData := EncodePingPacket(pingPacket)
 
 	afterHash := sha256.Sum256(byteData)
 
