@@ -1,8 +1,13 @@
 package main
 
-import server "nms/internal/server/udp"
+import (
+	servertcp "nms/internal/server/tcp"
+	serverudp "nms/internal/server/udp"
+)
 
 func main() {
-	//go sc.StartTCPServer("8080")
-	server.StartUDPServer("8081")
+	// Start tcp server
+	go servertcp.StartTCPServer("8080")
+	// start udp server
+	serverudp.StartUDPServer("8081")
 }

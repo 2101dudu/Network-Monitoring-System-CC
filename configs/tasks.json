@@ -26,8 +26,8 @@
                     }
                 },
                 "alertflow_conditions": {
-                    "cpu_usage": 90,
-                    "ram_usage": 90,
+                    "cpu_usage": 1,
+                    "ram_usage": 20,
                     "interface_stats": 2000,
                     "packet_loss": 5,
                     "jitter": 100
