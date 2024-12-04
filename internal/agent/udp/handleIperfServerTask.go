@@ -33,71 +33,87 @@ func handleIperfServerTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *
 	ack.EncodeAndSendAck(agentConn, udpAddr, newAck)
 
 	// reexecute the ping command every iperfServer.Frequency seconds
+outerLoop:
 	for {
 		// keep track of the start time
 		startTime := time.Now()
+		availableTime := time.Duration(iperfServer.Frequency) * time.Second
 
-	// execute the iperfPacket's command
-	outputData, err := ExecuteCommandWithMonitoring(iperfServer.IperfServerCommand, iperfServer.DeviceMetrics, iperfServer.AlertFlowConditions, iperfServer.TaskID)
+		for {
+			// Check if the available time has passed
+			if time.Since(startTime) > availableTime {
+				// Send empty metrics packet and alert for timeout
+				sendTimeoutAlertAndEmptyMetrics(iperfServer.IperfServerCommand, iperfServer.TaskID, agentID, startTime)
+				continue outerLoop
+			}
 
-	if err != nil { // If during command execution happened an error, send an alert
+			// Check if another iperf command is running
+			iperfMutex.Lock()
+			if !iperfRunning && time.Since(startTime) <= availableTime {
+				iperfRunning = true // Set iperfRunning to true to prevent other iperf commands from running
+				iperfMutex.Unlock()
+				break
+			}
+			iperfMutex.Unlock()
 
-		newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
-		buildAlert := alert.NewAlertBuilder().
-			SetPacketID(newPacketID).
-			SetSenderID(agentID).
-			SetTaskID(iperfServer.TaskID).
-			SetAlertType(alert.ERROR).
-			SetTime(startTime.Format("15:04:05.000000000"))
-
-		newAlert := buildAlert.Build()                        // build full alert with given sets
-		tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
-	}
-
-	// Prepare output and check if jitter and packet loss exceeded
-	preparedOutput, jitterHasExceeded, packetLossHasExceeded := parseIperfOutput(iperfServer.Bandwidth, iperfServer.Jitter, iperfServer.PacketLoss, float32(iperfServer.AlertFlowConditions.Jitter), float32(iperfServer.AlertFlowConditions.PacketLoss), string(outputData))
-
-	if jitterHasExceeded > 1e-6 {
-
-		newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
-		buildAlert := alert.NewAlertBuilder().
-			SetPacketID(newPacketID).
-			SetSenderID(agentID).
-			SetTaskID(iperfServer.TaskID).
-			SetAlertType(alert.JITTER).
-			SetExceeded(jitterHasExceeded).
-			SetTime(startTime.Format("15:04:05.000000000"))
-
-		newAlert := buildAlert.Build()                        // build full alert with given sets
-		tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
-	}
-
-	if packetLossHasExceeded > 1e-6 {
-		newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
-		buildAlert := alert.NewAlertBuilder().
-			SetPacketID(newPacketID).
-			SetSenderID(agentID).
-			SetTaskID(iperfServer.TaskID).
-			SetAlertType(alert.PACKETLOSS).
-			SetExceeded(packetLossHasExceeded).
-			SetTime(startTime.Format("15:04:05.000000000"))
-
-		newAlert := buildAlert.Build()                        // build full alert with given sets
-		tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
-	}
-
-		// calculate the elapsed time and sleep for the remaining time to ensure the loop runs every iperfServer.Frequency seconds
-		elapsedTime := time.Since(startTime)
-		sleepDuration := time.Duration(iperfServer.Frequency)*time.Second - elapsedTime
-		if sleepDuration > 0 {
-			time.Sleep(sleepDuration)
+			time.Sleep(100 * time.Millisecond) // Wait a bit before checking again
 		}
 
+		// execute the iperfPacket's command
+		outputData, err := ExecuteCommandWithMonitoring(iperfServer.IperfServerCommand, iperfServer.DeviceMetrics, iperfServer.AlertFlowConditions, iperfServer.TaskID)
+
+		// Calculate the time that the command has left. This value can be negative if the command took longer than the frequency
+		remainingIdleTime := time.Duration(iperfServer.Frequency)*time.Second - time.Since(startTime)
+
+		errTime := time.Now() // time of alert
+
+		// Send an alert if, during command execution, an error happened
+		if err != nil {
+
+			newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
+			buildAlert := alert.NewAlertBuilder().SetPacketID(newPacketID).SetSenderID(agentID).SetTaskID(iperfServer.TaskID).SetAlertType(alert.ERROR).SetTime(errTime.Format("15:04:05.000000000"))
+
+			newAlert := buildAlert.Build()                        // build full alert with given sets
+			tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
+		}
+
+		// Prepare output and check if jitter and packet loss exceeded
+		preparedOutput, jitterHasExceeded, packetLossHasExceeded := parseIperfOutput(iperfServer.Bandwidth, iperfServer.Jitter, iperfServer.PacketLoss, float32(iperfServer.AlertFlowConditions.Jitter), float32(iperfServer.AlertFlowConditions.PacketLoss), string(outputData))
+
+		if jitterHasExceeded > 1e-6 {
+			newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
+			buildAlert := alert.NewAlertBuilder().SetPacketID(newPacketID).SetSenderID(agentID).SetTaskID(iperfServer.TaskID).SetAlertType(alert.JITTER).SetExceeded(jitterHasExceeded).SetTime(errTime.Format("15:04:05.000000000"))
+
+			newAlert := buildAlert.Build()                        // build full alert with given sets
+			tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
+		}
+
+		if packetLossHasExceeded > 1e-6 {
+			newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
+			buildAlert := alert.NewAlertBuilder().SetPacketID(newPacketID).SetSenderID(agentID).SetTaskID(iperfServer.TaskID).SetAlertType(alert.PACKETLOSS).SetExceeded(packetLossHasExceeded).SetTime(errTime.Format("15:04:05.000000000"))
+
+			newAlert := buildAlert.Build()                        // build full alert with given sets
+			tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
+		}
+
+		// If the remaining idle time is negative, send an empty metrics packet and alert for timeout
+		if remainingIdleTime < 0 {
+			sendTimeoutAlertAndEmptyMetrics(iperfServer.IperfServerCommand, iperfServer.TaskID, agentID, startTime)
+			continue
+		}
+
+		iperfMutex.Lock()
+		iperfRunning = false
+		iperfMutex.Unlock()
+
+		// Wait for the remaining idle time
+		time.Sleep(remainingIdleTime)
+
 		serverConn := utils.ResolveUDPAddrAndDial("localhost", "8081")
-    
-	  metricsID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
-	  newMetrics := metrics.NewMetricsBuilder().SetPacketID(metricsID).SetAgentID(agentID).SetTaskID(iperfServer.TaskID).SetTime(startTime.Format("15:04:05.000000000")).SetCommand(iperfServer.IperfServerCommand).SetMetrics(preparedOutput).Build()
-    
+
+		metricsID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
+		newMetrics := metrics.NewMetricsBuilder().SetPacketID(metricsID).SetAgentID(agentID).SetTaskID(iperfServer.TaskID).SetTime(startTime.Format("15:04:05.000000000")).SetCommand(iperfServer.IperfServerCommand).SetMetrics(preparedOutput).Build()
+
 		hash = metrics.CreateHashMetricsPacket(newMetrics)
 		newMetrics.Hash = (string(hash))
 

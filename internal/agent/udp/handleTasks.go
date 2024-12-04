@@ -4,7 +4,11 @@ import (
 	"log"
 	"net"
 	"nms/internal/utils"
+	"sync"
 )
+
+var iperfRunning bool
+var iperfMutex sync.Mutex
 
 func handleTasks(agentConn *net.UDPConn) {
 	for {

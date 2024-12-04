@@ -26,6 +26,7 @@ const (
 	RAM
 	JITTER
 	PACKETLOSS
+	TIMEOUT
 	INTERFACESTATS
 	ERROR
 )
@@ -44,6 +45,8 @@ func (a AlertType) String() string {
 		return "Interface Stats"
 	case ERROR:
 		return "Error"
+	case TIMEOUT:
+		return "Timeout"
 	default:
 		return "Unknown"
 	}
