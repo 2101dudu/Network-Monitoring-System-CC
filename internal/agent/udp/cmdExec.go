@@ -47,25 +47,31 @@ func monitorSystemMetrics(metrics task.DeviceMetrics, conditions task.AlertFlowC
 
 		case <-ticker.C:
 			// if cpu usage has not been exceeded and is to be tracked
-			if !cpuHasExceeded && metrics.CpuUsage {
-				cpuHasExceeded = handleCpuUsage(conditions, taskID)
-			}
+			go func() {
+				if !cpuHasExceeded && metrics.CpuUsage {
+					cpuHasExceeded = handleCpuUsage(conditions, taskID)
+				}
+			}()
 
 			// if ram usage has not been exceeded and is to be tracked
-			if !ramHasExceeded && metrics.RamUsage {
-				ramHasExceeded = handleRamUsage(conditions, taskID)
-			}
+			go func() {
+				if !ramHasExceeded && metrics.RamUsage {
+					ramHasExceeded = handleRamUsage(conditions, taskID)
+				}
+			}()
 
-			if len(metrics.InterfaceStats) > 0 {
-				for index, interfaceName := range metrics.InterfaceStats {
-					packetsHaveExceeded := handleInterfaceStats(interfaceName, conditions, taskID)
+			go func() {
+				if len(metrics.InterfaceStats) > 0 {
+					for index, interfaceName := range metrics.InterfaceStats {
+						packetsHaveExceeded := handleInterfaceStats(interfaceName, conditions, taskID)
 
-					if packetsHaveExceeded {
-						// Remove the interface from the list, as to not be checked again
-						metrics.InterfaceStats = append(metrics.InterfaceStats[:index], metrics.InterfaceStats[index+1:]...)
+						if packetsHaveExceeded {
+							// Remove the interface from the list, as to not be checked again
+							metrics.InterfaceStats = append(metrics.InterfaceStats[:index], metrics.InterfaceStats[index+1:]...)
+						}
 					}
 				}
-			}
+			}()
 		}
 	}
 }
@@ -132,11 +138,21 @@ func handleRamUsage(conditions task.AlertFlowConditions, taskID uint16) bool {
 }
 
 func handleInterfaceStats(interfaceName string, conditions task.AlertFlowConditions, taskID uint16) bool {
-	interfaceStats, err := getInterfaceStats(interfaceName)
+	interfaceStatsBefore, err := getInterfaceStats(interfaceName)
+	if err != nil {
+		log.Println("[ERROR 282] Error getting interface stats:", err)
+		return false
+	}
+	time.Sleep(1 * time.Second)
+	interfaceStatsAfter, err := getInterfaceStats(interfaceName)
+
 	if err != nil {
 		log.Println("[ERROR 182] Error getting interface stats:", err)
 		return false
 	}
+
+	interfaceStats := interfaceStatsAfter - interfaceStatsBefore
+	log.Println("DIF:", interfaceStats)
 
 	if interfaceStats > int(conditions.InterfaceStats) {
 		alertTime := time.Now() // time of the alert
