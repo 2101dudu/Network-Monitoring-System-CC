@@ -38,11 +38,12 @@ func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDP
 	newAck.Hash = (string(hash))
 	ack.EncodeAndSendAck(agentConn, udpAddr, newAck)
 
+	availableTime := time.Duration(pingPacket.Frequency) * time.Second
+
 	// reexecute the ping command every pingPacket.Frequency seconds
 outerLoop:
 	for {
 		startTime := time.Now()
-		availableTime := time.Duration(pingPacket.Frequency) * time.Second
 
 		for {
 			// Check if the available time has passed
@@ -67,7 +68,7 @@ outerLoop:
 		outputData, err := ExecuteCommandWithMonitoring(pingPacket.PingCommand, pingPacket.DeviceMetrics, pingPacket.AlertFlowConditions, pingPacket.TaskID)
 
 		// Calculate the time that the command has left. This value can be negative if the command took longer than the frequency
-		remainingIdleTime := time.Duration(pingPacket.Frequency)*time.Second - time.Since(startTime)
+		remainingIdleTime := availableTime - time.Since(startTime)
 
 		// Send an alert if, during command execution, an error happened
 		if err != nil {
