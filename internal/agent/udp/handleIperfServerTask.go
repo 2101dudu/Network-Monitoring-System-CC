@@ -32,12 +32,13 @@ func handleIperfServerTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *
 	newAck.Hash = (string(hash))
 	ack.EncodeAndSendAck(agentConn, udpAddr, newAck)
 
+	availableTime := time.Duration(iperfServer.Frequency) * time.Second
+
 	// reexecute the ping command every iperfServer.Frequency seconds
 outerLoop:
 	for {
 		// keep track of the start time
 		startTime := time.Now()
-		availableTime := time.Duration(iperfServer.Frequency) * time.Second
 
 		for {
 			// Check if the available time has passed
@@ -63,7 +64,7 @@ outerLoop:
 		outputData, err := ExecuteCommandWithMonitoring(iperfServer.IperfServerCommand, iperfServer.DeviceMetrics, iperfServer.AlertFlowConditions, iperfServer.TaskID)
 
 		// Calculate the time that the command has left. This value can be negative if the command took longer than the frequency
-		remainingIdleTime := time.Duration(iperfServer.Frequency)*time.Second - time.Since(startTime)
+		remainingIdleTime := availableTime - time.Since(startTime)
 
 		errTime := time.Now() // time of alert
 
