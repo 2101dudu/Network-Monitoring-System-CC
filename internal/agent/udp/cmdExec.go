@@ -89,13 +89,7 @@ func handleCpuUsage(conditions task.AlertFlowConditions, taskID uint16) bool {
 		alertTime := time.Now() // time of the alert
 
 		newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
-		buildAlert := alert.NewAlertBuilder().
-			SetPacketID(newPacketID).
-			SetSenderID(agentID).
-			SetTaskID(taskID).
-			SetAlertType(alert.CPU).
-			SetExceeded(cpuUsage).
-			SetTime(alertTime.Format("15:04:05.000000000"))
+		buildAlert := alert.NewAlertBuilder().SetPacketID(newPacketID).SetSenderID(agentID).SetTaskID(taskID).SetAlertType(alert.CPU).SetExceeded(cpuUsage).SetTime(alertTime.Format("15:04:05.000000000"))
 
 		newAlert := buildAlert.Build()                        // build full alert with given sets
 		tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
@@ -120,13 +114,7 @@ func handleRamUsage(conditions task.AlertFlowConditions, taskID uint16) bool {
 		alertTime := time.Now() // time of the alert
 
 		newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
-		buildAlert := alert.NewAlertBuilder().
-			SetPacketID(newPacketID).
-			SetSenderID(agentID).
-			SetTaskID(taskID).
-			SetAlertType(alert.RAM).
-			SetExceeded(ramUsage).
-			SetTime(alertTime.Format("15:04:05.000000000"))
+		buildAlert := alert.NewAlertBuilder().SetPacketID(newPacketID).SetSenderID(agentID).SetTaskID(taskID).SetAlertType(alert.RAM).SetExceeded(ramUsage).SetTime(alertTime.Format("15:04:05.000000000"))
 
 		newAlert := buildAlert.Build()                        // build full alert with given sets
 		tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
@@ -158,13 +146,7 @@ func handleInterfaceStats(interfaceName string, conditions task.AlertFlowConditi
 		alertTime := time.Now() // time of the alert
 
 		newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
-		buildAlert := alert.NewAlertBuilder().
-			SetPacketID(newPacketID).
-			SetSenderID(agentID).
-			SetTaskID(taskID).
-			SetAlertType(alert.INTERFACESTATS).
-			SetExceeded(float32(interfaceStats)).
-			SetTime(alertTime.Format("15:04:05.000000000"))
+		buildAlert := alert.NewAlertBuilder().SetPacketID(newPacketID).SetSenderID(agentID).SetTaskID(taskID).SetAlertType(alert.INTERFACESTATS).SetExceeded(float32(interfaceStats)).SetTime(alertTime.Format("15:04:05.000000000"))
 
 		newAlert := buildAlert.Build()                        // build full alert with given sets
 		tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
