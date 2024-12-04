@@ -26,6 +26,7 @@ const (
 	RAM
 	JITTER
 	PACKETLOSS
+	TIMEOUT
 	ERROR
 )
 
@@ -41,6 +42,8 @@ func (a AlertType) String() string {
 		return "Packet Loss"
 	case ERROR:
 		return "Error"
+	case TIMEOUT:
+		return "Timeout"
 	default:
 		return "Unknown"
 	}

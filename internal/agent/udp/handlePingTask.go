@@ -39,46 +39,67 @@ func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDP
 	ack.EncodeAndSendAck(agentConn, udpAddr, newAck)
 
 	// reexecute the ping command every pingPacket.Frequency seconds
+outerLoop:
 	for {
-		// keep track of the start time
 		startTime := time.Now()
+		availableTime := time.Duration(pingPacket.Frequency) * time.Second
 
-	// execute the pingPacket's command
-	outputData, err := ExecuteCommandWithMonitoring(pingPacket.PingCommand, pingPacket.DeviceMetrics, pingPacket.AlertFlowConditions, pingPacket.TaskID)
+		for {
+			// Check if the available time has passed
+			if time.Since(startTime) > availableTime {
+				// Send empty metrics packet and alert for timeout
+				sendTimeoutAlertAndEmptyMetrics(pingPacket.PingCommand, pingPacket.TaskID, agentID, startTime)
+				continue outerLoop
+			}
 
-	if err != nil { // If during command execution happened an error then send an alert
-		errTime := time.Now() // time of alert
+			// Check if the iperf command is running
+			iperfMutex.Lock()
+			if !iperfRunning && time.Since(startTime) <= availableTime {
+				iperfMutex.Unlock()
+				break
+			}
+			iperfMutex.Unlock()
 
-		newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
-		buildAlert := alert.NewAlertBuilder().
-			SetPacketID(newPacketID).
-			SetSenderID(agentID).
-			SetTaskID(pingPacket.TaskID).
-			SetAlertType(alert.ERROR).
-			SetTime(errTime.Format("15:04:05.000000000"))
+			time.Sleep(100 * time.Millisecond) // Wait a bit before checking again
+		}
 
-		newAlert := buildAlert.Build()                        // build full alert with given sets
-		tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
-	}
+		// execute the pingPacket's command
+		outputData, err := ExecuteCommandWithMonitoring(pingPacket.PingCommand, pingPacket.DeviceMetrics, pingPacket.AlertFlowConditions, pingPacket.TaskID)
+
+		// Calculate the time that the command has left. This value can be negative if the command took longer than the frequency
+		remainingIdleTime := time.Duration(pingPacket.Frequency)*time.Second - time.Since(startTime)
+
+		// Send an alert if, during command execution, an error happened
+		if err != nil {
+			errTime := time.Now() // time of alert
+
+			newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
+			buildAlert := alert.NewAlertBuilder().SetPacketID(newPacketID).SetSenderID(agentID).SetTaskID(pingPacket.TaskID).SetAlertType(alert.ERROR).SetTime(errTime.Format("15:04:05.000000000"))
+
+			newAlert := buildAlert.Build()                        // build full alert with given sets
+			tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
+		}
+
+		// If the remaining idle time is negative, send an empty metrics packet and alert for timeout
+		if remainingIdleTime < 0 {
+			sendTimeoutAlertAndEmptyMetrics(pingPacket.PingCommand, pingPacket.TaskID, agentID, startTime)
+			continue
+		}
+
+		// Wait for the remaining idle time
+		time.Sleep(remainingIdleTime)
 
 		preparedOutput := parsePingOutput(string(outputData))
 
-		// calculate the elapsed time and sleep for the remaining time to ensure the loop runs every pingPacket.Frequency seconds
-		elapsedTime := time.Since(startTime)
-		sleepDuration := time.Duration(pingPacket.Frequency)*time.Second - elapsedTime
-		if sleepDuration > 0 {
-			time.Sleep(sleepDuration)
-		}
-
 		serverConn := utils.ResolveUDPAddrAndDial("localhost", "8081")
 
-	  metricsID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
-	  newMetrics := metrics.NewMetricsBuilder().SetPacketID(metricsID).SetAgentID(agentID).SetTaskID(pingPacket.TaskID).SetTime(startTime.Format("15:04:05.000000000")).SetCommand(pingPacket.PingCommand).SetMetrics(preparedOutput).Build()
-    
+		metricsID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
+		newMetrics := metrics.NewMetricsBuilder().SetPacketID(metricsID).SetAgentID(agentID).SetTaskID(pingPacket.TaskID).SetTime(startTime.Format("15:04:05.000000000")).SetCommand(pingPacket.PingCommand).SetMetrics(preparedOutput).Build()
+
 		hash = metrics.CreateHashMetricsPacket(newMetrics)
 		newMetrics.Hash = (string(hash))
 
 		packetData := metrics.EncodeMetrics(newMetrics)
-		ack.SendPacketAndWaitForAck(metricsID, agentID, packetsWaitingAck, &pMutex, serverConn, nil, packetData, "[SERVER] [MAIN READ THREAD] Metrics packet sent", "[SERVER] [ERROR 31] Unable to send metrics packet")
+		ack.SendPacketAndWaitForAck(metricsID, agentID, packetsWaitingAck, &pMutex, serverConn, nil, packetData, "[AGENT] [MAIN READ THREAD] Metrics packet sent", "[AGENT] [ERROR 31] Unable to send metrics packet")
 	}
 }
