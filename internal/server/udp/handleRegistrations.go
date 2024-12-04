@@ -1,14 +1,17 @@
 package udp
 
 import (
+	"fmt"
 	"log"
 	"net"
 	utils "nms/internal/utils"
 )
 
 func handleRegistrations(conn *net.UDPConn) {
-	for len(agentsIPs) < utils.MAXAGENTS {
-		log.Println("[SERVER] [MAIN READ THREAD] Waiting for data from an agent")
+	fmt.Printf("Waiting for %d agents to register\n", numAgents)
+
+	for len(agentsIPs) < numAgents {
+		fmt.Printf("Total agents registered until now: %d\n", len(agentsIPs))
 
 		// Read registration request
 		n, udpAddr, data := utils.ReadUDP(conn, "[SERVER] [MAIN READ THREAD] Registration request received", "[SERVER] [ERROR 10] Unable to read registration request")
@@ -24,7 +27,8 @@ func handleRegistrations(conn *net.UDPConn) {
 
 		// Check if the packet type is correct
 		if packetType != utils.REGISTRATION {
-			log.Fatalln("[AGENT] [ERROR 18] Unexpected packet type received from server")
+			log.Println("[AGENT] [ERROR 18] Unexpected packet type received from server")
+			continue
 		}
 		handleRegistration(packetPayload, conn, udpAddr)
 	}

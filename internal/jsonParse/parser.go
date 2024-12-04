@@ -2,6 +2,7 @@ package jsonParse
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 )
@@ -16,11 +17,14 @@ func GetDataFromJson(filePath string) []byte {
 }
 
 func ParseDataFromJson(data []byte) []Task {
+	fmt.Println("Parsing data from tasks file...")
 	var tasks []Task
 	err := json.Unmarshal(data, &tasks)
 	if err != nil {
 		log.Fatalln("[ERROR 9] Unable to parse data:", err)
 	}
+
+	fmt.Println("Data parsed successfully!")
 
 	return tasks
 }
