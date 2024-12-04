@@ -8,7 +8,10 @@ import (
 	alertTCP "nms/internal/packet/alert"
 	"os"
 	"strconv"
+	"sync"
 )
+
+var fileMutex sync.Mutex
 
 type AlertsData struct {
 	TaskID    string  `json:"task_id"`
@@ -54,6 +57,9 @@ func handleAlert(packetPayload []byte) {
 		AlertType: alert.AlertType.String(),
 		Exceeded:  alert.Exceeded,
 	}
+
+	fileMutex.Lock()
+	defer fileMutex.Unlock()
 
 	// open if existes or create alerts.json if dont
 	file, err := os.OpenFile("output/alerts.json", os.O_RDWR|os.O_CREATE, 0644)

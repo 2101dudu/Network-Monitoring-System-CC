@@ -9,7 +9,10 @@ import (
 	"nms/internal/packet/metrics"
 	"os"
 	"strconv"
+	"sync"
 )
+
+var fileMutex sync.Mutex
 
 // MetricsData represents the structure of the metrics data to be stored in the JSON file
 type MetricsData struct {
@@ -51,6 +54,9 @@ func handleMetricsGathering(packetPayload []byte, conn *net.UDPConn, udpAddr *ne
 		Command:      met.Command,
 		OutputString: met.Metrics,
 	}
+
+	fileMutex.Lock()
+	defer fileMutex.Unlock()
 
 	file, err := os.OpenFile("output/metrics.json", os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
