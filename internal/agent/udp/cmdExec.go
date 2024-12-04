@@ -3,10 +3,7 @@ package udp
 import (
 	"fmt"
 	"log"
-	"os"
 	"os/exec"
-	"strconv"
-	"strings"
 	"time"
 
 	tcp "nms/internal/agent/tcp"
@@ -21,7 +18,6 @@ func ExecuteCommandWithMonitoring(command string, metrics task.DeviceMetrics, co
 	go monitorSystemMetrics(metrics, conditions, taskID, done)
 
 	cmd := exec.Command("sh", "-c", command)
-	//log.Println("Executing command:", command)
 	stdout, err := cmd.CombinedOutput()
 
 	close(done)
@@ -30,161 +26,135 @@ func ExecuteCommandWithMonitoring(command string, metrics task.DeviceMetrics, co
 		return string(stdout), err
 	}
 
-	//log.Println("Command executed.")
 	return string(stdout), nil
 }
 
 func monitorSystemMetrics(metrics task.DeviceMetrics, conditions task.AlertFlowConditions, taskID uint16, done chan struct{}) {
-	ticker := time.NewTicker(100 * time.Millisecond)
+	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
 
-	cpuAlert := false
-	ramAlert := false
+	cpuHasExceeded := false
+	ramHasExceeded := false
 
-	//log.Println("[MONITOR] Start")
 	for {
-
-		if (ramAlert || !metrics.RamUsage) && (cpuAlert || !metrics.CpuUsage) { // If both alerts happened then can stop
+		if (ramHasExceeded || !metrics.RamUsage) && (cpuHasExceeded || !metrics.CpuUsage) && len(metrics.InterfaceStats) <= 0 { // If both alerts happened then can stop
 			return
 		}
 
 		select {
 		case <-done: // Command finished
-			//log.Println("[MONITOR] End")
 			return
 
 		case <-ticker.C:
-			// if there is not an alert of cpu and cpu Usage is a metric
-			if !cpuAlert && metrics.CpuUsage {
-				cpuUsage, errorCpu := getCpuUsage()
-				if errorCpu != nil {
-					fmt.Println("[AGENT] [MONITOR] [ERROR 180] Error getting CPU usage:", errorCpu)
-					cpuUsage = 0
-				}
-
-				if cpuUsage > float32(conditions.CpuUsage) { // Build and send cpu alert
-					cpuAlert = true
-
-					alertTime := time.Now() // time of the alert
-
-					newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
-					buildAlert := alert.NewAlertBuilder().
-						SetPacketID(newPacketID).
-						SetSenderID(agentID).
-						SetTaskID(taskID).
-						SetAlertType(alert.CPU).
-						SetExceeded(cpuUsage).
-						SetTime(alertTime.Format("15:04:05.000000000"))
-
-					newAlert := buildAlert.Build()                        // build full alert with given sets
-					tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
-					// fmt.Printf("[ALERT] CPU Usage exceeded: %.2f%% (limit: %d%%)\n", cpuUsage, conditions.CpuUsage)
-				}
+			// if cpu usage has not been exceeded and is to be tracked
+			if !cpuHasExceeded && metrics.CpuUsage {
+				cpuHasExceeded = handleCpuUsage(conditions, taskID)
 			}
 
-			// if there is not an alert of ram and ram usage is a metric
-			if !ramAlert && metrics.RamUsage {
-				ramUsage, errorRam := getRamUsage()
-				if errorRam != nil {
-					fmt.Println("[AGENT] [MONITOR] [ERROR 181] Error getting RAM usage:", errorRam)
-					ramUsage = 0
-				}
+			// if ram usage has not been exceeded and is to be tracked
+			if !ramHasExceeded && metrics.RamUsage {
+				ramHasExceeded = handleRamUsage(conditions, taskID)
+			}
 
-				if ramUsage > float32(conditions.RamUsage) { // Build and send cpu alert
-					ramAlert = true
+			if len(metrics.InterfaceStats) > 0 {
+				for index, interfaceName := range metrics.InterfaceStats {
+					packetsHaveExceeded := handleInterfaceStats(interfaceName, conditions, taskID)
 
-					alertTime := time.Now() // time of the alert
-
-					newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
-					buildAlert := alert.NewAlertBuilder().
-						SetPacketID(newPacketID).
-						SetSenderID(agentID).
-						SetTaskID(taskID).
-						SetAlertType(alert.RAM).
-						SetExceeded(ramUsage).
-						SetTime(alertTime.Format("15:04:05.000000000"))
-
-					newAlert := buildAlert.Build()                        // build full alert with given sets
-					tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
-					// fmt.Printf("[ALERT] RAM Usage exceeded: %.2f%% (limit: %d%%)\n", ramUsage, conditions.RamUsage)
+					if packetsHaveExceeded {
+						// Remove the interface from the list, as to not be checked again
+						metrics.InterfaceStats = append(metrics.InterfaceStats[:index], metrics.InterfaceStats[index+1:]...)
+					}
 				}
 			}
 		}
 	}
 }
 
-func getCpuUsage() (float32, error) {
-	// Read the content of /proc/stat
-	data, err := os.ReadFile("/proc/stat")
+func handleCpuUsage(conditions task.AlertFlowConditions, taskID uint16) bool {
+	cpuUsage, errorCpu := getCpuUsage()
+	if errorCpu != nil {
+		fmt.Println("[AGENT] [MONITOR] [ERROR 180] Error getting CPU usage:", errorCpu)
+		cpuUsage = 0
+		return false
+	}
+
+	// Build and send cpu alert
+	if cpuUsage > float32(conditions.CpuUsage) {
+		alertTime := time.Now() // time of the alert
+
+		newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
+		buildAlert := alert.NewAlertBuilder().
+			SetPacketID(newPacketID).
+			SetSenderID(agentID).
+			SetTaskID(taskID).
+			SetAlertType(alert.CPU).
+			SetExceeded(cpuUsage).
+			SetTime(alertTime.Format("15:04:05.000000000"))
+
+		newAlert := buildAlert.Build()                        // build full alert with given sets
+		tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
+
+		return true
+	}
+
+	return false
+}
+
+func handleRamUsage(conditions task.AlertFlowConditions, taskID uint16) bool {
+	ramUsage, errorRam := getRamUsage()
+	if errorRam != nil {
+		fmt.Println("[AGENT] [MONITOR] [ERROR 181] Error getting RAM usage:", errorRam)
+		ramUsage = 0
+
+		return false
+	}
+
+	// Build and send cpu alert
+	if ramUsage > float32(conditions.RamUsage) {
+		alertTime := time.Now() // time of the alert
+
+		newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
+		buildAlert := alert.NewAlertBuilder().
+			SetPacketID(newPacketID).
+			SetSenderID(agentID).
+			SetTaskID(taskID).
+			SetAlertType(alert.RAM).
+			SetExceeded(ramUsage).
+			SetTime(alertTime.Format("15:04:05.000000000"))
+
+		newAlert := buildAlert.Build()                        // build full alert with given sets
+		tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
+
+		return true
+	}
+
+	return false
+}
+
+func handleInterfaceStats(interfaceName string, conditions task.AlertFlowConditions, taskID uint16) bool {
+	interfaceStats, err := getInterfaceStats(interfaceName)
 	if err != nil {
-		return 0, fmt.Errorf("failed to read /proc/stat: %v", err)
+		log.Println("[ERROR 182] Error getting interface stats:", err)
+		return false
 	}
 
-	lines := strings.Split(string(data), "\n")
-	cpuLine := lines[0]
-	fields := strings.Fields(cpuLine)
+	if interfaceStats > int(conditions.InterfaceStats) {
+		alertTime := time.Now() // time of the alert
 
-	// Ensure we have at least the first 8 fields
-	if len(fields) < 8 {
-		return 0, fmt.Errorf("unexpected format in /proc/stat")
+		newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
+		buildAlert := alert.NewAlertBuilder().
+			SetPacketID(newPacketID).
+			SetSenderID(agentID).
+			SetTaskID(taskID).
+			SetAlertType(alert.INTERFACESTATS).
+			SetExceeded(float32(interfaceStats)).
+			SetTime(alertTime.Format("15:04:05.000000000"))
+
+		newAlert := buildAlert.Build()                        // build full alert with given sets
+		tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
+
+		return true
 	}
 
-	// Convert fields to integers
-	var values []int64
-	for _, field := range fields[1:] {
-		value, err := strconv.ParseInt(field, 10, 64)
-		if err != nil {
-			return 0, fmt.Errorf("failed to parse CPU value: %v", err)
-		}
-		values = append(values, value)
-	}
-
-	// Calculate total and idle time
-	total := values[0] + values[1] + values[2] + values[3] + values[4] + values[5] + values[6]
-	idle := values[3]
-
-	// Calculate CPU usage percentage
-	usage := 100 * float32(total-idle) / float32(total)
-	return usage, nil
-}
-
-func getRamUsage() (float32, error) {
-    // Read the content of /proc/meminfo
-    data, err := os.ReadFile("/proc/meminfo")
-    if err != nil {
-        return 0, fmt.Errorf("failed to read /proc/meminfo: %v", err)
-    }
-
-    lines := strings.Split(string(data), "\n")
-    var memTotal, memAvailable float64
-
-    // Parse MemTotal
-    memTotalFields := strings.Fields(lines[0])
-    if len(memTotalFields) < 2 {
-        log.Println("[ERROR 801] Unexpected /proc/meminfo format")
-    }
-
-    memTotal, err = strconv.ParseFloat(memTotalFields[1], 32)
-    if err != nil {
-        return 0, fmt.Errorf("failed to parse MemTotal: %v", err)
-    }
-    if memTotal == 0 {
-        return 0, fmt.Errorf("MemTotal is zero, unexpected /proc/meminfo format")
-    }
-
-    // Parse MemAvailable
-    memAvailableFields := strings.Fields(lines[2])
-    if len(memAvailableFields) < 2 {
-        log.Println("[ERROR 802] Unexpected /proc/meminfo format")
-    }
-
-    memAvailable, err = strconv.ParseFloat(memAvailableFields[1], 32)
-    if err != nil {
-        return 0, fmt.Errorf("failed to parse MemAvailable: %v", err)
-    }
-
-
-    // Calculate RAM usage percentage
-    usage := 100 * (1 - memAvailable/memTotal)
-    return float32(usage), nil
+	return false
 }

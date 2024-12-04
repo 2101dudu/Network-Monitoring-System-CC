@@ -26,6 +26,7 @@ const (
 	RAM
 	JITTER
 	PACKETLOSS
+	INTERFACESTATS
 	ERROR
 )
 
@@ -39,6 +40,8 @@ func (a AlertType) String() string {
 		return "Jitter"
 	case PACKETLOSS:
 		return "Packet Loss"
+	case INTERFACESTATS:
+		return "Interface Stats"
 	case ERROR:
 		return "Error"
 	default:
