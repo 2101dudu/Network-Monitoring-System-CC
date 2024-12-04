@@ -63,12 +63,14 @@ func monitorSystemMetrics(metrics task.DeviceMetrics, conditions task.AlertFlowC
 			go func() {
 				if len(metrics.InterfaceStats) > 0 {
 					for index, interfaceName := range metrics.InterfaceStats {
-						packetsHaveExceeded := handleInterfaceStats(interfaceName, conditions, taskID)
-
-						if packetsHaveExceeded {
-							// Remove the interface from the list, as to not be checked again
-							metrics.InterfaceStats = append(metrics.InterfaceStats[:index], metrics.InterfaceStats[index+1:]...)
-						}
+						go func() {
+							packetsHaveExceeded := handleInterfaceStats(interfaceName, conditions, taskID)
+							
+							if packetsHaveExceeded {
+								// Remove the interface from the list, as to not be checked again
+								metrics.InterfaceStats = append(metrics.InterfaceStats[:index], metrics.InterfaceStats[index+1:]...)
+							}
+						}()
 					}
 				}
 			}()
@@ -140,7 +142,6 @@ func handleInterfaceStats(interfaceName string, conditions task.AlertFlowConditi
 	}
 
 	interfaceStats := interfaceStatsAfter - interfaceStatsBefore
-	log.Println("DIF:", interfaceStats)
 
 	if interfaceStats > int(conditions.InterfaceStats) {
 		alertTime := time.Now() // time of the alert
