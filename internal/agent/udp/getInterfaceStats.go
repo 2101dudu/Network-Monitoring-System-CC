@@ -30,9 +30,6 @@ func getInterfaceStats(interfaceName string) (int, error) {
 	if err != nil {
 		return 0, fmt.Errorf("failed to parse received packets: %v", err)
 	}
-	if receivedPackets == 0 {
-		return 0, fmt.Errorf("received zero packets, unexpected ip command format")
-	}
 
 	// Parse transmited packets
 	transmitedFields := strings.Fields(lines[5])
