@@ -35,6 +35,10 @@ func handleAlert(packetPayload []byte) {
 		alertMessage = fmt.Sprintf("[ALERT] Agent %d exceeded jitter thresholds (%.2f ms) while executing task %d", alert.SenderID, alert.Exceeded, alert.TaskID)
 	case alertTCP.PACKETLOSS:
 		alertMessage = fmt.Sprintf("[ALERT] Agent %d exceeded packet loss thresholds (%.2f%%) while executing task %d", alert.SenderID, alert.Exceeded, alert.TaskID)
+	case alertTCP.TIMEOUT:
+		alertMessage = fmt.Sprintf("[ALERT] Agent %d has timed out while executing task %d", alert.SenderID, alert.TaskID)
+	case alertTCP.INTERFACESTATS:
+		alertMessage = fmt.Sprintf("[ALERT] Agent %d exceeded the interface stats packets per second threshold (%.2f) while executing task %d", alert.SenderID, alert.Exceeded, alert.TaskID)
 	case alertTCP.ERROR:
 		alertMessage = fmt.Sprintf("[ALERT] Agent %d encountered an error while executing task %d", alert.SenderID, alert.TaskID)
 	default:
