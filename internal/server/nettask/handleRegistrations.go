@@ -7,7 +7,7 @@ import (
 )
 
 func handleRegistrations(conn *net.UDPConn) {
-	log.Println(utils.Blue+"Waiting for", numAgents, "to register", utils.Reset)
+	log.Println(utils.Blue+"Waiting for", numAgents, "agent(s) to register", utils.Reset)
 
 	for len(agentsIPs) < numAgents {
 		log.Println(utils.Blue+"Total agents registered until now:", len(agentsIPs), utils.Reset)
