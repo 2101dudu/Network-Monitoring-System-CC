@@ -21,11 +21,7 @@ var agentsIDs map[byte]bool
 var numAgents int
 
 func StartUDPServer(port string) {
-	// include "| log.Lshortfile" in the log flags to include the file name and line of code in the log
-	// log.SetFlags(log.Ltime | log.Lmicroseconds | log.Lshortfile)
-	log.SetFlags(0)
-
-	// inicializae reader
+	// Inicialize reader
 	reader := bufio.NewReader(os.Stdin)
 
 	// Initialize the map of agents IDs
