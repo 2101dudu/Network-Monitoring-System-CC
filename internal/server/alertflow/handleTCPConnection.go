@@ -10,11 +10,11 @@ import (
 func handleTCPConnection(conn *net.TCPConn) {
 	defer conn.Close()
 
-	n, alertData := utils.ReadTCP(conn, "[AlertFlow] Sucess reading alert data", "[ERROR 299] Unable to read alert data")
+	n, alertData := utils.ReadTCP(conn, "[ERROR 299] Unable to read alert data")
 
 	// Check if there is data
 	if n == 0 {
-		log.Println("[ERROR 300] No data received")
+		log.Println(utils.Red, "[ERROR 300] No data received", utils.Reset)
 		return
 	}
 
@@ -23,7 +23,7 @@ func handleTCPConnection(conn *net.TCPConn) {
 	packetPayload := alertData[1:n]
 
 	if packetType != utils.ALERT {
-		log.Println("[ERROR 301] Unexpected packet type received from agent")
+		log.Println(utils.Red, "[ERROR 301] Unexpected packet type received from agent", utils.Reset)
 		return
 	}
 

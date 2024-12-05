@@ -3,6 +3,7 @@ package nettask
 import (
 	"fmt"
 	"log"
+	utils "nms/internal/utils"
 	"os"
 	"strconv"
 	"strings"
@@ -21,7 +22,7 @@ func getRamUsage() (float32, error) {
 	// Parse MemTotal
 	memTotalFields := strings.Fields(lines[0])
 	if len(memTotalFields) < 2 {
-		log.Println("[ERROR 801] Unexpected /proc/meminfo format")
+		log.Println(utils.Red, "[ERROR 801] Unexpected /proc/meminfo format", utils.Reset)
 	}
 
 	memTotal, err = strconv.ParseFloat(memTotalFields[1], 32)
@@ -35,7 +36,7 @@ func getRamUsage() (float32, error) {
 	// Parse MemAvailable
 	memAvailableFields := strings.Fields(lines[2])
 	if len(memAvailableFields) < 2 {
-		log.Println("[ERROR 802] Unexpected /proc/meminfo format")
+		log.Println(utils.Red, "[ERROR 802] Unexpected /proc/meminfo format", utils.Reset)
 	}
 
 	memAvailable, err = strconv.ParseFloat(memAvailableFields[1], 32)

@@ -94,7 +94,7 @@ func EncodeAck(ack Ack) []byte {
 	packet = append(packet, hashBytes...)
 
 	if len(packet) > utils.BUFFERSIZE {
-		log.Fatalln("[ERROR 201] Packet size too large")
+		log.Fatalln(utils.Red, "[ERROR 201] Packet size too large", utils.Reset)
 	}
 
 	return packet
@@ -102,24 +102,24 @@ func EncodeAck(ack Ack) []byte {
 
 func EncodeAndSendAck(conn *net.UDPConn, udpAddr *net.UDPAddr, ack Ack) {
 	ackData := EncodeAck(ack)
-	utils.WriteUDP(conn, udpAddr, ackData, "[NetTask] Ack sent", "[ERROR 14] Unable to send ack")
+	utils.WriteUDP(conn, udpAddr, ackData, "[ERROR 14] Unable to send ack")
 }
 
 func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, senderID byte) bool {
 	ack, err := DecodeAck(ackPayload)
 	if err != nil {
-		log.Fatalln("[ERROR 15] Unable to decode Ack")
+		log.Fatalln(utils.Red, "[ERROR 15] Unable to decode Ack", utils.Reset)
 	}
 
 	if !ValidateHashAckPacket(ack) {
-		log.Println("[ERROR 118] Invalid hash in ack packet")
+		log.Println(utils.Red, "[ERROR 118] Invalid hash in ack packet", utils.Reset)
 		return false
 	}
 
 	_, exist := utils.GetPacketStatus(ack.PacketID, packetsWaitingAck, pMutex)
 
 	if !exist || ack.ReceiverID != senderID {
-		log.Println("[ERROR 16] Invalid acknowledgement")
+		log.Println(utils.Red, "[ERROR 16] Invalid acknowledgement", utils.Reset)
 		return false
 	}
 
@@ -132,12 +132,11 @@ func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.
 	pMutex.Lock()
 	delete(packetsWaitingAck, ack.PacketID)
 	pMutex.Unlock()
-	log.Println("[NetTask] Sender acknowledged packet", ack.PacketID)
 
 	return true
 }
 
-func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, conn *net.UDPConn, udpAddr *net.UDPAddr, packetData []byte, successMessage string, errorMessage string) {
+func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, conn *net.UDPConn, udpAddr *net.UDPAddr, packetData []byte, errorMessage string) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 
@@ -173,7 +172,7 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 					return
 				}
 
-				utils.WriteUDP(conn, udpAddr, packetData, successMessage, errorMessage)
+				utils.WriteUDP(conn, udpAddr, packetData, errorMessage)
 
 				utils.PacketIsWaiting(packetID, packetsWaitingAck, pMutex, true)
 
@@ -186,8 +185,6 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 
 	continueReadingAck := true
 	for continueReadingAck {
-		log.Println("[NetTask] Waiting for ack")
-
 		select {
 		case <-stopReadingChan:
 			// Goroutine has finished retransmissions; stop reading
@@ -196,11 +193,11 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 
 		default:
 			// Read packet
-			n, _, data := utils.ReadUDP(conn, "[NetTask] Ack received", "[ERROR 5] Unable to read ack")
+			n, _, data := utils.ReadUDP(conn, "[ERROR 5] Unable to read ack")
 
 			// Check if data was received
 			if n == 0 {
-				log.Println("[ERROR 6] No data received")
+				log.Println(utils.Red, "[ERROR 6] No data received", utils.Reset)
 				return
 			}
 
@@ -209,7 +206,7 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 			packetPayload := data[1:n]
 
 			if packetType != utils.ACK {
-				log.Println("[ERROR 17] Unexpected packet type received")
+				log.Println(utils.Red, "[ERROR 17] Unexpected packet type received", utils.Reset)
 				continue
 			}
 
@@ -225,7 +222,7 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 
 	// Check retransmission count
 	if retransmissions >= utils.MAXRETRANSMISSIONS {
-		log.Fatalln("[ERROR 781] Unable to send packet after maximum retransmission attempts")
+		log.Fatalln(utils.Red, "[ERROR 781] Unable to send packet after maximum retransmission attempts", utils.Reset)
 	}
 }
 

@@ -1,7 +1,6 @@
 package nettask
 
 import (
-	"fmt"
 	"log"
 	"os/exec"
 	"time"
@@ -81,7 +80,7 @@ func monitorSystemMetrics(metrics task.DeviceMetrics, conditions task.AlertFlowC
 func handleCpuUsage(conditions task.AlertFlowConditions, taskID uint16) bool {
 	cpuUsage, errorCpu := getCpuUsage()
 	if errorCpu != nil {
-		fmt.Println("[ERROR 180] Error getting CPU usage:", errorCpu)
+		log.Println(utils.Red, "[ERROR 180] Error getting CPU usage:", errorCpu, utils.Reset)
 		cpuUsage = 0
 		return false
 	}
@@ -105,7 +104,7 @@ func handleCpuUsage(conditions task.AlertFlowConditions, taskID uint16) bool {
 func handleRamUsage(conditions task.AlertFlowConditions, taskID uint16) bool {
 	ramUsage, errorRam := getRamUsage()
 	if errorRam != nil {
-		fmt.Println("[ERROR 181] Error getting RAM usage:", errorRam)
+		log.Println(utils.Red, "[ERROR 181] Error getting RAM usage:", errorRam, utils.Reset)
 		ramUsage = 0
 
 		return false
@@ -130,14 +129,14 @@ func handleRamUsage(conditions task.AlertFlowConditions, taskID uint16) bool {
 func handleInterfaceStats(interfaceName string, conditions task.AlertFlowConditions, taskID uint16) bool {
 	interfaceStatsBefore, err := getInterfaceStats(interfaceName)
 	if err != nil {
-		log.Println("[ERROR 282] Error getting interface stats:", err)
+		log.Println(utils.Red, "[ERROR 282] Error getting interface stats:", err, utils.Reset)
 		return false
 	}
 	time.Sleep(250 * time.Millisecond)
 	interfaceStatsAfter, err := getInterfaceStats(interfaceName)
 
 	if err != nil {
-		log.Println("[ERROR 182] Error getting interface stats:", err)
+		log.Println(utils.Red, "[ERROR 182] Error getting interface stats:", err, utils.Reset)
 		return false
 	}
 

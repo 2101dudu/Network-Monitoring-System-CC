@@ -12,7 +12,7 @@ func StartTCPServer(port string) {
 
 		conn, err := listener.AcceptTCP()
 		if err != nil {
-			log.Println("[ERROR 999] Unable to accept connection:", err)
+			log.Println(utils.Red, "[ERROR 999] Unable to accept connection:", err, utils.Reset)
 			continue
 		}
 		go handleTCPConnection(conn)

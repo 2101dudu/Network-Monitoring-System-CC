@@ -22,7 +22,8 @@ var numAgents int
 
 func StartUDPServer(port string) {
 	// include "| log.Lshortfile" in the log flags to include the file name and line of code in the log
-	log.SetFlags(log.Ltime | log.Lmicroseconds | log.Lshortfile)
+	//log.SetFlags(log.Ltime | log.Lmicroseconds | log.Lshortfile)
+	log.SetFlags(0)
 
 	// inicializae reader
 	reader := bufio.NewReader(os.Stdin)
@@ -47,7 +48,7 @@ func StartUDPServer(port string) {
 	var taskList []parse.Task = parse.ParseDataFromJson(jsonData)
 
 	// ask the user if he wants to proceed with tasks validation
-	fmt.Print("Do you wish to proceed with tasks validation? (y/n): ")
+	fmt.Print(utils.Blue, "Do you wish to proceed with tasks validation? (y/n): ", utils.Reset)
 	input := parseString(reader)
 	if input == "y" || input == "Y" {
 		// validate the tasks
@@ -55,7 +56,7 @@ func StartUDPServer(port string) {
 	}
 
 	// ask the user if he wants to proceed with tasks validation
-	fmt.Print("Do you wish to proceed with the tasks delegation? (y/n): ")
+	fmt.Print(utils.Blue, "Do you wish to proceed with the tasks delegation? (y/n): ", utils.Reset)
 	input = parseString(reader)
 	if input == "n" || input == "N" {
 		// close the server connection
@@ -71,7 +72,7 @@ func StartUDPServer(port string) {
 
 	// give the user the option to consult the metrics/alerts file
 	for {
-		fmt.Println("Which file do you want to consult? (1 - Metrics file | 2- Alerts file | 3 - Exit)")
+		log.Println(utils.Blue, "Which file do you want to consult? (1 - Metrics file | 2- Alerts file | 3 - Exit)", utils.Reset)
 		choice := parseString(reader)
 
 		if choice == "1" {
@@ -83,6 +84,7 @@ func StartUDPServer(port string) {
 			consultAlertsFile()
 		}
 		if choice == "3" {
+			log.Println("Exiting...")
 			break
 		}
 	}

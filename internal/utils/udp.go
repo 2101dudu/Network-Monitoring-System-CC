@@ -5,7 +5,7 @@ import (
 	"net"
 )
 
-func WriteUDP(conn *net.UDPConn, udpAddr *net.UDPAddr, data []byte, successMessage string, errorMessage string) {
+func WriteUDP(conn *net.UDPConn, udpAddr *net.UDPAddr, data []byte, errorMessage string) {
 	var err error
 
 	if udpAddr == nil { // write UDP without using UDP address
@@ -16,30 +16,28 @@ func WriteUDP(conn *net.UDPConn, udpAddr *net.UDPAddr, data []byte, successMessa
 	}
 
 	if err != nil {
-		log.Fatalln(errorMessage, ":", err)
+		log.Fatalln(Red, errorMessage, ":", err, Reset)
 	}
-	log.Println(successMessage)
 }
 
-func ReadUDP(conn *net.UDPConn, successMessage string, errorMessage string) (int, *net.UDPAddr, []byte) {
+func ReadUDP(conn *net.UDPConn, errorMessage string) (int, *net.UDPAddr, []byte) {
 	newData := make([]byte, BUFFERSIZE)
 	n, udpAddr, err := conn.ReadFromUDP(newData)
 	if err != nil {
-		log.Fatalln(errorMessage, ":", err)
+		log.Fatalln(Red, errorMessage, ":", err, Reset)
 	}
-	log.Println(successMessage)
 	return n, udpAddr, newData
 }
 
 func ResolveUDPAddrAndListen(ip string, port string) *net.UDPConn {
 	addr, err := net.ResolveUDPAddr("udp", ip+":"+port)
 	if err != nil {
-		log.Fatalln("[ERROR 8] Unable to resolve address:", err)
+		log.Fatalln(Red, "[ERROR 8] Unable to resolve address:", err, Reset)
 	}
 
 	conn, err := net.ListenUDP("udp", addr)
 	if err != nil {
-		log.Fatalln("[ERROR 9] Unable to initialize the agent:", err)
+		log.Fatalln(Red, "[ERROR 9] Unable to initialize the agent:", err, Reset)
 	}
 
 	return conn
@@ -48,12 +46,12 @@ func ResolveUDPAddrAndListen(ip string, port string) *net.UDPConn {
 func ResolveUDPAddrAndDial(ip string, port string) *net.UDPConn {
 	udpAddr, err := net.ResolveUDPAddr("udp", ip+":"+port)
 	if err != nil {
-		log.Fatalln("[ERROR 1] Unable to resolve address:", err)
+		log.Fatalln(Red, "[ERROR 1] Unable to resolve address:", err, Reset)
 	}
 
 	conn, err := net.DialUDP("udp", nil, udpAddr)
 	if err != nil {
-		log.Fatalln("[ERROR 2] Unable to connect:", err)
+		log.Fatalln(Red, "[ERROR 2] Unable to connect:", err, Reset)
 	}
 	return conn
 }

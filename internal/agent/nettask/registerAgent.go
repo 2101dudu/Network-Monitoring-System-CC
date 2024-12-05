@@ -14,7 +14,6 @@ func registerAgent(conn *net.UDPConn, agentIP string) {
 	var registrationData []byte
 	agentID, registrationData = registration.CreateRegistrationPacket(newPacketID, agentIP)
 
-	successMessage := " Registration request sent"
 	errorMessage := "[ERROR 4] Unable to send registration request"
-	ack.SendPacketAndWaitForAck(newPacketID, agentID, packetsWaitingAck, &pMutex, conn, nil, registrationData, successMessage, errorMessage)
+	ack.SendPacketAndWaitForAck(newPacketID, agentID, packetsWaitingAck, &pMutex, conn, nil, registrationData, errorMessage)
 }

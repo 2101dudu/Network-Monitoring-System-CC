@@ -27,6 +27,6 @@ func handleIperfTask(task parse.Task) {
 
 	dataClient := t.EncodeIperfClientPacket(iperfClientPacket)
 
-	ack.SendPacketAndWaitForAck(iperfServerPacket.PacketID, utils.SERVERID, packetsWaitingAck, &pMutex, agentSConn, nil, dataServer, "[NetTask] Iperf server packet sent", "[ERROR 33] Unable to send iperf server packet")
-	ack.SendPacketAndWaitForAck(iperfClientPacket.PacketID, utils.SERVERID, packetsWaitingAck, &pMutex, agentCConn, nil, dataClient, "[NetTask] Iperf client packet sent", "[ERROR 34] Unable to send iperf client packet")
+	ack.SendPacketAndWaitForAck(iperfServerPacket.PacketID, utils.SERVERID, packetsWaitingAck, &pMutex, agentSConn, nil, dataServer, "[ERROR 33] Unable to send iperf server packet")
+	ack.SendPacketAndWaitForAck(iperfClientPacket.PacketID, utils.SERVERID, packetsWaitingAck, &pMutex, agentCConn, nil, dataClient, "[ERROR 34] Unable to send iperf client packet")
 }

@@ -1,24 +1,23 @@
 package nettask
 
 import (
-	"fmt"
 	"log"
 	"net"
 	utils "nms/internal/utils"
 )
 
 func handleRegistrations(conn *net.UDPConn) {
-	fmt.Printf("Waiting for %d agents to register\n", numAgents)
+	log.Println(utils.Blue, "Waiting for", numAgents, "agent(s) to register", utils.Reset)
 
 	for len(agentsIPs) < numAgents {
-		fmt.Printf("Total agents registered until now: %d\n", len(agentsIPs))
+		log.Println(utils.Blue, "Total agents registered until now:", len(agentsIPs), utils.Reset)
 
 		// Read registration request
-		n, udpAddr, data := utils.ReadUDP(conn, "[NetTask] Registration request received", "[ERROR 10] Unable to read registration request")
+		n, udpAddr, data := utils.ReadUDP(conn, "[ERROR 10] Unable to read registration request")
 
 		// Check if there is data
 		if n == 0 {
-			log.Println("[ERROR 11] No data received")
+			log.Println(utils.Red, "[ERROR 11] No data received", utils.Reset)
 			continue
 		}
 
@@ -27,7 +26,7 @@ func handleRegistrations(conn *net.UDPConn) {
 
 		// Check if the packet type is correct
 		if packetType != utils.REGISTRATION {
-			log.Println("[ERROR 18] Unexpected packet type received from server")
+			log.Println(utils.Red, "[ERROR 18] Unexpected packet type received from server", utils.Reset)
 			continue
 		}
 		handleRegistration(packetPayload, conn, udpAddr)

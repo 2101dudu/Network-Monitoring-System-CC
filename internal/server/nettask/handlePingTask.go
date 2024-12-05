@@ -17,5 +17,5 @@ func handlePingTask(task parse.Task) {
 
 	data := t.EncodePingPacket(pingPacket)
 
-	ack.SendPacketAndWaitForAck(pingPacket.PacketID, utils.SERVERID, packetsWaitingAck, &pMutex, agentConn, nil, data, "[NetTask] Ping packet sent", "[ERROR 31] Unable to send ping packet")
+	ack.SendPacketAndWaitForAck(pingPacket.PacketID, utils.SERVERID, packetsWaitingAck, &pMutex, agentConn, nil, data, "[ERROR 31] Unable to send ping packet")
 }

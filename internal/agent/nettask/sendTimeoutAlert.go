@@ -26,5 +26,5 @@ func sendTimeoutAlertAndEmptyMetrics(command string, taskID uint16, agentID byte
 	newMetrics.Hash = (string(hash))
 
 	packetData := metrics.EncodeMetrics(newMetrics)
-	ack.SendPacketAndWaitForAck(metricsID, agentID, packetsWaitingAck, &pMutex, serverConn, nil, packetData, "[NetTask] Empty metrics packet sent", "[ERROR 331] Unable to send empty metrics packet")
+	ack.SendPacketAndWaitForAck(metricsID, agentID, packetsWaitingAck, &pMutex, serverConn, nil, packetData, "[ERROR 331] Unable to send empty metrics packet")
 }
