@@ -1,8 +1,8 @@
 package main
 
 import (
-	servertcp "nms/internal/server/tcp"
-	serverudp "nms/internal/server/udp"
+	servertcp "nms/internal/server/alertflow"
+	serverudp "nms/internal/server/nettask"
 )
 
 func main() {

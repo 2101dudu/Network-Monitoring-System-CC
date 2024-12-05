@@ -18,6 +18,7 @@ func GetDataFromJson(filePath string) []byte {
 
 func ParseDataFromJson(data []byte) []Task {
 	fmt.Println("Parsing data from tasks file...")
+
 	var tasks []Task
 	err := json.Unmarshal(data, &tasks)
 	if err != nil {
@@ -30,6 +31,8 @@ func ParseDataFromJson(data []byte) []Task {
 }
 
 func ValidateTaskList(taskList []Task) {
+	fmt.Println("Validating tasks...")
+
 	// map to track unique TaskIDs
 	seenTaskIDs := make(map[uint16]bool)
 
@@ -45,4 +48,6 @@ func ValidateTaskList(taskList []Task) {
 			log.Fatalln("[ERROR 19] Invalid task")
 		}
 	}
+
+	fmt.Println("Tasks validated successfully!")
 }

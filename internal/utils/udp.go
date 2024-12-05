@@ -34,12 +34,12 @@ func ReadUDP(conn *net.UDPConn, successMessage string, errorMessage string) (int
 func ResolveUDPAddrAndListen(ip string, port string) *net.UDPConn {
 	addr, err := net.ResolveUDPAddr("udp", ip+":"+port)
 	if err != nil {
-		log.Fatalln("[AGENT] [ERROR 8] Unable to resolve address:", err)
+		log.Fatalln("[ERROR 8] Unable to resolve address:", err)
 	}
 
 	conn, err := net.ListenUDP("udp", addr)
 	if err != nil {
-		log.Fatalln("[AGENT] [ERROR 9] Unable to initialize the agent:", err)
+		log.Fatalln("[ERROR 9] Unable to initialize the agent:", err)
 	}
 
 	return conn
@@ -48,12 +48,12 @@ func ResolveUDPAddrAndListen(ip string, port string) *net.UDPConn {
 func ResolveUDPAddrAndDial(ip string, port string) *net.UDPConn {
 	udpAddr, err := net.ResolveUDPAddr("udp", ip+":"+port)
 	if err != nil {
-		log.Fatalln("[AGENT] [ERROR 1] Unable to resolve address:", err)
+		log.Fatalln("[ERROR 1] Unable to resolve address:", err)
 	}
 
 	conn, err := net.DialUDP("udp", nil, udpAddr)
 	if err != nil {
-		log.Fatalln("[AGENT] [ERROR 2] Unable to connect:", err)
+		log.Fatalln("[ERROR 2] Unable to connect:", err)
 	}
 	return conn
 }

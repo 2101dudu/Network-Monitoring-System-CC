@@ -23,7 +23,7 @@ const (
 	BUFFERSIZE              = 1024
 	SERVERID           byte = 0
 	HASHSIZE                = 12
-	MAXRETRANSMISSIONS      = 7
+	MAXRETRANSMISSIONS      = 3
 	SERVERTCP               = "8080"
 )
 

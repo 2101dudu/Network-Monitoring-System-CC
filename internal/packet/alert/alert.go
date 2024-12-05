@@ -183,9 +183,9 @@ func DecodeAlert(data []byte) (Alert, error) {
 func EncodeAndSendAlert(conn *net.TCPConn, alert Alert) {
 	alertData, err := EncodeAlert(alert)
 	if err != nil {
-		log.Println("[TCP][ENCODE][ERROR 500] Unable to encode alert:", err)
+		log.Println("[ERROR 500] Unable to encode alert:", err)
 		return
 	}
 
-	utils.WriteTCP(conn, alertData, "[TCP] Alert sent successfully", "[TCP] Failed to send alert")
+	utils.WriteTCP(conn, alertData, "[AlertFlow] Alert sent successfully", "[AlertFlow] Failed to send alert")
 }
