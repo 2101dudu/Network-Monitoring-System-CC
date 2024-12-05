@@ -10,6 +10,11 @@ import (
 var iperfRunning bool
 var iperfMutex sync.Mutex
 
+var (
+	tasksReceived = make(map[uint16]bool)
+	tasksMutex    sync.Mutex
+)
+
 func handleTasks(agentConn *net.UDPConn) {
 	for {
 		n, udpAddr, taskData := utils.ReadUDP(agentConn, "[NetTask] Task received", "[ERROR 78] Unable to read task")

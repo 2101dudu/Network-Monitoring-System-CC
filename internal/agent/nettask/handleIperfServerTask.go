@@ -32,6 +32,15 @@ func handleIperfServerTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *
 	newAck.Hash = (string(hash))
 	ack.EncodeAndSendAck(agentConn, udpAddr, newAck)
 
+	// Check if task was already received
+	tasksMutex.Lock()
+	if _, exists := tasksReceived[iperfServer.TaskID]; exists {
+		tasksMutex.Unlock()
+		return
+	}
+	tasksReceived[iperfServer.TaskID] = true
+	tasksMutex.Unlock()
+
 	availableTime := time.Duration(iperfServer.Frequency) * time.Second
 
 	// reexecute the ping command every iperfServer.Frequency seconds
