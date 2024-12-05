@@ -124,7 +124,7 @@ func EncodePingPacket(msg PingPacket) []byte {
 	packet := buf.Bytes()
 
 	if len(packet) > utils.BUFFERSIZE {
-		log.Fatalln("[ERROR 208] Packet size too large")
+		log.Fatalln(utils.Red+"[ERROR 208] Packet size too large", utils.Reset)
 	}
 
 	return packet

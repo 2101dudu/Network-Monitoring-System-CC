@@ -183,7 +183,7 @@ func DecodeAlert(data []byte) (Alert, error) {
 func EncodeAndSendAlert(conn *net.TCPConn, alert Alert) {
 	alertData, err := EncodeAlert(alert)
 	if err != nil {
-		log.Println("[ERROR 500] Unable to encode alert:", err)
+		log.Println(utils.Red+"[ERROR 500] Unable to encode alert:", err, utils.Reset)
 		return
 	}
 

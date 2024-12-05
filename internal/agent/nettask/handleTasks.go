@@ -19,7 +19,7 @@ func handleTasks(agentConn *net.UDPConn) {
 	for {
 		n, udpAddr, taskData := utils.ReadUDP(agentConn, "[NetTask] Task received", "[ERROR 78] Unable to read task")
 		if n == 0 {
-			log.Println("[ERROR 79] No data received")
+			log.Println(utils.Red+"[ERROR 79] No data received", utils.Reset)
 			continue
 		}
 
@@ -28,7 +28,7 @@ func handleTasks(agentConn *net.UDPConn) {
 
 		// Check if the packet type is correct
 		if taskType != utils.PING && taskType != utils.IPERFCLIENT && taskType != utils.IPERFSERVER {
-			log.Println("[ERROR 80] Unexpected packet type received from server")
+			log.Println(utils.Red+"[ERROR 80] Unexpected packet type received from server", utils.Reset)
 			continue
 		}
 
