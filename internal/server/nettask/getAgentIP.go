@@ -5,10 +5,10 @@ import (
 	"log"
 )
 
-func getAgentIP(deviceID byte) string {
-	agentIPByte, exists := agentsIPs[deviceID]
+func getAgentIP(agentID byte) string {
+	exists := agentsIDs[agentID]
 	if !exists {
 		log.Fatalln("[ERROR 35] Agent IP not found")
 	}
-	return fmt.Sprintf("%d.%d.%d.%d", agentIPByte[0], agentIPByte[1], agentIPByte[2], agentIPByte[3])
+	return fmt.Sprintf("r%d", int(agentID))
 }

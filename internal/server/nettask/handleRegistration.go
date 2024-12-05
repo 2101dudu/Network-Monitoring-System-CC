@@ -25,7 +25,7 @@ func handleRegistration(packetPayload []byte, conn *net.UDPConn, udpAddr *net.UD
 	}
 
 	// register agent
-	agentsIPs[reg.AgentID] = reg.IP
+	agentsIDs[reg.AgentID] = true
 
 	// send ack
 	newAck := ack.NewAckBuilder().SetPacketID(reg.PacketID).SetReceiverID(reg.AgentID).HasAcknowledged().Build()

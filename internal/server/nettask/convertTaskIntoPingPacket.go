@@ -32,7 +32,7 @@ func ConvertTaskIntoPingPacket(task parse.Task) t.PingPacket {
 	destination := task.Devices[0].LinkMetrics.PingParameters.Destination
 	packetCount := task.Devices[0].LinkMetrics.PingParameters.PacketCount
 	frequency := task.Devices[0].LinkMetrics.PingParameters.Frequency
-	pingCommand := fmt.Sprintf("ping -c %d -i %.1f %s", packetCount, frequency, destination)
+	pingCommand := fmt.Sprintf("ping -c %d -i %d %s", packetCount, int(frequency), destination)
 
 	// build ping packet
 	pingPacket := t.NewPingPacketBuilder().
