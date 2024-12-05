@@ -4,6 +4,12 @@ import (
 	"log"
 	"net"
 	utils "nms/internal/utils"
+	"sync"
+)
+
+var (
+	myMetricsIDs = make(map[string]bool)
+	metricsMutex sync.Mutex
 )
 
 func handleMetrics(conn *net.UDPConn) {
@@ -27,6 +33,6 @@ func handleMetrics(conn *net.UDPConn) {
 			log.Println("[ERROR 18] Unexpected packet type received from agent", packetType)
 			continue
 		}
-		handleMetricsGathering(packetPayload, conn, udpAddr)
+		go handleMetricsGathering(packetPayload, conn, udpAddr)
 	}
 }
