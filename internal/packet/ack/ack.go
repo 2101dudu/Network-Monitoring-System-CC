@@ -94,7 +94,7 @@ func EncodeAck(ack Ack) []byte {
 	packet = append(packet, hashBytes...)
 
 	if len(packet) > utils.BUFFERSIZE {
-		log.Fatalln("[ERROR 201] Packet size too large")
+		log.Fatalln(utils.Red+"[ERROR 201] Packet size too large", utils.Reset)
 	}
 
 	return packet
@@ -108,31 +108,31 @@ func EncodeAndSendAck(conn *net.UDPConn, udpAddr *net.UDPAddr, ack Ack) {
 func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, senderID byte) bool {
 	ack, err := DecodeAck(ackPayload)
 	if err != nil {
-		log.Fatalln("[ERROR 15] Unable to decode Ack")
+		log.Fatalln(utils.Red+"[ERROR 15] Unable to decode Ack", utils.Reset)
 	}
 
 	if !ValidateHashAckPacket(ack) {
-		log.Println("[ERROR 118] Invalid hash in ack packet")
+		log.Println(utils.Red+"[ERROR 118] Invalid hash in ack packet", utils.Reset)
 		return false
 	}
 
 	_, exist := utils.GetPacketStatus(ack.PacketID, packetsWaitingAck, pMutex)
 
 	if !exist || ack.ReceiverID != senderID {
-		log.Println("[ERROR 16] Invalid acknowledgement")
+		log.Println(utils.Red+"[ERROR 16] Invalid acknowledgement", utils.Reset)
 		return false
 	}
 
 	if !ack.Acknowledged {
 		utils.PacketIsWaiting(ack.PacketID, packetsWaitingAck, pMutex, false)
-		log.Println("[NetTask] Sender didn't acknowledge packet", ack.PacketID)
+		log.Println(utils.Blue+"[NetTask] Sender didn't acknowledge packet", ack.PacketID, utils.Reset)
 		return false
 	}
 
 	pMutex.Lock()
 	delete(packetsWaitingAck, ack.PacketID)
 	pMutex.Unlock()
-	log.Println("[NetTask] Sender acknowledged packet", ack.PacketID)
+	log.Println(utils.Green+"[NetTask] Sender acknowledged packet", ack.PacketID, utils.Reset)
 
 	return true
 }
@@ -186,12 +186,12 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 
 	continueReadingAck := true
 	for continueReadingAck {
-		log.Println("[NetTask] Waiting for ack")
+		log.Println(utils.Blue+"[NetTask] Waiting for ack", utils.Reset)
 
 		select {
 		case <-stopReadingChan:
 			// Goroutine has finished retransmissions; stop reading
-			log.Println("[NetTask] Retransmissions exhausted")
+			log.Println(utils.Blue+"[NetTask] Retransmissions exhausted", utils.Reset)
 			continueReadingAck = false
 
 		default:
@@ -200,7 +200,7 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 
 			// Check if data was received
 			if n == 0 {
-				log.Println("[ERROR 6] No data received")
+				log.Println(utils.Red+"[ERROR 6] No data received", utils.Reset)
 				return
 			}
 
@@ -209,7 +209,7 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 			packetPayload := data[1:n]
 
 			if packetType != utils.ACK {
-				log.Println("[ERROR 17] Unexpected packet type received")
+				log.Println(utils.Red+"[ERROR 17] Unexpected packet type received", utils.Reset)
 				continue
 			}
 
@@ -225,7 +225,7 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 
 	// Check retransmission count
 	if retransmissions >= utils.MAXRETRANSMISSIONS {
-		log.Fatalln("[ERROR 781] Unable to send packet after maximum retransmission attempts")
+		log.Fatalln(utils.Red+"[ERROR 781] Unable to send packet after maximum retransmission attempts", utils.Reset)
 	}
 }
 

@@ -3,6 +3,7 @@ package nettask
 import (
 	"fmt"
 	"log"
+	utils "nms/internal/utils"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -23,7 +24,7 @@ func getInterfaceStats(interfaceName string) (int, error) {
 	// Parse received packets
 	receivedFields := strings.Fields(lines[3])
 	if len(receivedFields) < 6 {
-		log.Println("[ERROR 803] Unexpected ip command format")
+		log.Println(utils.Red+"[ERROR 803] Unexpected ip command format", utils.Reset)
 	}
 
 	receivedPackets, err = strconv.Atoi(receivedFields[1])
@@ -34,7 +35,7 @@ func getInterfaceStats(interfaceName string) (int, error) {
 	// Parse transmited packets
 	transmitedFields := strings.Fields(lines[5])
 	if len(transmitedFields) < 6 {
-		log.Println("[ERROR 804] Unexpected /proc/meminfo format")
+		log.Println(utils.Red+"[ERROR 804] Unexpected /proc/meminfo format", utils.Reset)
 	}
 
 	transmitedPackets, err = strconv.Atoi(transmitedFields[1])

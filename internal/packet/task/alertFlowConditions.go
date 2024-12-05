@@ -71,7 +71,7 @@ func EncodeAlertFlowConditions(conditions AlertFlowConditions) []byte {
 	packet := buf.Bytes()
 
 	if len(packet) > utils.BUFFERSIZE {
-		log.Fatalln("[ERROR 204] Packet size too large")
+		log.Fatalln(utils.Red+"[ERROR 204] Packet size too large", utils.Reset)
 	}
 
 	return packet

@@ -2,36 +2,36 @@ package jsonParse
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
+	"nms/internal/utils"
 	"os"
 )
 
 func GetDataFromJson(filePath string) []byte {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
-		log.Fatalln("[ERROR 8] Unable to read file: ", err)
+		log.Fatalln(utils.Red+"[ERROR 8] Unable to read file: ", err, utils.Reset)
 	}
 
 	return data
 }
 
 func ParseDataFromJson(data []byte) []Task {
-	fmt.Println("Parsing data from tasks file...")
+	log.Println(utils.Blue+"Parsing data from tasks file...", utils.Reset)
 
 	var tasks []Task
 	err := json.Unmarshal(data, &tasks)
 	if err != nil {
-		log.Fatalln("[ERROR 9] Unable to parse data:", err)
+		log.Fatalln(utils.Red+"[ERROR 9] Unable to parse data:", err, utils.Reset)
 	}
 
-	fmt.Println("Data parsed successfully!")
+	log.Println(utils.Green+"Data parsed successfully!", utils.Reset)
 
 	return tasks
 }
 
 func ValidateTaskList(taskList []Task) {
-	fmt.Println("Validating tasks...")
+	log.Println(utils.Blue+"Validating tasks...", utils.Reset)
 
 	// map to track unique TaskIDs
 	seenTaskIDs := make(map[uint16]bool)
@@ -45,9 +45,9 @@ func ValidateTaskList(taskList []Task) {
 
 		valid := validateTask(task)
 		if !valid {
-			log.Fatalln("[ERROR 19] Invalid task")
+			log.Fatalln(utils.Red+"[ERROR 19] Invalid task", utils.Reset)
 		}
 	}
 
-	fmt.Println("Tasks validated successfully!")
+	log.Println(utils.Green+"Tasks validated successfully!", utils.Reset)
 }

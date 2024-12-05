@@ -93,7 +93,7 @@ func EncodeRegistration(reg Registration) []byte {
 	packet = append(packet, hashBytes...)
 
 	if len(packet) > utils.BUFFERSIZE {
-		log.Fatalln("[ERROR 203] Packet size too large")
+		log.Fatalln(utils.Red+"[ERROR 203] Packet size too large", utils.Reset)
 	}
 
 	return packet
@@ -102,13 +102,13 @@ func EncodeRegistration(reg Registration) []byte {
 func CreateRegistrationPacket(packetID byte, ip string) (byte, []byte) {
 	byteIP, err := utils.IPStringToByte(ip)
 	if err != nil {
-		log.Fatalln("[ERROR 2] Unable to convert IP to byte:", err)
+		log.Fatalln(utils.Red+"[ERROR 2] Unable to convert IP to byte:", err, utils.Reset)
 	}
 
 	// generate Agent ID
 	agentID, err := utils.GetAgentID()
 	if err != nil {
-		log.Fatalln("[ERROR 3] Unable to get agent ID:", err)
+		log.Fatalln(utils.Red+"[ERROR 3] Unable to get agent ID:", err, utils.Reset)
 	}
 
 	// create registration request
