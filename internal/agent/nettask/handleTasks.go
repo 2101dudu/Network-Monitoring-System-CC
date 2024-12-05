@@ -9,9 +9,10 @@ import (
 
 var iperfRunning bool
 var iperfMutex sync.Mutex
+
 var (
-	myTasksIDs = make(map[uint16]bool)
-	tasksMutex sync.Mutex
+	tasksReceived = make(map[uint16]bool)
+	tasksMutex    sync.Mutex
 )
 
 func handleTasks(agentConn *net.UDPConn) {

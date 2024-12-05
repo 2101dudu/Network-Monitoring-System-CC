@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	myMetricsIDs = make(map[string]bool)
-	metricsMutex sync.Mutex
+	metricsReceived = make(map[string]bool)
+	metricsMutex    sync.Mutex
 )
 
 func handleMetrics(conn *net.UDPConn) {

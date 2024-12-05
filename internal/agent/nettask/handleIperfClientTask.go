@@ -33,12 +33,13 @@ func handleIperfClientTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *
 	newAck.Hash = (string(hash))
 	ack.EncodeAndSendAck(agentConn, udpAddr, newAck)
 
-	// Check if task was already receiveds
+	// Check if task was already received
 	tasksMutex.Lock()
-	if _, exists := myTasksIDs[iperfClient.TaskID]; exists {
+	if _, exists := tasksReceived[iperfClient.TaskID]; exists {
+		tasksMutex.Unlock()
 		return
 	}
-	myTasksIDs[iperfClient.TaskID] = true
+	tasksReceived[iperfClient.TaskID] = true
 	tasksMutex.Unlock()
 
 	availableTime := time.Duration(iperfClient.Frequency) * time.Second

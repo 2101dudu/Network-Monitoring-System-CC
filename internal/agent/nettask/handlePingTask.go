@@ -38,12 +38,13 @@ func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDP
 	newAck.Hash = (string(hash))
 	ack.EncodeAndSendAck(agentConn, udpAddr, newAck)
 
-	// Check if task was already receiveds
+	// Check if task was already received
 	tasksMutex.Lock()
-	if _, exists := myTasksIDs[pingPacket.TaskID]; exists {
+	if _, exists := tasksReceived[pingPacket.TaskID]; exists {
+		tasksMutex.Unlock()
 		return
 	}
-	myTasksIDs[pingPacket.TaskID] = true
+	tasksReceived[pingPacket.TaskID] = true
 	tasksMutex.Unlock()
 
 	availableTime := time.Duration(pingPacket.Frequency) * time.Second

@@ -51,10 +51,10 @@ func handleMetricsGathering(packetPayload []byte, conn *net.UDPConn, udpAddr *ne
 	mapID := fmt.Sprintf("%d:%d", met.PacketID, met.AgentID)
 
 	metricsMutex.Lock()
-	if _, exists := myMetricsIDs[mapID]; exists {
+	if _, exists := metricsReceived[mapID]; exists {
 		return
 	}
-	myMetricsIDs[mapID] = true
+	metricsReceived[mapID] = true
 	metricsMutex.Unlock()
 
 	// store metrics
