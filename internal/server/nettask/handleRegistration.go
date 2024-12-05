@@ -5,13 +5,14 @@ import (
 	"net"
 	ack "nms/internal/packet/ack"
 	registration "nms/internal/packet/registration"
+	"nms/internal/utils"
 )
 
 func handleRegistration(packetPayload []byte, conn *net.UDPConn, udpAddr *net.UDPAddr) {
 	// Decode registration request
 	reg, err := registration.DecodeRegistration(packetPayload)
 	if err != nil {
-		log.Fatalln("[ERROR 12] Unable to decode registration data:", err)
+		log.Fatalln(utils.Red+"[ERROR 12] Unable to decode registration data:", err, utils.Reset)
 	}
 
 	if !registration.ValidateHashRegistrationPacket(reg) {
@@ -20,7 +21,7 @@ func handleRegistration(packetPayload []byte, conn *net.UDPConn, udpAddr *net.UD
 		noack.Hash = (string(hash))
 		ack.EncodeAndSendAck(conn, udpAddr, noack)
 
-		log.Println("[ERROR 99] Invalid hash in registration packet")
+		log.Println(utils.Red+"[ERROR 99] Invalid hash in registration packet", utils.Reset)
 		return
 	}
 

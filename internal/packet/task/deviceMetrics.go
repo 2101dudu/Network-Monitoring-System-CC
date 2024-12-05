@@ -59,7 +59,7 @@ func EncodeDeviceMetrics(metrics DeviceMetrics) []byte {
 	packet := buf.Bytes()
 
 	if len(packet) > utils.BUFFERSIZE {
-		log.Fatalln("[ERROR 205] Packet size too large")
+		log.Fatalln(utils.Red+"[ERROR 205] Packet size too large", utils.Reset)
 	}
 
 	return packet

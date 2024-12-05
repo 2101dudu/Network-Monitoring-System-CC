@@ -8,6 +8,7 @@ import (
 	"net"
 	"nms/internal/packet/ack"
 	"nms/internal/packet/metrics"
+	"nms/internal/utils"
 	"os"
 	"strconv"
 	"sync"
@@ -28,7 +29,7 @@ func handleMetricsGathering(packetPayload []byte, conn *net.UDPConn, udpAddr *ne
 	// Decode registration request
 	met, err := metrics.DecodeMetrics(packetPayload)
 	if err != nil {
-		log.Fatalln("[ERROR 12] Unable to decode metrics data:", err)
+		log.Fatalln(utils.Red+"[ERROR 153] Unable to decode metrics data:", err, utils.Reset)
 	}
 
 	if !metrics.ValidateHashMetricsPacket(met) {
@@ -37,7 +38,7 @@ func handleMetricsGathering(packetPayload []byte, conn *net.UDPConn, udpAddr *ne
 		noack.Hash = (string(hash))
 		ack.EncodeAndSendAck(conn, udpAddr, noack)
 
-		log.Println("[ERROR 100] Invalid hash in ping packet")
+		log.Println(utils.Red+"[ERROR 100] Invalid hash in ping packet", utils.Reset)
 		return
 	}
 
@@ -71,7 +72,7 @@ func handleMetricsGathering(packetPayload []byte, conn *net.UDPConn, udpAddr *ne
 
 	file, err := os.OpenFile("output/metrics.json", os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
-		log.Fatalln("[ERROR 90] Unable to open metrics file:", err)
+		log.Fatalln(utils.Red+"[ERROR 90] Unable to open metrics file:", err, utils.Reset)
 	}
 	defer file.Close()
 
@@ -79,7 +80,7 @@ func handleMetricsGathering(packetPayload []byte, conn *net.UDPConn, udpAddr *ne
 
 	decoder := json.NewDecoder(file)
 	if err := decoder.Decode(&metricsArray); err != nil && err != io.EOF {
-		log.Fatalln("[ERROR 92] Unable to decode metrics data:", err)
+		log.Fatalln(utils.Red+"[ERROR 92] Unable to decode metrics data:", err, utils.Reset)
 	}
 
 	metricsArray = append(metricsArray, metricsData)
@@ -90,6 +91,6 @@ func handleMetricsGathering(packetPayload []byte, conn *net.UDPConn, udpAddr *ne
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ") // Set indentation for pretty-printing
 	if err := encoder.Encode(metricsArray); err != nil {
-		log.Fatalln("[ERROR 91] Unable to encode metrics data:", err)
+		log.Fatalln(utils.Red+"[ERROR 91] Unable to encode metrics data:", err, utils.Reset)
 	}
 }

@@ -15,12 +15,12 @@ import (
 func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDPAddr) {
 	pingPacket, err := task.DecodePingPacket(taskPayload)
 	if err != nil {
-		log.Fatalln("[ERROR 81] Decoding ping packet")
+		log.Fatalln(utils.Red+"[ERROR 81] Decoding ping packet", utils.Reset)
 	}
 
 	agentID, errAgent := utils.GetAgentID()
 	if errAgent != nil {
-		log.Fatalln("[ERROR 101] Unable to get agent ID:", errAgent)
+		log.Fatalln(utils.Red+"[ERROR 101] Unable to get agent ID:", errAgent, utils.Reset)
 	}
 
 	if !task.ValidateHashPingPacket(pingPacket) {
@@ -29,7 +29,7 @@ func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDP
 		noack.Hash = (string(hash))
 		ack.EncodeAndSendAck(agentConn, udpAddr, noack)
 
-		log.Println("[ERROR 102] Invalid hash in ping packet")
+		log.Println(utils.Red+"[ERROR 102] Invalid hash in ping packet", utils.Reset)
 		return
 	}
 

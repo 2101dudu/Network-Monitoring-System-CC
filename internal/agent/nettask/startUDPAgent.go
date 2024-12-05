@@ -18,7 +18,8 @@ var agentID byte
 
 func StartUDPAgent() {
 	// include "| log.Lshortfile" in the log flags to include the file name and line of code in the log
-	log.SetFlags(log.Ltime | log.Lmicroseconds | log.Lshortfile)
+	// log.SetFlags(log.Ltime | log.Lmicroseconds | log.Lshortfile)
+	log.SetFlags(0)
 
 	// get the ID of the agent
 	agentID, _ = utils.GetAgentID()
