@@ -2,6 +2,7 @@ package udp
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -45,6 +46,16 @@ func handleMetricsGathering(packetPayload []byte, conn *net.UDPConn, udpAddr *ne
 	hash := ack.CreateHashAckPacket(newAck)
 	newAck.Hash = (string(hash))
 	ack.EncodeAndSendAck(conn, udpAddr, newAck)
+
+	// Check if metrics were already received
+	mapID := fmt.Sprintf("%d:%d", met.PacketID, met.AgentID)
+
+	metricsMutex.Lock()
+	if _, exists := myMetricsIDs[mapID]; exists {
+		return
+	}
+	myMetricsIDs[mapID] = true
+	metricsMutex.Unlock()
 
 	// store metrics
 	metricsData := MetricsData{
