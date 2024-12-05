@@ -24,7 +24,7 @@ func handleIperfClientTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *
 		noack.Hash = (string(hash))
 		ack.EncodeAndSendAck(agentConn, udpAddr, noack)
 
-		log.Println(utils.Red+"[ERROR 100] Invalid hash in iperf client packet", utils.Reset)
+		log.Println(utils.Red+"[ERROR 150] Invalid hash in iperf client packet", utils.Reset)
 		return
 	}
 

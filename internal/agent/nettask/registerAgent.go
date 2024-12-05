@@ -15,6 +15,6 @@ func registerAgent(conn *net.UDPConn, agentIP string) {
 	agentID, registrationData = registration.CreateRegistrationPacket(newPacketID, agentIP)
 
 	successMessage := "[NetTask] Registration request sent"
-	errorMessage := "[ERROR 4] Unable to send registration request"
+	errorMessage := "[ERROR 159] Unable to send registration request"
 	ack.SendPacketAndWaitForAck(newPacketID, agentID, packetsWaitingAck, &pMutex, conn, nil, registrationData, successMessage, errorMessage)
 }

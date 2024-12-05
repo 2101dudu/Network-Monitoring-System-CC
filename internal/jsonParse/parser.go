@@ -10,7 +10,7 @@ import (
 func GetDataFromJson(filePath string) []byte {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
-		log.Fatalln(utils.Red+"[ERROR 8] Unable to read file: ", err, utils.Reset)
+		log.Fatalln(utils.Red+"[ERROR 88] Unable to read file: ", err, utils.Reset)
 	}
 
 	return data

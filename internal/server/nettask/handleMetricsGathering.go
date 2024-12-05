@@ -28,7 +28,7 @@ func handleMetricsGathering(packetPayload []byte, conn *net.UDPConn, udpAddr *ne
 	// Decode registration request
 	met, err := metrics.DecodeMetrics(packetPayload)
 	if err != nil {
-		log.Fatalln(utils.Red+"[ERROR 12] Unable to decode metrics data:", err, utils.Reset)
+		log.Fatalln(utils.Red+"[ERROR 153] Unable to decode metrics data:", err, utils.Reset)
 	}
 
 	if !metrics.ValidateHashMetricsPacket(met) {

@@ -39,7 +39,7 @@ func ResolveUDPAddrAndListen(ip string, port string) *net.UDPConn {
 
 	conn, err := net.ListenUDP("udp", addr)
 	if err != nil {
-		log.Fatalln(Red+"[ERROR 9] Unable to initialize the agent:", err, Reset)
+		log.Fatalln(Red+"[ERROR 59] Unable to initialize the agent:", err, Reset)
 	}
 
 	return conn
@@ -48,7 +48,7 @@ func ResolveUDPAddrAndListen(ip string, port string) *net.UDPConn {
 func ResolveUDPAddrAndDial(ip string, port string) *net.UDPConn {
 	udpAddr, err := net.ResolveUDPAddr("udp", ip+":"+port)
 	if err != nil {
-		log.Fatalln(Red+"[ERROR 1] Unable to resolve address:", err, Reset)
+		log.Fatalln(Red+"[ERROR 51] Unable to resolve address:", err, Reset)
 	}
 
 	conn, err := net.DialUDP("udp", nil, udpAddr)

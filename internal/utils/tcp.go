@@ -28,12 +28,12 @@ func ReadTCP(conn *net.TCPConn, alertMsg string, errorMessage string) (int, []by
 func ResolveTCPAddr(ip string, port string) *net.TCPListener {
 	addr, err := net.ResolveTCPAddr("tcp", ip+":"+port)
 	if err != nil {
-		log.Fatalln(Red+"[ERROR 1] Unable to resolve address:", err, Reset)
+		log.Fatalln(Red+"[ERROR 0] Unable to resolve address:", err, Reset)
 	}
 
 	listener, err := net.ListenTCP("tcp", addr)
 	if err != nil {
-		log.Fatalln(Red+"[ERROR 2] Unable to initialize the server:", err, Reset)
+		log.Fatalln(Red+"[ERROR 157] Unable to initialize the server:", err, Reset)
 	}
 
 	return listener

@@ -17,7 +17,7 @@ func handleRegistrations(conn *net.UDPConn) {
 
 		// Check if there is data
 		if n == 0 {
-			log.Println(utils.Red+"[ERROR 11] No data received", utils.Reset)
+			log.Println(utils.Red+"[ERROR 151] No data received", utils.Reset)
 			continue
 		}
 
