@@ -1,7 +1,9 @@
 package ack
 
 import (
+	"bytes"
 	"crypto/sha256"
+	"encoding/binary"
 	"errors"
 	"log"
 	"net"
@@ -11,8 +13,8 @@ import (
 )
 
 type Ack struct {
-	PacketID     byte // [0, 255]
-	ReceiverID   byte // [0, 255]
+	PacketID     uint16 // [0, 255]
+	ReceiverID   byte   // [0, 255]
 	Acknowledged bool
 	Hash         string
 }
@@ -32,7 +34,7 @@ func NewAckBuilder() *AckBuilder {
 	}
 }
 
-func (a *AckBuilder) SetPacketID(id byte) *AckBuilder {
+func (a *AckBuilder) SetPacketID(id uint16) *AckBuilder {
 	a.Ack.PacketID = id
 	return a
 }
@@ -59,39 +61,57 @@ func (a *AckBuilder) Build() Ack {
 
 // receives the data without the header
 func DecodeAck(packet []byte) (Ack, error) {
-	if len(packet) < 4 {
+	if len(packet) < 6 {
 		return Ack{}, errors.New("invalid packet length")
 	}
 
-	ack := Ack{
-		PacketID:     packet[0],
-		ReceiverID:   packet[1],
-		Acknowledged: packet[2] == 1,
+	buf := bytes.NewReader(packet)
+	var ack Ack
+
+	if err := binary.Read(buf, binary.BigEndian, &ack.PacketID); err != nil {
+		return ack, err
 	}
+
+	receiverID, err := buf.ReadByte()
+	if err != nil {
+		return ack, err
+	}
+	ack.ReceiverID = receiverID
+
+	ack.Acknowledged = packet[4] == 1
 
 	// Decode Hash
-	hashLen := packet[3]
-	if len(packet) != int(4+hashLen) {
-		return Ack{}, errors.New("invalid packet length")
+	var hashLen byte
+	if err := binary.Read(buf, binary.BigEndian, &hashLen); err != nil {
+		return ack, err
 	}
-	ack.Hash = string(packet[4 : 4+hashLen])
+	hashBytes := make([]byte, hashLen)
+	if _, err := buf.Read(hashBytes); err != nil {
+		return ack, err
+	}
+	ack.Hash = string(hashBytes)
 
 	return ack, nil
 }
 
 // receives the data the header
 func EncodeAck(ack Ack) []byte {
-	packet := []byte{
-		byte(utils.ACK),
-		ack.PacketID,
-		ack.ReceiverID,
-		utils.BoolToByte(ack.Acknowledged),
-	}
+	buf := new(bytes.Buffer)
+
+	buf.WriteByte(byte(utils.ACK))
+
+	// Encode PacketID
+	binary.Write(buf, binary.BigEndian, ack.PacketID)
+
+	buf.WriteByte(ack.ReceiverID)
+	buf.WriteByte(utils.BoolToByte(ack.Acknowledged))
 
 	// Encode Hash
 	hashBytes := []byte(ack.Hash)
-	packet = append(packet, byte(len(hashBytes)))
-	packet = append(packet, hashBytes...)
+	buf.WriteByte(byte(len(hashBytes)))
+	buf.Write(hashBytes)
+
+	packet := buf.Bytes()
 
 	if len(packet) > utils.BUFFERSIZE {
 		log.Fatalln(utils.Red+"[ERROR 201] Packet size too large", utils.Reset)
@@ -105,7 +125,7 @@ func EncodeAndSendAck(conn *net.UDPConn, udpAddr *net.UDPAddr, ack Ack) {
 	utils.WriteUDP(conn, udpAddr, ackData, "[NetTask] Ack sent", "[ERROR 14] Unable to send ack")
 }
 
-func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, senderID byte) bool {
+func HandleAck(ackPayload []byte, packetsWaitingAck map[uint16]bool, pMutex *sync.Mutex, senderID byte) bool {
 	ack, err := DecodeAck(ackPayload)
 	if err != nil {
 		log.Fatalln(utils.Red+"[ERROR 15] Unable to decode Ack", utils.Reset)
@@ -137,7 +157,7 @@ func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.
 	return true
 }
 
-func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, conn *net.UDPConn, udpAddr *net.UDPAddr, packetData []byte, successMessage string, errorMessage string) {
+func SendPacketAndWaitForAck(packetID uint16, senderID byte, packetsWaitingAck map[uint16]bool, pMutex *sync.Mutex, conn *net.UDPConn, udpAddr *net.UDPAddr, packetData []byte, successMessage string, errorMessage string) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 

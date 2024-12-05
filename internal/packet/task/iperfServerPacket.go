@@ -10,7 +10,7 @@ import (
 
 // ------------------------- Iperf Server -----------------------------
 type IperfServerPacket struct {
-	PacketID            byte
+	PacketID            uint16
 	AgentID             byte
 	TaskID              uint16
 	Frequency           uint16
@@ -45,7 +45,7 @@ func NewIperfServerPacketBuilder() *IperfServerPacketBuilder {
 	}
 }
 
-func (b *IperfServerPacketBuilder) SetPacketID(id byte) *IperfServerPacketBuilder {
+func (b *IperfServerPacketBuilder) SetPacketID(id uint16) *IperfServerPacketBuilder {
 	b.IperfServerPacket.PacketID = id
 	return b
 }
@@ -110,7 +110,7 @@ func EncodeIperfServerPacket(msg IperfServerPacket) []byte {
 
 	// Encode fixed fields
 	buf.WriteByte(byte(utils.IPERFSERVER))
-	buf.WriteByte(msg.PacketID)
+	binary.Write(buf, binary.BigEndian, msg.PacketID)
 	buf.WriteByte(msg.AgentID)
 	binary.Write(buf, binary.BigEndian, msg.TaskID)
 	binary.Write(buf, binary.BigEndian, msg.Frequency)
@@ -155,8 +155,8 @@ func DecodeIperfServerPacket(data []byte) (IperfServerPacket, error) {
 	var msg IperfServerPacket
 
 	// Decode fixed fields
-	packetID, err := buf.ReadByte()
-	if err != nil {
+	var packetID uint16
+	if err := binary.Read(buf, binary.BigEndian, &packetID); err != nil {
 		return msg, err
 	}
 	agentID, err := buf.ReadByte()

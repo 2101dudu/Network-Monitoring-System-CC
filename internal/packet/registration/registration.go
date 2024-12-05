@@ -1,14 +1,16 @@
 package registration
 
 import (
+	"bytes"
 	"crypto/sha256"
+	"encoding/binary"
 	"errors"
 	"log"
 	utils "nms/internal/utils"
 )
 
 type Registration struct {
-	PacketID byte
+	PacketID uint16
 	AgentID  byte // [0, 255]
 	Hash     string
 }
@@ -27,7 +29,7 @@ func NewRegistrationBuilder() *RegistrationBuilder {
 	}
 }
 
-func (r *RegistrationBuilder) SetPacketID(packetID byte) *RegistrationBuilder {
+func (r *RegistrationBuilder) SetPacketID(packetID uint16) *RegistrationBuilder {
 	r.Registration.PacketID = packetID
 	return r
 }
@@ -47,38 +49,54 @@ func (r *RegistrationBuilder) Build() Registration {
 	return r.Registration
 }
 
-// receives the data without the header
 func DecodeRegistration(packet []byte) (Registration, error) {
-	if len(packet) < 2 {
-		return Registration{}, errors.New("invalid packet length")
+	buf := bytes.NewReader(packet)
+	var reg Registration
+
+	if len(packet) < 5 { // Adjusted length check
+		return reg, errors.New("invalid packet length")
 	}
 
-	reg := Registration{
-		PacketID: packet[0],
-		AgentID:  packet[1],
+	if err := binary.Read(buf, binary.BigEndian, &reg.PacketID); err != nil {
+		return reg, err
 	}
+
+	agentID, err := buf.ReadByte()
+	if err != nil {
+		return reg, err
+	}
+	reg.AgentID = agentID
 
 	// Decode Hash
-	hashLen := packet[2]
-	if len(packet) != int(3+hashLen) {
-		return Registration{}, errors.New("invalid packet length")
+	var hashLen byte
+	if err := binary.Read(buf, binary.BigEndian, &hashLen); err != nil {
+		return reg, err
 	}
-	reg.Hash = string(packet[3 : 3+hashLen])
+	hashBytes := make([]byte, hashLen)
+	if _, err := buf.Read(hashBytes); err != nil {
+		return reg, err
+	}
+	reg.Hash = string(hashBytes)
 
 	return reg, nil
 }
 
 func EncodeRegistration(reg Registration) []byte {
-	packet := []byte{
-		byte(utils.REGISTRATION),
-		reg.PacketID,
-		reg.AgentID,
-	}
+	buf := new(bytes.Buffer)
+
+	buf.WriteByte(byte(utils.REGISTRATION))
+
+	// Encode PacketID
+	binary.Write(buf, binary.BigEndian, reg.PacketID)
+
+	buf.WriteByte(reg.AgentID)
 
 	// Encode Hash
 	hashBytes := []byte(reg.Hash)
-	packet = append(packet, byte(len(hashBytes)))
-	packet = append(packet, hashBytes...)
+	buf.WriteByte(byte(len(hashBytes)))
+	buf.Write(hashBytes)
+
+	packet := buf.Bytes()
 
 	if len(packet) > utils.BUFFERSIZE {
 		log.Fatalln(utils.Red+"[ERROR 203] Packet size too large", utils.Reset)
@@ -87,7 +105,7 @@ func EncodeRegistration(reg Registration) []byte {
 	return packet
 }
 
-func CreateRegistrationPacket(packetID byte, agentID byte) []byte {
+func CreateRegistrationPacket(packetID uint16, agentID byte) []byte {
 	// create registration request
 	registration := NewRegistrationBuilder().SetPacketID(packetID).SetAgentID(agentID).Build()
 
