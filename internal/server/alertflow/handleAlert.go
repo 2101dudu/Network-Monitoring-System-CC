@@ -25,7 +25,7 @@ type AlertsData struct {
 func handleAlert(packetPayload []byte) {
 	alert, err := alertTCP.DecodeAlert(packetPayload)
 	if err != nil {
-		log.Fatalln(utils.Red, "[ERROR 302] Unable to decode alert:", err, utils.Reset)
+		log.Fatalln(utils.Red+"[ERROR 302] Unable to decode alert:", err, utils.Reset)
 	}
 
 	// Generate an alert message dynamically based on AlertType
@@ -49,7 +49,7 @@ func handleAlert(packetPayload []byte) {
 		alertMessage = fmt.Sprintf("[ERROR 888] Unknown alert type received from Agent %d for task %d", alert.SenderID, alert.TaskID)
 	}
 
-	log.Println(utils.Magenta, alertMessage, utils.Reset)
+	log.Println(utils.Magenta+alertMessage, utils.Reset)
 
 	alertData := AlertsData{ // create json alert data
 		TaskID:    "task-" + strconv.Itoa(int(alert.TaskID)),
@@ -65,7 +65,7 @@ func handleAlert(packetPayload []byte) {
 	// open if existes or create alerts.json if dont
 	file, err := os.OpenFile("output/alerts.json", os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
-		log.Fatalln(utils.Red, "[ERROR 400] Unable to open alerts file:", err, utils.Reset)
+		log.Fatalln(utils.Red+"[ERROR 400] Unable to open alerts file:", err, utils.Reset)
 	}
 	defer file.Close()
 
@@ -74,7 +74,7 @@ func handleAlert(packetPayload []byte) {
 
 	decoder := json.NewDecoder(file)
 	if err := decoder.Decode(&alertsArray); err != nil && err != io.EOF {
-		log.Fatalln(utils.Red, "[ERROR 401] Unable to decode alerts data:", err, utils.Reset)
+		log.Fatalln(utils.Red+"[ERROR 401] Unable to decode alerts data:", err, utils.Reset)
 	}
 
 	// append new alert to data from json
@@ -87,6 +87,6 @@ func handleAlert(packetPayload []byte) {
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ") // Set indentation for pretty-printing
 	if err := encoder.Encode(alertsArray); err != nil {
-		log.Fatalln(utils.Red, "[ERROR 402] Unable to encode alerts data:", err, utils.Reset)
+		log.Fatalln(utils.Red+"[ERROR 402] Unable to encode alerts data:", err, utils.Reset)
 	}
 }

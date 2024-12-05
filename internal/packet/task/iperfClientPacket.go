@@ -146,7 +146,7 @@ func EncodeIperfClientPacket(msg IperfClientPacket) []byte {
 	packet := buf.Bytes()
 
 	if len(packet) > utils.BUFFERSIZE {
-		log.Fatalln(utils.Red, "[ERROR 206] Packet size too large", utils.Reset)
+		log.Fatalln(utils.Red+"[ERROR 206] Packet size too large", utils.Reset)
 	}
 
 	return packet

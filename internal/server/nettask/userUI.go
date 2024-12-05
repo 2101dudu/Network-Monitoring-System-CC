@@ -13,7 +13,7 @@ import (
 func askNumAgents(reader *bufio.Reader) int {
 	for {
 		// ask the user for the number of agents
-		fmt.Print(utils.Blue, "Enter the number of agents: ", utils.Reset)
+		fmt.Print(utils.Blue+"Enter the number of agents: ", utils.Reset)
 		input := parseString(reader)
 
 		// convert the input to an integer
@@ -23,20 +23,20 @@ func askNumAgents(reader *bufio.Reader) int {
 			return numAgents
 		}
 
-		log.Println(utils.Red, "Invalid number of agents. Try again", utils.Reset)
+		log.Println(utils.Red+"Invalid number of agents. Try again", utils.Reset)
 	}
 }
 
 func askJsonPath(reader *bufio.Reader) string {
 	// ask the user for the path to the JSON file
-	fmt.Print(utils.Blue, "Enter the path to the tasks file: ", utils.Reset)
+	fmt.Print(utils.Blue+"Enter the path to the tasks file: ", utils.Reset)
 	return parseString(reader)
 }
 
 func parseString(reader *bufio.Reader) string {
 	input, err := reader.ReadString('\n')
 	if err != nil {
-		log.Fatalln(utils.Red, "[ERROR 1] Unable to read input", utils.Reset)
+		log.Fatalln(utils.Red+"[ERROR 1] Unable to read input", utils.Reset)
 	}
 
 	// trimm the input
@@ -52,7 +52,7 @@ func consultMetricsFile() {
 	log.Print(string(output))
 
 	if err != nil {
-		log.Println(utils.Red, "[ERROR 21] Unable to consult metrics file", utils.Reset)
+		log.Println(utils.Red+"[ERROR 21] Unable to consult metrics file", utils.Reset)
 	}
 }
 
@@ -65,6 +65,6 @@ func consultAlertsFile() {
 	log.Print(string(output))
 
 	if err != nil {
-		log.Println(utils.Red, "[ERROR 22] Unable to consult alerts file", utils.Reset)
+		log.Println(utils.Red+"[ERROR 22] Unable to consult alerts file", utils.Reset)
 	}
 }

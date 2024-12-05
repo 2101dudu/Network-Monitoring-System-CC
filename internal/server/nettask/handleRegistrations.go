@@ -7,17 +7,17 @@ import (
 )
 
 func handleRegistrations(conn *net.UDPConn) {
-	log.Println(utils.Blue, "Waiting for", numAgents, "agent(s) to register", utils.Reset)
+	log.Println(utils.Blue+"Waiting for", numAgents, "agent(s) to register", utils.Reset)
 
 	for len(agentsIPs) < numAgents {
-		log.Println(utils.Blue, "Total agents registered until now:", len(agentsIPs), utils.Reset)
+		log.Println(utils.Blue+"Total agents registered until now:", len(agentsIPs), utils.Reset)
 
 		// Read registration request
 		n, udpAddr, data := utils.ReadUDP(conn, "[ERROR 10] Unable to read registration request")
 
 		// Check if there is data
 		if n == 0 {
-			log.Println(utils.Red, "[ERROR 11] No data received", utils.Reset)
+			log.Println(utils.Red+"[ERROR 11] No data received", utils.Reset)
 			continue
 		}
 
@@ -26,7 +26,7 @@ func handleRegistrations(conn *net.UDPConn) {
 
 		// Check if the packet type is correct
 		if packetType != utils.REGISTRATION {
-			log.Println(utils.Red, "[ERROR 18] Unexpected packet type received from server", utils.Reset)
+			log.Println(utils.Red+"[ERROR 18] Unexpected packet type received from server", utils.Reset)
 			continue
 		}
 		handleRegistration(packetPayload, conn, udpAddr)

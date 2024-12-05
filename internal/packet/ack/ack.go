@@ -94,7 +94,7 @@ func EncodeAck(ack Ack) []byte {
 	packet = append(packet, hashBytes...)
 
 	if len(packet) > utils.BUFFERSIZE {
-		log.Fatalln(utils.Red, "[ERROR 201] Packet size too large", utils.Reset)
+		log.Fatalln(utils.Red+"[ERROR 201] Packet size too large", utils.Reset)
 	}
 
 	return packet
@@ -108,18 +108,18 @@ func EncodeAndSendAck(conn *net.UDPConn, udpAddr *net.UDPAddr, ack Ack) {
 func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, senderID byte) bool {
 	ack, err := DecodeAck(ackPayload)
 	if err != nil {
-		log.Fatalln(utils.Red, "[ERROR 15] Unable to decode Ack", utils.Reset)
+		log.Fatalln(utils.Red+"[ERROR 15] Unable to decode Ack", utils.Reset)
 	}
 
 	if !ValidateHashAckPacket(ack) {
-		log.Println(utils.Red, "[ERROR 118] Invalid hash in ack packet", utils.Reset)
+		log.Println(utils.Red+"[ERROR 118] Invalid hash in ack packet", utils.Reset)
 		return false
 	}
 
 	_, exist := utils.GetPacketStatus(ack.PacketID, packetsWaitingAck, pMutex)
 
 	if !exist || ack.ReceiverID != senderID {
-		log.Println(utils.Red, "[ERROR 16] Invalid acknowledgement", utils.Reset)
+		log.Println(utils.Red+"[ERROR 16] Invalid acknowledgement", utils.Reset)
 		return false
 	}
 
@@ -197,7 +197,7 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 
 			// Check if data was received
 			if n == 0 {
-				log.Println(utils.Red, "[ERROR 6] No data received", utils.Reset)
+				log.Println(utils.Red+"[ERROR 6] No data received", utils.Reset)
 				return
 			}
 
@@ -206,7 +206,7 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 			packetPayload := data[1:n]
 
 			if packetType != utils.ACK {
-				log.Println(utils.Red, "[ERROR 17] Unexpected packet type received", utils.Reset)
+				log.Println(utils.Red+"[ERROR 17] Unexpected packet type received", utils.Reset)
 				continue
 			}
 
@@ -222,7 +222,7 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 
 	// Check retransmission count
 	if retransmissions >= utils.MAXRETRANSMISSIONS {
-		log.Fatalln(utils.Red, "[ERROR 781] Unable to send packet after maximum retransmission attempts", utils.Reset)
+		log.Fatalln(utils.Red+"[ERROR 781] Unable to send packet after maximum retransmission attempts", utils.Reset)
 	}
 }
 
