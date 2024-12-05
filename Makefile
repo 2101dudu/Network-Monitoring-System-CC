@@ -1,4 +1,3 @@
-
 AGENT_RUNNER := ./cmd/nms/agent/runner.go
 SERVER_RUNNER := ./cmd/nms/server/runner.go
 
@@ -10,7 +9,11 @@ rebuild: clean build-agent build-server
 
 agent: build-agent run-agent
 
+agent-verbose: build-agent run-agent-verbose
+
 server: build-server run-server
+
+server-verbose: build-server run-server-verbose
 
 build-agent:
 	@echo "Building agent..."
@@ -32,10 +35,16 @@ run-server:
 	@echo "Running server..."	
 	@./out/bin/server
 
+run-agent-verbose:
+	@echo "Running agent..."
+	@./out/bin/agent --verbose
+
+run-server-verbose:
+	@echo "Running server..."	
+	@./out/bin/server --verbose
+	
 clean:
 	@echo "Cleaning up..."
 	rm -rf out
 	rm -rf output
 	@echo "Clean complete."
-
-

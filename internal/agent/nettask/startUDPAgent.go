@@ -1,7 +1,6 @@
 package nettask
 
 import (
-	"log"
 	utils "nms/internal/utils"
 	"sync"
 )
@@ -14,10 +13,6 @@ var (
 )
 
 func StartUDPAgent() {
-	// include "| log.Lshortfile" in the log flags to include the file name and line of code in the log
-	// log.SetFlags(log.Ltime | log.Lmicroseconds | log.Lshortfile)
-	log.SetFlags(0)
-
 	// get the IP address of the agent
 	ip := utils.GetIPAddress()
 
