@@ -10,7 +10,7 @@ import (
 func handleTCPConnection(conn *net.TCPConn) {
 	defer conn.Close()
 
-	n, alertData := utils.ReadTCP(conn, "[AlertFlow] Sucess reading alert data", "[ERROR 299] Unable to read alert data")
+	n, alertData := utils.ReadTCP(conn, "[AlertFlow] Success reading alert data", "[ERROR 299] Unable to read alert data")
 
 	// Check if there is data
 	if n == 0 {

@@ -49,7 +49,7 @@ func handleAlert(packetPayload []byte) {
 		alertMessage = fmt.Sprintf("[ERROR 888] Unknown alert type received from Agent %d for task %d", alert.SenderID, alert.TaskID)
 	}
 
-	log.Println(alertMessage)
+	log.Println(utils.Magenta+alertMessage, utils.Reset)
 
 	alertData := AlertsData{ // create json alert data
 		TaskID:    "task-" + strconv.Itoa(int(alert.TaskID)),
