@@ -17,18 +17,18 @@ var (
 	packetMutex       sync.Mutex
 )
 
-var agentsIPs map[byte][4]byte
+var agentsIDs map[byte]bool
 var numAgents int
 
 func StartUDPServer(port string) {
 	// Inicialize reader
 	reader := bufio.NewReader(os.Stdin)
 
-	// Initialize the map
-	agentsIPs = make(map[byte][4]byte)
+	// Initialize the map of agents IDs
+	agentsIDs = make(map[byte]bool)
 
 	// make the server open an UDP connection via port 8081
-	serverConn := utils.ResolveUDPAddrAndListen("localhost", "8081")
+	serverConn := utils.ResolveUDPAddrAndListen(utils.SERVERIP, "8081")
 
 	// ask the user for the number of agents
 	numAgents = askNumAgents(reader)

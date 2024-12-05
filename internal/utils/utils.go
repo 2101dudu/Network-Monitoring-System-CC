@@ -2,6 +2,8 @@ package utils
 
 import (
 	"fmt"
+	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -25,6 +27,7 @@ const (
 	HASHSIZE                = 12
 	MAXRETRANSMISSIONS      = 3
 	SERVERTCP               = "8080"
+	SERVERIP                = "s0"
 )
 
 func BoolToByte(b bool) byte {
@@ -36,13 +39,11 @@ func BoolToByte(b bool) byte {
 
 func GetAgentID() (byte, error) {
 	// requires string parsing ignoring all characters (e.g.: "PC1" -> 1; "router2" -> 2)
-	/*
-		cmd := exec.Command("whoami")
-		_, err := cmd.Output()
-		id := whoami
-	*/
+	cmd := exec.Command("hostname")
+	hostname, err := cmd.Output()
+	id, _ := strconv.Atoi(regexp.MustCompile(`\d+`).FindString(string(hostname)))
 
-	return byte(1), nil
+	return byte(id), err
 }
 
 func IPStringToByte(ip string) ([4]byte, error) {

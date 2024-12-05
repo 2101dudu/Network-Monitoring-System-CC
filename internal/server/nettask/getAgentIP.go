@@ -6,10 +6,10 @@ import (
 	"nms/internal/utils"
 )
 
-func getAgentIP(deviceID byte) string {
-	agentIPByte, exists := agentsIPs[deviceID]
+func getAgentIP(agentID byte) string {
+	exists := agentsIDs[agentID]
 	if !exists {
 		log.Fatalln(utils.Red+"[ERROR 35] Agent IP not found", utils.Reset)
 	}
-	return fmt.Sprintf("%d.%d.%d.%d", agentIPByte[0], agentIPByte[1], agentIPByte[2], agentIPByte[3])
+	return fmt.Sprintf("r%d", int(agentID))
 }

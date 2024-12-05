@@ -21,9 +21,9 @@ func parseIperfOutput(bandwidth bool, jitter bool, packetLoss bool, jitterLimit 
 
 		newOutput := ""
 		if jitter {
-			newOutput += separatedLine[8] + " " + separatedLine[9] + " "
+			newOutput += separatedLine[9] + " " + separatedLine[10] + " "
 
-			jitterValue, err := strconv.ParseFloat(separatedLine[8], 32)
+			jitterValue, err := strconv.ParseFloat(separatedLine[9], 32)
 			if err != nil {
 				log.Println(utils.Red+"[ERROR 165] Transforming jitter string into float", utils.Reset)
 			}
@@ -34,9 +34,9 @@ func parseIperfOutput(bandwidth bool, jitter bool, packetLoss bool, jitterLimit 
 		}
 
 		if packetLoss {
-			newOutput += separatedLine[10] + " " + separatedLine[11]
+			newOutput += separatedLine[11] + separatedLine[12] + " " + separatedLine[13]
 
-			packetLossPercentageStr := strings.Trim(separatedLine[11], "()%")
+			packetLossPercentageStr := strings.Trim(separatedLine[13], "()%")
 			packetLossPercentage, err := strconv.ParseFloat(packetLossPercentageStr, 32)
 			if err != nil {
 				log.Println(utils.Red+"[ERROR 166] Transforming packet loss percentage string into float", utils.Reset)

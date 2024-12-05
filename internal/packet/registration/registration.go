@@ -10,7 +10,6 @@ import (
 type Registration struct {
 	PacketID byte
 	AgentID  byte // [0, 255]
-	IP       [4]byte
 	Hash     string
 }
 
@@ -23,7 +22,6 @@ func NewRegistrationBuilder() *RegistrationBuilder {
 		Registration: Registration{
 			PacketID: 0,
 			AgentID:  0,
-			IP:       [4]byte{0, 0, 0, 0},
 			Hash:     "",
 		},
 	}
@@ -39,11 +37,6 @@ func (r *RegistrationBuilder) SetAgentID(id byte) *RegistrationBuilder {
 	return r
 }
 
-func (r *RegistrationBuilder) SetIP(ip [4]byte) *RegistrationBuilder {
-	r.Registration.IP = ip
-	return r
-}
-
 func (r *Registration) removeHash() string {
 	hash := r.Hash
 	r.Hash = ""
@@ -56,22 +49,21 @@ func (r *RegistrationBuilder) Build() Registration {
 
 // receives the data without the header
 func DecodeRegistration(packet []byte) (Registration, error) {
-	if len(packet) < 7 {
+	if len(packet) < 2 {
 		return Registration{}, errors.New("invalid packet length")
 	}
 
 	reg := Registration{
 		PacketID: packet[0],
 		AgentID:  packet[1],
-		IP:       [4]byte{packet[2], packet[3], packet[4], packet[5]},
 	}
 
 	// Decode Hash
-	hashLen := packet[6]
-	if len(packet) != int(7+hashLen) {
+	hashLen := packet[2]
+	if len(packet) != int(3+hashLen) {
 		return Registration{}, errors.New("invalid packet length")
 	}
-	reg.Hash = string(packet[7 : 7+hashLen])
+	reg.Hash = string(packet[3 : 3+hashLen])
 
 	return reg, nil
 }
@@ -81,10 +73,6 @@ func EncodeRegistration(reg Registration) []byte {
 		byte(utils.REGISTRATION),
 		reg.PacketID,
 		reg.AgentID,
-		reg.IP[0],
-		reg.IP[1],
-		reg.IP[2],
-		reg.IP[3],
 	}
 
 	// Encode Hash
@@ -99,20 +87,9 @@ func EncodeRegistration(reg Registration) []byte {
 	return packet
 }
 
-func CreateRegistrationPacket(packetID byte, ip string) (byte, []byte) {
-	byteIP, err := utils.IPStringToByte(ip)
-	if err != nil {
-		log.Fatalln(utils.Red+"[ERROR 156] Unable to convert IP to byte:", err, utils.Reset)
-	}
-
-	// generate Agent ID
-	agentID, err := utils.GetAgentID()
-	if err != nil {
-		log.Fatalln(utils.Red+"[ERROR 158] Unable to get agent ID:", err, utils.Reset)
-	}
-
+func CreateRegistrationPacket(packetID byte, agentID byte) []byte {
 	// create registration request
-	registration := NewRegistrationBuilder().SetPacketID(packetID).SetAgentID(agentID).SetIP(byteIP).Build()
+	registration := NewRegistrationBuilder().SetPacketID(packetID).SetAgentID(agentID).Build()
 
 	hash := CreateHashRegistrationPacket(registration)
 
@@ -121,7 +98,7 @@ func CreateRegistrationPacket(packetID byte, ip string) (byte, []byte) {
 	// encode registration request
 	regData := EncodeRegistration(registration)
 
-	return agentID, regData
+	return regData
 }
 
 func CreateHashRegistrationPacket(reg Registration) []byte {

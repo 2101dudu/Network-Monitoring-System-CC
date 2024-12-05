@@ -9,8 +9,8 @@ import (
 func handleRegistrations(conn *net.UDPConn) {
 	log.Println(utils.Blue+"Waiting for", numAgents, "agent(s) to register", utils.Reset)
 
-	for len(agentsIPs) < numAgents {
-		log.Println(utils.Blue+"Total agents registered until now:", len(agentsIPs), utils.Reset)
+	for len(agentsIDs) < numAgents {
+		log.Println(utils.Blue+"Total agents registered until now:", len(agentsIDs), utils.Reset)
 
 		// Read registration request
 		n, udpAddr, data := utils.ReadUDP(conn, "[NetTask] Registration request received", "[ERROR 10] Unable to read registration request")

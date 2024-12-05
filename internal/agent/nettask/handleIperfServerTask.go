@@ -119,7 +119,7 @@ outerLoop:
 		// Wait for the remaining idle time
 		time.Sleep(remainingIdleTime)
 
-		serverConn := utils.ResolveUDPAddrAndDial("localhost", "8081")
+		serverConn := utils.ResolveUDPAddrAndDial(utils.SERVERIP, "8081")
 
 		metricsID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
 		newMetrics := metrics.NewMetricsBuilder().SetPacketID(metricsID).SetAgentID(agentID).SetTaskID(iperfServer.TaskID).SetTime(startTime.Format("15:04:05.000000000")).SetCommand(iperfServer.IperfServerCommand).SetMetrics(preparedOutput).Build()

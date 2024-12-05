@@ -7,12 +7,9 @@ import (
 	"nms/internal/utils"
 )
 
-var agentID byte
-
-func registerAgent(conn *net.UDPConn, agentIP string) {
+func registerAgent(conn *net.UDPConn) {
 	newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
-	var registrationData []byte
-	agentID, registrationData = registration.CreateRegistrationPacket(newPacketID, agentIP)
+	registrationData := registration.CreateRegistrationPacket(newPacketID, agentID)
 
 	successMessage := "[NetTask] Registration request sent"
 	errorMessage := "[ERROR 159] Unable to send registration request"

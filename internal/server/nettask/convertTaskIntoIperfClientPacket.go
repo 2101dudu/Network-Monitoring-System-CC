@@ -32,7 +32,7 @@ func ConvertTaskIntoIperfClientPacket(task parse.Task, clientIndex byte) t.Iperf
 	destinationID := task.Devices[serverIndex].DeviceID
 	testDuration := task.Devices[clientIndex].LinkMetrics.IperfParameters.TestDuration
 
-	iperfCommand := fmt.Sprintf("iperf -c %d -t %d", destinationID, testDuration)
+	iperfCommand := fmt.Sprintf("iperf -c r%d -t %d", destinationID, testDuration)
 	if !task.Devices[clientIndex].LinkMetrics.IperfParameters.Bandwidth {
 		iperfCommand += " -u"
 	}
