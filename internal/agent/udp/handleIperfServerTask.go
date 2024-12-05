@@ -15,7 +15,7 @@ import (
 func handleIperfServerTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDPAddr) {
 	iperfServer, err := task.DecodeIperfServerPacket(taskPayload)
 	if err != nil {
-		log.Fatalln("[AGENT] [ERROR 83] Decoding iperf server packet")
+		log.Fatalln("[ERROR 83] Decoding iperf server packet")
 	}
 
 	if !task.ValidateHashIperfServerPacket(iperfServer) {
@@ -24,7 +24,7 @@ func handleIperfServerTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *
 		noack.Hash = (string(hash))
 		ack.EncodeAndSendAck(agentConn, udpAddr, noack)
 
-		log.Println("[AGENT] [ERROR 101] Invalid hash in iperf server packet")
+		log.Println("[ERROR 101] Invalid hash in iperf server packet")
 		return
 	}
 	newAck := ack.NewAckBuilder().SetPacketID(iperfServer.PacketID).SetReceiverID(utils.SERVERID).HasAcknowledged().Build()
@@ -119,6 +119,6 @@ outerLoop:
 		newMetrics.Hash = (string(hash))
 
 		packetData := metrics.EncodeMetrics(newMetrics)
-		ack.SendPacketAndWaitForAck(metricsID, agentID, packetsWaitingAck, &pMutex, serverConn, nil, packetData, "[SERVER] [MAIN READ THREAD] Metrics packet sent", "[SERVER] [ERROR 35] Unable to send metrics packet")
+		ack.SendPacketAndWaitForAck(metricsID, agentID, packetsWaitingAck, &pMutex, serverConn, nil, packetData, "[NetTask] Metrics packet sent", "[ERROR 35] Unable to send metrics packet")
 	}
 }

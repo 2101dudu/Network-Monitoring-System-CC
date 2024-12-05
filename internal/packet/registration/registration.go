@@ -102,13 +102,13 @@ func EncodeRegistration(reg Registration) []byte {
 func CreateRegistrationPacket(packetID byte, ip string) (byte, []byte) {
 	byteIP, err := utils.IPStringToByte(ip)
 	if err != nil {
-		log.Fatalln("[AGENT] [ERROR 2] Unable to convert IP to byte:", err)
+		log.Fatalln("[ERROR 2] Unable to convert IP to byte:", err)
 	}
 
 	// generate Agent ID
 	agentID, err := utils.GetAgentID()
 	if err != nil {
-		log.Fatalln("[AGENT] [ERROR 3] Unable to get agent ID:", err)
+		log.Fatalln("[ERROR 3] Unable to get agent ID:", err)
 	}
 
 	// create registration request

@@ -28,12 +28,12 @@ func ReadTCP(conn *net.TCPConn, successMessage string, errorMessage string) (int
 func ResolveTCPAddr(ip string, port string) *net.TCPListener {
 	addr, err := net.ResolveTCPAddr("tcp", ip+":"+port)
 	if err != nil {
-		log.Fatalln("[TCP] [ERROR 1] Unable to resolve address:", err)
+		log.Fatalln("[ERROR 1] Unable to resolve address:", err)
 	}
 
 	listener, err := net.ListenTCP("tcp", addr)
 	if err != nil {
-		log.Fatalln("[TCP] [ERROR 2] Unable to initialize the server:", err)
+		log.Fatalln("[ERROR 2] Unable to initialize the server:", err)
 	}
 
 	return listener
@@ -42,12 +42,12 @@ func ResolveTCPAddr(ip string, port string) *net.TCPListener {
 func ResolveTCPAddrAndDial(ip string, port string) *net.TCPConn {
 	tcpAddr, err := net.ResolveTCPAddr("tcp", ip+":"+port)
 	if err != nil {
-		log.Fatalln("[TCP] [ERROR 3] Unable to resolve address:", err)
+		log.Fatalln("[ERROR 3] Unable to resolve address:", err)
 	}
 
 	conn, err := net.DialTCP("tcp", nil, tcpAddr)
 	if err != nil {
-		log.Fatalln("[TCP] [ERROR 4] Unable to connect:", err)
+		log.Fatalln("[ERROR 4] Unable to connect:", err)
 	}
 	return conn
 }

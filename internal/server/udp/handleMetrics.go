@@ -8,14 +8,14 @@ import (
 
 func handleMetrics(conn *net.UDPConn) {
 	for {
-		log.Println("[SERVER] [MAIN READ THREAD] Waiting for metrics from an agent")
+		log.Println("[NetTask] Waiting for metrics from an agent")
 
 		// Read metrics
-		n, udpAddr, data := utils.ReadUDP(conn, "[SERVER] [MAIN READ THREAD] Metrics received", "[SERVER] [ERROR 10] Unable to read metrics")
+		n, udpAddr, data := utils.ReadUDP(conn, "[NetTask] Metrics received", "[ERROR 10] Unable to read metrics")
 
 		// Check if there is data
 		if n == 0 {
-			log.Println("[SERVER] [MAIN READ THREAD] [ERROR 11] No data received")
+			log.Println("[ERROR 11] No data received")
 			continue
 		}
 
@@ -24,7 +24,7 @@ func handleMetrics(conn *net.UDPConn) {
 
 		// Check if the packet type is correct
 		if packetType != utils.METRICSGATHERING {
-			log.Println("[SERVER] [ERROR 18] Unexpected packet type received from agent", packetType)
+			log.Println("[ERROR 18] Unexpected packet type received from agent", packetType)
 			continue
 		}
 		handleMetricsGathering(packetPayload, conn, udpAddr)

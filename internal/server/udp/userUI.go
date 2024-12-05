@@ -33,7 +33,7 @@ func askJsonPath(reader *bufio.Reader) string {
 func parseString(reader *bufio.Reader) string {
 	input, err := reader.ReadString('\n')
 	if err != nil {
-		log.Fatalln("[SERVER] [ERROR 1] Unable to read input")
+		log.Fatalln("[ERROR 1] Unable to read input")
 	}
 
 	// trimm the input
@@ -49,7 +49,7 @@ func consultMetricsFile() {
 	fmt.Print(string(output))
 
 	if err != nil {
-		log.Println("[SERVER] [ERROR 21] Unable to consult metrics file")
+		log.Println("[ERROR 21] Unable to consult metrics file")
 	}
 }
 
@@ -62,6 +62,6 @@ func consultAlertsFile() {
 	fmt.Print(string(output))
 
 	if err != nil {
-		log.Println("[SERVER] [ERROR 22] Unable to consult alerts file")
+		log.Println("[ERROR 22] Unable to consult alerts file")
 	}
 }

@@ -15,12 +15,12 @@ import (
 func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDPAddr) {
 	pingPacket, err := task.DecodePingPacket(taskPayload)
 	if err != nil {
-		log.Fatalln("[AGENT] [ERROR 81] Decoding ping packet")
+		log.Fatalln("[ERROR 81] Decoding ping packet")
 	}
 
 	agentID, errAgent := utils.GetAgentID()
 	if errAgent != nil {
-		log.Fatalln("[AGENT] [ERROR 101] Unable to get agent ID:", errAgent)
+		log.Fatalln("[ERROR 101] Unable to get agent ID:", errAgent)
 	}
 
 	if !task.ValidateHashPingPacket(pingPacket) {
@@ -29,7 +29,7 @@ func handlePingTask(taskPayload []byte, agentConn *net.UDPConn, udpAddr *net.UDP
 		noack.Hash = (string(hash))
 		ack.EncodeAndSendAck(agentConn, udpAddr, noack)
 
-		log.Println("[AGENT] [ERROR 102] Invalid hash in ping packet")
+		log.Println("[ERROR 102] Invalid hash in ping packet")
 		return
 	}
 
@@ -101,6 +101,6 @@ outerLoop:
 		newMetrics.Hash = (string(hash))
 
 		packetData := metrics.EncodeMetrics(newMetrics)
-		ack.SendPacketAndWaitForAck(metricsID, agentID, packetsWaitingAck, &pMutex, serverConn, nil, packetData, "[AGENT] [MAIN READ THREAD] Metrics packet sent", "[AGENT] [ERROR 31] Unable to send metrics packet")
+		ack.SendPacketAndWaitForAck(metricsID, agentID, packetsWaitingAck, &pMutex, serverConn, nil, packetData, "[NetTask] Metrics packet sent", "[ERROR 31] Unable to send metrics packet")
 	}
 }

@@ -36,8 +36,12 @@ func monitorSystemMetrics(metrics task.DeviceMetrics, conditions task.AlertFlowC
 	cpuHasExceeded := false
 	ramHasExceeded := false
 
+	// copy metrics.InterfaceStats to a new array
+	interfacesArray := make([]string, len(metrics.InterfaceStats))
+	copy(interfacesArray, metrics.InterfaceStats)
+
 	for {
-		if (ramHasExceeded || !metrics.RamUsage) && (cpuHasExceeded || !metrics.CpuUsage) && len(metrics.InterfaceStats) <= 0 { // If both alerts happened then can stop
+		if (ramHasExceeded || !metrics.RamUsage) && (cpuHasExceeded || !metrics.CpuUsage) && len(interfacesArray) <= 0 { // If both alerts happened then can stop
 			return
 		}
 
@@ -60,20 +64,17 @@ func monitorSystemMetrics(metrics task.DeviceMetrics, conditions task.AlertFlowC
 				}
 			}()
 
-			go func() {
-				if len(metrics.InterfaceStats) > 0 {
-					for index, interfaceName := range metrics.InterfaceStats {
-						go func() {
-							packetsHaveExceeded := handleInterfaceStats(interfaceName, conditions, taskID)
+			if len(interfacesArray) > 0 {
+				for index, interfaceName := range interfacesArray {
+					packetsHaveExceeded := handleInterfaceStats(interfaceName, conditions, taskID)
 
-							if packetsHaveExceeded {
-								// Remove the interface from the list, as to not be checked again
-								metrics.InterfaceStats = append(metrics.InterfaceStats[:index], metrics.InterfaceStats[index+1:]...)
-							}
-						}()
+					if packetsHaveExceeded {
+						// Remove the interface from the list, as to not be checked again
+						fmt.Println("Removing interface", interfaceName, "from the list", interfacesArray)
+						interfacesArray = append(interfacesArray[:index], interfacesArray[index+1:]...)
 					}
 				}
-			}()
+			}
 		}
 	}
 }
@@ -81,7 +82,7 @@ func monitorSystemMetrics(metrics task.DeviceMetrics, conditions task.AlertFlowC
 func handleCpuUsage(conditions task.AlertFlowConditions, taskID uint16) bool {
 	cpuUsage, errorCpu := getCpuUsage()
 	if errorCpu != nil {
-		fmt.Println("[AGENT] [MONITOR] [ERROR 180] Error getting CPU usage:", errorCpu)
+		fmt.Println("[ERROR 180] Error getting CPU usage:", errorCpu)
 		cpuUsage = 0
 		return false
 	}
@@ -105,7 +106,7 @@ func handleCpuUsage(conditions task.AlertFlowConditions, taskID uint16) bool {
 func handleRamUsage(conditions task.AlertFlowConditions, taskID uint16) bool {
 	ramUsage, errorRam := getRamUsage()
 	if errorRam != nil {
-		fmt.Println("[AGENT] [MONITOR] [ERROR 181] Error getting RAM usage:", errorRam)
+		fmt.Println("[ERROR 181] Error getting RAM usage:", errorRam)
 		ramUsage = 0
 
 		return false
@@ -133,7 +134,7 @@ func handleInterfaceStats(interfaceName string, conditions task.AlertFlowConditi
 		log.Println("[ERROR 282] Error getting interface stats:", err)
 		return false
 	}
-	time.Sleep(1 * time.Second)
+	time.Sleep(250 * time.Millisecond)
 	interfaceStatsAfter, err := getInterfaceStats(interfaceName)
 
 	if err != nil {
@@ -143,11 +144,11 @@ func handleInterfaceStats(interfaceName string, conditions task.AlertFlowConditi
 
 	interfaceStats := interfaceStatsAfter - interfaceStatsBefore
 
-	if interfaceStats > int(conditions.InterfaceStats) {
+	if float32(interfaceStats) > float32(conditions.InterfaceStats/4) {
 		alertTime := time.Now() // time of the alert
 
 		newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
-		buildAlert := alert.NewAlertBuilder().SetPacketID(newPacketID).SetSenderID(agentID).SetTaskID(taskID).SetAlertType(alert.INTERFACESTATS).SetExceeded(float32(interfaceStats)).SetTime(alertTime.Format("15:04:05.000000000"))
+		buildAlert := alert.NewAlertBuilder().SetPacketID(newPacketID).SetSenderID(agentID).SetTaskID(taskID).SetAlertType(alert.INTERFACESTATS).SetExceeded(float32(interfaceStats * 4)).SetTime(alertTime.Format("15:04:05.000000000"))
 
 		newAlert := buildAlert.Build()                        // build full alert with given sets
 		tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp

@@ -11,7 +11,7 @@ func handleRegistration(packetPayload []byte, conn *net.UDPConn, udpAddr *net.UD
 	// Decode registration request
 	reg, err := registration.DecodeRegistration(packetPayload)
 	if err != nil {
-		log.Fatalln("[SERVER] [ERROR 12] Unable to decode registration data:", err)
+		log.Fatalln("[ERROR 12] Unable to decode registration data:", err)
 	}
 
 	if !registration.ValidateHashRegistrationPacket(reg) {
@@ -20,7 +20,7 @@ func handleRegistration(packetPayload []byte, conn *net.UDPConn, udpAddr *net.UD
 		noack.Hash = (string(hash))
 		ack.EncodeAndSendAck(conn, udpAddr, noack)
 
-		log.Println("[SERVER] [ERROR 99] Invalid hash in registration packet")
+		log.Println("[ERROR 99] Invalid hash in registration packet")
 		return
 	}
 

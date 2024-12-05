@@ -102,7 +102,7 @@ func EncodeAck(ack Ack) []byte {
 
 func EncodeAndSendAck(conn *net.UDPConn, udpAddr *net.UDPAddr, ack Ack) {
 	ackData := EncodeAck(ack)
-	utils.WriteUDP(conn, udpAddr, ackData, "[UDP] Ack sent", "[ERROR 14] Unable to send ack")
+	utils.WriteUDP(conn, udpAddr, ackData, "[NetTask] Ack sent", "[ERROR 14] Unable to send ack")
 }
 
 func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.Mutex, senderID byte) bool {
@@ -125,14 +125,14 @@ func HandleAck(ackPayload []byte, packetsWaitingAck map[byte]bool, pMutex *sync.
 
 	if !ack.Acknowledged {
 		utils.PacketIsWaiting(ack.PacketID, packetsWaitingAck, pMutex, false)
-		log.Println("[UDP] Sender didn't acknowledge packet", ack.PacketID)
+		log.Println("[NetTask] Sender didn't acknowledge packet", ack.PacketID)
 		return false
 	}
 
 	pMutex.Lock()
 	delete(packetsWaitingAck, ack.PacketID)
 	pMutex.Unlock()
-	log.Println("[UDP] Sender acknowledged packet", ack.PacketID)
+	log.Println("[NetTask] Sender acknowledged packet", ack.PacketID)
 
 	return true
 }
@@ -186,21 +186,21 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 
 	continueReadingAck := true
 	for continueReadingAck {
-		log.Println("[UDP] Waiting for ack")
+		log.Println("[NetTask] Waiting for ack")
 
 		select {
 		case <-stopReadingChan:
 			// Goroutine has finished retransmissions; stop reading
-			log.Println("[UDP] Retransmissions exhausted")
+			log.Println("[NetTask] Retransmissions exhausted")
 			continueReadingAck = false
 
 		default:
 			// Read packet
-			n, _, data := utils.ReadUDP(conn, "[UDP] Ack received", "[UDP] [ERROR 5] Unable to read ack")
+			n, _, data := utils.ReadUDP(conn, "[NetTask] Ack received", "[ERROR 5] Unable to read ack")
 
 			// Check if data was received
 			if n == 0 {
-				log.Println("[UDP] [ERROR 6] No data received")
+				log.Println("[ERROR 6] No data received")
 				return
 			}
 
@@ -209,7 +209,7 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 			packetPayload := data[1:n]
 
 			if packetType != utils.ACK {
-				log.Println("[UDP] [ERROR 17] Unexpected packet type received")
+				log.Println("[ERROR 17] Unexpected packet type received")
 				continue
 			}
 
@@ -225,7 +225,7 @@ func SendPacketAndWaitForAck(packetID byte, senderID byte, packetsWaitingAck map
 
 	// Check retransmission count
 	if retransmissions >= utils.MAXRETRANSMISSIONS {
-		log.Fatalln("[ERROR] Unable to send packet after maximum retransmission attempts")
+		log.Fatalln("[ERROR 781] Unable to send packet after maximum retransmission attempts")
 	}
 }
 
