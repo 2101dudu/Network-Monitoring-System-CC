@@ -86,17 +86,17 @@ cd Network-Monitoring-System
 ```bash
 make server
 ```
-1. Build and start the server in verbose mode for debugging:
+2. Build and start the server in verbose mode for debugging:
 ```bash
 make server-verbose
 ```
 
-**agent**
+**Agent**
 1. Build and run the agent:
 ```bash
 make agent
 ```
-1. Build and start the agent in verbose mode for debugging:
+2. Build and start the agent in verbose mode for debugging:
 ```bash
 make agent-verbose
 ```
