@@ -1,10 +1,10 @@
 [
     {
-        "task_id": 202, 
-        "frequency": 6,
+        "task_id": 30, 
+        "frequency": 12,
         "devices": [
             {
-                "device_id": 1,
+                "device_id": 2,
                 "device_metrics": {
                     "cpu_usage": true,
                     "ram_usage": true,
@@ -16,7 +16,7 @@
                         "jitter": true,
                         "packet_loss": true,
                         "is_server": true,
-                        "test_duration": 2
+                        "test_duration": 8
                     },
                     "ping_parameters": { 
                         "enabled": false,
@@ -34,7 +34,7 @@
                 }
             },
             {
-                "device_id": 2,
+                "device_id": 3,
                 "device_metrics": {
                     "cpu_usage": true,
                     "ram_usage": true,
@@ -46,7 +46,7 @@
                         "jitter": true,
                         "packet_loss": true,
                         "is_server": false,
-                        "test_duration": 2
+                        "test_duration": 8
                     },
                     "ping_parameters": { 
                         "enabled": false,
@@ -64,5 +64,113 @@
                 }
             }
         ]
-    }  
+    },
+    {
+        "task_id": 200, 
+        "frequency": 10,
+        "devices": [
+            {
+                "device_id": 1,
+                "device_metrics": {
+                    "cpu_usage": true,
+                    "ram_usage": true,
+                    "interface_stats": ["eth0", "eth1", "eth2"]
+                },
+                "link_metrics": {
+                    "iperf_parameters": {
+                        "bandwidth": false,
+                        "jitter": false,
+                        "packet_loss": false,
+                        "is_server": false,
+                        "test_duration": 3
+                    },
+                    "ping_parameters": { 
+                        "enabled": true,
+                        "destination": "pc3",
+                        "packet_count": 3,
+                        "frequency": 1
+                    }
+                },
+                "alertflow_conditions": {
+                    "cpu_usage": 90,
+                    "ram_usage": 90,
+                    "interface_stats": 2000,
+                    "packet_loss": 5,
+                    "jitter": 100
+                }
+            }
+        ]
+    },
+    {
+        "task_id": 201, 
+        "frequency": 10,
+        "devices": [
+            {
+                "device_id": 1,
+                "device_metrics": {
+                    "cpu_usage": true,
+                    "ram_usage": true,
+                    "interface_stats": ["eth0", "eth1", "eth2"]
+                },
+                "link_metrics": {
+                    "iperf_parameters": {
+                        "bandwidth": false,
+                        "jitter": false,
+                        "packet_loss": false,
+                        "is_server": false,
+                        "test_duration": 3
+                    },
+                    "ping_parameters": { 
+                        "enabled": true,
+                        "destination": "pc3",
+                        "packet_count": 3,
+                        "frequency": 1
+                    }
+                },
+                "alertflow_conditions": {
+                    "cpu_usage": 90,
+                    "ram_usage": 90,
+                    "interface_stats": 2000,
+                    "packet_loss": 5,
+                    "jitter": 100
+                }
+            }
+        ]
+    },
+    {
+        "task_id": 202, 
+        "frequency": 10,
+        "devices": [
+            {
+                "device_id": 1,
+                "device_metrics": {
+                    "cpu_usage": true,
+                    "ram_usage": true,
+                    "interface_stats": ["eth0", "eth1", "eth2"]
+                },
+                "link_metrics": {
+                    "iperf_parameters": {
+                        "bandwidth": false,
+                        "jitter": false,
+                        "packet_loss": false,
+                        "is_server": false,
+                        "test_duration": 3
+                    },
+                    "ping_parameters": { 
+                        "enabled": true,
+                        "destination": "pc3",
+                        "packet_count": 3,
+                        "frequency": 1
+                    }
+                },
+                "alertflow_conditions": {
+                    "cpu_usage": 90,
+                    "ram_usage": 90,
+                    "interface_stats": 2000,
+                    "packet_loss": 5,
+                    "jitter": 100
+                }
+            }
+        ]
+    }
 ]
