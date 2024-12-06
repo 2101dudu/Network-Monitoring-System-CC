@@ -12,7 +12,7 @@ import (
 func sendTimeoutAlertAndEmptyMetrics(command string, taskID uint16, agentID byte, startTime time.Time) {
 	// Send alert for timeout
 	newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
-	buildAlert := alert.NewAlertBuilder().SetPacketID(newPacketID).SetSenderID(agentID).SetTaskID(taskID).SetAlertType(alert.TIMEOUT).SetTime(startTime.Format("15:04:05.000000000"))
+	buildAlert := alert.NewAlertBuilder().SetPacketID(newPacketID).SetAgentID(agentID).SetTaskID(taskID).SetAlertType(alert.TIMEOUT).SetTime(startTime.Format("15:04:05.000000000"))
 
 	newAlert := buildAlert.Build()
 	tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert)

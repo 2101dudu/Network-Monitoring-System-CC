@@ -80,7 +80,7 @@ outerLoop:
 		// Send an alert if, during command execution, an error happened
 		if err != nil {
 			newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
-			buildAlert := alert.NewAlertBuilder().SetPacketID(newPacketID).SetSenderID(agentID).SetTaskID(iperfClient.TaskID).SetAlertType(alert.ERROR).SetTime(errTime.Format("15:04:05.000000000"))
+			buildAlert := alert.NewAlertBuilder().SetPacketID(newPacketID).SetAgentID(agentID).SetTaskID(iperfClient.TaskID).SetAlertType(alert.ERROR).SetTime(errTime.Format("15:04:05.000000000"))
 
 			newAlert := buildAlert.Build()                        // build full alert with given sets
 			tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
@@ -91,7 +91,7 @@ outerLoop:
 
 		if jitterHasExceeded > 1e-6 {
 			newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
-			buildAlert := alert.NewAlertBuilder().SetPacketID(newPacketID).SetSenderID(agentID).SetTaskID(iperfClient.TaskID).SetAlertType(alert.JITTER).SetExceeded(jitterHasExceeded).SetTime(errTime.Format("15:04:05.000000000"))
+			buildAlert := alert.NewAlertBuilder().SetPacketID(newPacketID).SetAgentID(agentID).SetTaskID(iperfClient.TaskID).SetAlertType(alert.JITTER).SetExceeded(jitterHasExceeded).SetTime(errTime.Format("15:04:05.000000000"))
 
 			newAlert := buildAlert.Build()                        // build full alert with given sets
 			tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
@@ -99,7 +99,7 @@ outerLoop:
 
 		if packetLossHasExceeded > 1e-6 {
 			newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
-			buildAlert := alert.NewAlertBuilder().SetPacketID(newPacketID).SetSenderID(agentID).SetTaskID(iperfClient.TaskID).SetAlertType(alert.PACKETLOSS).SetExceeded(packetLossHasExceeded).SetTime(errTime.Format("15:04:05.000000000"))
+			buildAlert := alert.NewAlertBuilder().SetPacketID(newPacketID).SetAgentID(agentID).SetTaskID(iperfClient.TaskID).SetAlertType(alert.PACKETLOSS).SetExceeded(packetLossHasExceeded).SetTime(errTime.Format("15:04:05.000000000"))
 
 			newAlert := buildAlert.Build()                        // build full alert with given sets
 			tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp
