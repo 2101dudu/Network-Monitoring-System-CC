@@ -1,7 +1,7 @@
 [
     {
-        "task_id": 201, 
-        "frequency": 20,
+        "task_id": 202, 
+        "frequency": 6,
         "devices": [
             {
                 "device_id": 1,
@@ -13,46 +13,10 @@
                 "link_metrics": {
                     "iperf_parameters": {
                         "bandwidth": false,
-                        "jitter": false,
-                        "packet_loss": false,
-                        "is_server": false,
-                        "test_duration": 1
-                    },
-                    "ping_parameters": { 
-                        "enabled": true,
-                        "destination": "r2",
-                        "packet_count": 5,
-                        "frequency": 1
-                    }
-                },
-                "alertflow_conditions": {
-                    "cpu_usage": 90,
-                    "ram_usage": 90,
-                    "interface_stats": 2000,
-                    "packet_loss": 5,
-                    "jitter": 100
-                }
-            }
-        ]
-    },
-    {
-        "task_id": 202, 
-        "frequency": 20,
-        "devices": [
-            {
-                "device_id": 2,
-                "device_metrics": {
-                    "cpu_usage": true,
-                    "ram_usage": true,
-                    "interface_stats": ["eth0", "eth1", "eth2"]
-                },
-                "link_metrics": {
-                    "iperf_parameters": {
-                        "bandwidth": false,
                         "jitter": true,
                         "packet_loss": true,
                         "is_server": true,
-                        "test_duration": 4
+                        "test_duration": 2
                     },
                     "ping_parameters": { 
                         "enabled": false,
@@ -70,7 +34,7 @@
                 }
             },
             {
-                "device_id": 3,
+                "device_id": 2,
                 "device_metrics": {
                     "cpu_usage": true,
                     "ram_usage": true,
@@ -82,7 +46,7 @@
                         "jitter": true,
                         "packet_loss": true,
                         "is_server": false,
-                        "test_duration": 4
+                        "test_duration": 2
                     },
                     "ping_parameters": { 
                         "enabled": false,

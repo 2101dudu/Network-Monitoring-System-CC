@@ -184,7 +184,7 @@ func SendPacketAndWaitForAck(packetID uint16, senderID byte, packetsWaitingAck m
 				return
 			}
 
-			if !waiting || time.Since(packetSentInstant) >= utils.TIMEOUTSECONDS*time.Second {
+			if !waiting || time.Since(packetSentInstant) >= utils.TIMEOUT*time.Millisecond {
 				if i >= utils.MAXRETRANSMISSIONS {
 					retransmissions = i // Update retransmissions count
 

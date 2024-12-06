@@ -21,7 +21,7 @@ const (
 )
 
 const (
-	TIMEOUTSECONDS          = 2
+	TIMEOUT                 = 200
 	BUFFERSIZE              = 1024
 	SERVERID           byte = 0
 	HASHSIZE                = 12
