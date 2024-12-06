@@ -84,7 +84,7 @@ outerLoop:
 			errTime := time.Now() // time of alert
 
 			newPacketID := utils.ReadAndIncrementPacketID(&packetID, &packetMutex, true)
-			buildAlert := alert.NewAlertBuilder().SetPacketID(newPacketID).SetSenderID(agentID).SetTaskID(pingPacket.TaskID).SetAlertType(alert.ERROR).SetTime(errTime.Format("15:04:05.000000000"))
+			buildAlert := alert.NewAlertBuilder().SetPacketID(newPacketID).SetAgentID(agentID).SetTaskID(pingPacket.TaskID).SetAlertType(alert.ERROR).SetTime(errTime.Format("15:04:05.000000000"))
 
 			newAlert := buildAlert.Build()                        // build full alert with given sets
 			tcp.ConnectTCPAndSendAlert(utils.SERVERTCP, newAlert) // Send an alert by tcp

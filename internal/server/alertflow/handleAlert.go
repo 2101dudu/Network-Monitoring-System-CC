@@ -32,28 +32,28 @@ func handleAlert(packetPayload []byte) {
 	var alertMessage string
 	switch alert.AlertType {
 	case alertTCP.CPU:
-		alertMessage = fmt.Sprintf("[ALERT] Agent %d exceeded CPU usage (%.2f%%) while executing task %d", alert.SenderID, alert.Exceeded, alert.TaskID)
+		alertMessage = fmt.Sprintf("[ALERT] Agent %d exceeded CPU usage (%.2f%%) while executing task %d", alert.AgentID, alert.Exceeded, alert.TaskID)
 	case alertTCP.RAM:
-		alertMessage = fmt.Sprintf("[ALERT] Agent %d exceeded RAM usage (%.2f%%) while executing task %d", alert.SenderID, alert.Exceeded, alert.TaskID)
+		alertMessage = fmt.Sprintf("[ALERT] Agent %d exceeded RAM usage (%.2f%%) while executing task %d", alert.AgentID, alert.Exceeded, alert.TaskID)
 	case alertTCP.JITTER:
-		alertMessage = fmt.Sprintf("[ALERT] Agent %d exceeded jitter thresholds (%.2f ms) while executing task %d", alert.SenderID, alert.Exceeded, alert.TaskID)
+		alertMessage = fmt.Sprintf("[ALERT] Agent %d exceeded jitter thresholds (%.2f ms) while executing task %d", alert.AgentID, alert.Exceeded, alert.TaskID)
 	case alertTCP.PACKETLOSS:
-		alertMessage = fmt.Sprintf("[ALERT] Agent %d exceeded packet loss thresholds (%.2f%%) while executing task %d", alert.SenderID, alert.Exceeded, alert.TaskID)
+		alertMessage = fmt.Sprintf("[ALERT] Agent %d exceeded packet loss thresholds (%.2f%%) while executing task %d", alert.AgentID, alert.Exceeded, alert.TaskID)
 	case alertTCP.INTERFACESTATS:
-		alertMessage = fmt.Sprintf("[ALERT] Agent %d exceeded the interface stats packets per second threshold (%.2f) while executing task %d", alert.SenderID, alert.Exceeded, alert.TaskID)
+		alertMessage = fmt.Sprintf("[ALERT] Agent %d exceeded the interface stats packets per second threshold (%.2f) while executing task %d", alert.AgentID, alert.Exceeded, alert.TaskID)
 	case alertTCP.TIMEOUT:
-		alertMessage = fmt.Sprintf("[ALERT] Agent %d has timed out while executing task %d", alert.SenderID, alert.TaskID)
+		alertMessage = fmt.Sprintf("[ALERT] Agent %d has timed out while executing task %d", alert.AgentID, alert.TaskID)
 	case alertTCP.ERROR:
-		alertMessage = fmt.Sprintf("[ALERT] Agent %d encountered an error while executing task %d", alert.SenderID, alert.TaskID)
+		alertMessage = fmt.Sprintf("[ALERT] Agent %d encountered an error while executing task %d", alert.AgentID, alert.TaskID)
 	default:
-		alertMessage = fmt.Sprintf("[ERROR 888] Unknown alert type received from Agent %d for task %d", alert.SenderID, alert.TaskID)
+		alertMessage = fmt.Sprintf("[ERROR 888] Unknown alert type received from Agent %d for task %d", alert.AgentID, alert.TaskID)
 	}
 
 	log.Println(utils.Magenta+alertMessage, utils.Reset)
 
 	alertData := AlertsData{ // create json alert data
 		TaskID:    "task-" + strconv.Itoa(int(alert.TaskID)),
-		AgentID:   alert.SenderID,
+		AgentID:   alert.AgentID,
 		LogTime:   alert.Time,
 		AlertType: alert.AlertType.String(),
 		Exceeded:  alert.Exceeded,

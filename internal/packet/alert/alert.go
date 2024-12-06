@@ -11,7 +11,7 @@ import (
 // Alert struct
 type Alert struct {
 	PacketID  uint16
-	SenderID  byte
+	AgentID   byte
 	TaskID    uint16
 	AlertType AlertType
 	Exceeded  float32
@@ -62,7 +62,7 @@ func NewAlertBuilder() *AlertBuilder {
 	return &AlertBuilder{
 		Alert: Alert{
 			PacketID:  0,
-			SenderID:  0,
+			AgentID:   0,
 			TaskID:    0,
 			AlertType: ERROR, // Default to ERROR, can be changed
 			Exceeded:  0.0,
@@ -77,8 +77,8 @@ func (b *AlertBuilder) SetPacketID(id uint16) *AlertBuilder {
 	return b
 }
 
-func (b *AlertBuilder) SetSenderID(id byte) *AlertBuilder {
-	b.Alert.SenderID = id
+func (b *AlertBuilder) SetAgentID(id byte) *AlertBuilder {
+	b.Alert.AgentID = id
 	return b
 }
 
@@ -117,7 +117,7 @@ func EncodeAlert(alert Alert) ([]byte, error) {
 	if err := binary.Write(buf, binary.BigEndian, alert.PacketID); err != nil {
 		return nil, err
 	}
-	buf.WriteByte(alert.SenderID)
+	buf.WriteByte(alert.AgentID)
 
 	// Encode TaskID
 	if err := binary.Write(buf, binary.BigEndian, alert.TaskID); err != nil {
@@ -150,7 +150,7 @@ func DecodeAlert(data []byte) (Alert, error) {
 	if err := binary.Read(buf, binary.BigEndian, &alert.PacketID); err != nil {
 		return alert, err
 	}
-	if err := binary.Read(buf, binary.BigEndian, &alert.SenderID); err != nil {
+	if err := binary.Read(buf, binary.BigEndian, &alert.AgentID); err != nil {
 		return alert, err
 	}
 	if err := binary.Read(buf, binary.BigEndian, &alert.TaskID); err != nil {
