@@ -10,7 +10,7 @@ import (
 )
 
 type Metrics struct {
-	PacketID byte
+	PacketID uint16
 	AgentID  byte
 	TaskID   uint16
 	Time     string
@@ -37,7 +37,7 @@ func NewMetricsBuilder() *MetricsBuilder {
 	}
 }
 
-func (m *MetricsBuilder) SetPacketID(packetID byte) *MetricsBuilder {
+func (m *MetricsBuilder) SetPacketID(packetID uint16) *MetricsBuilder {
 	m.Metrics.PacketID = packetID
 	return m
 }
@@ -85,19 +85,19 @@ func DecodeMetrics(packet []byte) (Metrics, error) {
 		return metrics, errors.New("invalid packet length")
 	}
 
-	packetID, err := buf.ReadByte()
-	if err != nil {
+	if err := binary.Read(buf, binary.BigEndian, &metrics.PacketID); err != nil {
 		return metrics, err
 	}
+
 	agentID, err := buf.ReadByte()
 	if err != nil {
 		return metrics, err
 	}
+	metrics.AgentID = agentID
+
 	if err := binary.Read(buf, binary.BigEndian, &metrics.TaskID); err != nil {
 		return metrics, err
 	}
-	metrics.PacketID = packetID
-	metrics.AgentID = agentID
 
 	var timeLen uint16
 	if err := binary.Read(buf, binary.BigEndian, &timeLen); err != nil {
@@ -150,7 +150,10 @@ func EncodeMetrics(metrics Metrics) []byte {
 	buf := new(bytes.Buffer)
 
 	buf.WriteByte(byte(utils.METRICSGATHERING))
-	buf.WriteByte(metrics.PacketID)
+
+	// Encode PacketID
+	binary.Write(buf, binary.BigEndian, metrics.PacketID)
+
 	buf.WriteByte(metrics.AgentID)
 	binary.Write(buf, binary.BigEndian, metrics.TaskID)
 

@@ -11,9 +11,9 @@ import (
 )
 
 var (
-	packetsWaitingAck = make(map[byte]bool)
+	packetsWaitingAck = make(map[uint16]bool)
 	pMutex            sync.Mutex
-	packetID          = byte(1)
+	packetID          = uint16(1)
 	packetMutex       sync.Mutex
 )
 

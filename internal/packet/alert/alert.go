@@ -10,7 +10,7 @@ import (
 
 // Alert struct
 type Alert struct {
-	PacketID  byte
+	PacketID  uint16
 	SenderID  byte
 	TaskID    uint16
 	AlertType AlertType
@@ -72,7 +72,7 @@ func NewAlertBuilder() *AlertBuilder {
 }
 
 // Builder methods
-func (b *AlertBuilder) SetPacketID(id byte) *AlertBuilder {
+func (b *AlertBuilder) SetPacketID(id uint16) *AlertBuilder {
 	b.Alert.PacketID = id
 	return b
 }
@@ -112,7 +112,11 @@ func EncodeAlert(alert Alert) ([]byte, error) {
 
 	// Encode fixed fields
 	buf.WriteByte(byte(utils.ALERT)) // Packet type
-	buf.WriteByte(alert.PacketID)
+
+	// Encode PacketID
+	if err := binary.Write(buf, binary.BigEndian, alert.PacketID); err != nil {
+		return nil, err
+	}
 	buf.WriteByte(alert.SenderID)
 
 	// Encode TaskID

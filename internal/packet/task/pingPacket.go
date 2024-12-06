@@ -16,7 +16,7 @@ import (
 
 type PingPacket struct {
 	AgentID             byte
-	PacketID            byte
+	PacketID            uint16
 	TaskID              uint16
 	Frequency           uint16
 	DeviceMetrics       DeviceMetrics
@@ -44,7 +44,7 @@ func NewPingPacketBuilder() *PingPacketBuilder {
 	}
 }
 
-func (b *PingPacketBuilder) SetPacketID(id byte) *PingPacketBuilder {
+func (b *PingPacketBuilder) SetPacketID(id uint16) *PingPacketBuilder {
 	b.PingPacket.PacketID = id
 	return b
 }
@@ -94,7 +94,7 @@ func EncodePingPacket(msg PingPacket) []byte {
 
 	// Encode fixed fields
 	buf.WriteByte(byte(utils.PING))
-	buf.WriteByte(msg.PacketID)
+	binary.Write(buf, binary.BigEndian, msg.PacketID)
 	buf.WriteByte(msg.AgentID)
 	binary.Write(buf, binary.BigEndian, msg.TaskID)
 	binary.Write(buf, binary.BigEndian, msg.Frequency)
@@ -135,8 +135,8 @@ func DecodePingPacket(data []byte) (PingPacket, error) {
 	var msg PingPacket
 
 	// Decode fixed fields
-	packetID, err := buf.ReadByte()
-	if err != nil {
+	var packetID uint16
+	if err := binary.Read(buf, binary.BigEndian, &packetID); err != nil {
 		return msg, err
 	}
 	agentID, err := buf.ReadByte()

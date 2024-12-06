@@ -14,7 +14,7 @@ import (
 // iperf -c <ServerIP> -u  -> Bandwidth, Packet Loss, and Jitter (UDP with a fixed rate set by 10M by default)
 
 type IperfClientPacket struct {
-	PacketID            byte
+	PacketID            uint16
 	AgentID             byte
 	TaskID              uint16
 	Frequency           uint16
@@ -48,7 +48,7 @@ func NewIperfClientPacketBuilder() *IperfClientPacketBuilder {
 	}
 }
 
-func (b *IperfClientPacketBuilder) SetPacketID(id byte) *IperfClientPacketBuilder {
+func (b *IperfClientPacketBuilder) SetPacketID(id uint16) *IperfClientPacketBuilder {
 	b.IperfClientPacket.PacketID = id
 	return b
 }
@@ -113,7 +113,7 @@ func EncodeIperfClientPacket(msg IperfClientPacket) []byte {
 
 	// Encode fixed fields
 	buf.WriteByte(byte(utils.IPERFCLIENT))
-	buf.WriteByte(msg.PacketID)
+	binary.Write(buf, binary.BigEndian, msg.PacketID)
 	buf.WriteByte(msg.AgentID)
 	binary.Write(buf, binary.BigEndian, msg.TaskID)
 	binary.Write(buf, binary.BigEndian, msg.Frequency)
@@ -157,8 +157,8 @@ func DecodeIperfClientPacket(data []byte) (IperfClientPacket, error) {
 	var msg IperfClientPacket
 
 	// Decode fixed fields
-	packetID, err := buf.ReadByte()
-	if err != nil {
+	var packetID uint16
+	if err := binary.Read(buf, binary.BigEndian, &packetID); err != nil {
 		return msg, err
 	}
 	agentID, err := buf.ReadByte()
