@@ -78,13 +78,18 @@ func DecodeAck(packet []byte) (Ack, error) {
 	}
 	ack.ReceiverID = receiverID
 
-	ack.Acknowledged = packet[4] == 1
-
-	// Decode Hash
-	var hashLen byte
-	if err := binary.Read(buf, binary.BigEndian, &hashLen); err != nil {
+	Acknowledged, err := buf.ReadByte()
+	if err != nil {
 		return ack, err
 	}
+	ack.Acknowledged = (Acknowledged == 1)
+
+	// Decode Hash
+	hashLen, err := buf.ReadByte()
+	if err != nil {
+		return ack, err
+	}
+
 	hashBytes := make([]byte, hashLen)
 	if _, err := buf.Read(hashBytes); err != nil {
 		return ack, err
