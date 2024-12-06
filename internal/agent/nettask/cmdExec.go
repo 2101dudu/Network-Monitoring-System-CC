@@ -64,11 +64,12 @@ func monitorSystemMetrics(metrics task.DeviceMetrics, conditions task.AlertFlowC
 			}()
 
 			if len(interfacesArray) > 0 {
-				for index, interfaceName := range interfacesArray {
+				for index := len(interfacesArray) - 1; index >= 0; index-- {
+					interfaceName := interfacesArray[index]
 					packetsHaveExceeded := handleInterfaceStats(interfaceName, conditions, taskID)
 
 					if packetsHaveExceeded {
-						// Remove the interface from the list, as to not be checked again
+						// Remove the interface from the list
 						interfacesArray = append(interfacesArray[:index], interfacesArray[index+1:]...)
 					}
 				}

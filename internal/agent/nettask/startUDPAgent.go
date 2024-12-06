@@ -20,7 +20,6 @@ func StartUDPAgent() {
 	agentID, _ = utils.GetAgentID()
 	// make the IP of the agent
 	agentIP := fmt.Sprintf("r%d", int(agentID))
-
 	// make the agent open an UDP connection via port 9091
 	agentConn := utils.ResolveUDPAddrAndListen(agentIP, "9091")
 
