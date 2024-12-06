@@ -1,15 +1,36 @@
-# Distributed Network Monitoring System
+# Distributed Network Monitoring System (NMS)
 
-This project implements a Distributed Network Monitoring System (NMS) capable of gathering and analyzing network metrics from various devices. It uses a client-server architecture, where:
-
-- **NMS_Agent**: Deployed on network devices, collects metrics periodically, and communicates with the server.
-- **NMS_Server**: Centralized server that receives and processes data from the agents and provides alerts on critical network conditions.
+This project implements a **Distributed Network Monitoring System** designed for monitoring and analyzing the state of network links and devices in a distributed environment. The system leverages custom-built application-layer protocols, `NetTask` (UDP-based) and `AlertFlow` (TCP-based), to achieve efficient communication between clients (agents) and the central server.
 
 ## Features
-- **UDP Protocol (NetTask)**: For task distribution and continuous metric collection.
-- **TCP Protocol (AlertFlow)**: For critical alerts and notifications.
-- **Network Monitoring Tools**: Uses tools like `ping` and `iperf` for gathering metrics such as latency, bandwidth, jitter, packet loss, etc.
-- **JSON Task Configuration**: Tasks are assigned to agents via a JSON configuration file.
+- **NetTask Protocol**:
+
+-- UDP-based, handles task distribution, metric collection, and agent registration.
+-- Implements reliability mechanisms like ACKs, retransmissions, and packet ID management.
+
+- **AlertFlow Protocol**:
+-- TCP-based, ensures reliable transmission of critical alerts when thresholds are exceeded.
+
+- **Network Monitoring Tools**:
+-- Uses tools such as `ping` and `iperf` for metrics including latency, bandwidth, jitter, and packet loss.
+-- Supports monitoring device metrics like CPU and RAM usage.
+
+- **JSON-Based Task Management**:
+-- Tasks and thresholds are defined in JSON configuration files.
+
+- **Scalable and Distributed**:
+-- Supports multiple agents reporting to a single server.
+
+## Requirements
+- **Languages/Tools**:
+-- Go (Golang)
+-- CORE Network Emulator (v7.5 or later)
+-- Utilities: `ping`, `iperf`
+
+- **Environment**:
+
+-- Linux-based systems for network emulation.
+-- JSON files for configuration.
 
 ## Project Structure
 ```
