@@ -5,99 +5,115 @@ This project implements a **Distributed Network Monitoring System** designed for
 ## Features
 - **NetTask Protocol**:
 
--- UDP-based, handles task distribution, metric collection, and agent registration.
--- Implements reliability mechanisms like ACKs, retransmissions, and packet ID management.
+  - UDP-based, handles task distribution, metric collection, and agent registration.
+  - Implements reliability mechanisms like ACKs, retransmissions, and packet ID management.
 
 - **AlertFlow Protocol**:
--- TCP-based, ensures reliable transmission of critical alerts when thresholds are exceeded.
+  - TCP-based, ensures reliable transmission of critical alerts when thresholds are exceeded.
 
 - **Network Monitoring Tools**:
--- Uses tools such as `ping` and `iperf` for metrics including latency, bandwidth, jitter, and packet loss.
--- Supports monitoring device metrics like CPU and RAM usage.
+  - Uses tools such as `ping` and `iperf` for metrics including latency, bandwidth, jitter, and packet loss.
+  - Supports monitoring device metrics like CPU and RAM usage.
 
 - **JSON-Based Task Management**:
--- Tasks and thresholds are defined in JSON configuration files.
+  - Tasks and thresholds are defined in JSON configuration files.
 
 - **Scalable and Distributed**:
--- Supports multiple agents reporting to a single server.
+  - Supports multiple agents reporting to a single server.
 
 ## Requirements
 - **Languages/Tools**:
--- Go (Golang)
--- CORE Network Emulator (v7.5 or later)
--- Utilities: `ping`, `iperf`
+  - Go (Golang)
+  - CORE Network Emulator (v7.5 or later)
+  - Utilities: `ping`, `iperf`
 
 - **Environment**:
 
--- Linux-based systems for network emulation.
--- JSON files for configuration.
+  - Linux-based systems for network emulation.
+  - JSON files for configuration.
 
 ## Project Structure
 ```
 .
 ├── LICENSE
-├── Makefile
-├── README.md
-├── go.mod
-├── cmd/
+├── Makefile              # Automates build and run processes
+├── README.md             # Project documentation
+├── cmd/                  # Entrypoints for server and agent
 │   └── nms/
 │       ├── agent/
 │       │   └── runner.go
 │       └── server/
 │           └── runner.go
-├── internal/
+├── configs/              # Configuration files
+│   └── tasks.json        # JSON tasks configuration
+├── docs/                 # Documentation
+│   ├── report.pdf        # Technical report
+│   ├── CC Enunciado TP2 24-25.pdf # Project statement
+├── internal/             # Core system modules
 │   ├── agent/
-│   │   ├── tcp.go
-│   │   └── udp.go
-│   └── server/
-│       ├── tcp.go
-│       └── udp.go
-├── pkg/
-│   ├── packet/
-│   │   ├── ack.go
-│   │   ├── ackMap.go
-│   │   └── registration.go
+│   │   ├── alertflow/
+│   │   │   └── tcp.go
+│   │   └── nettask/
+│   │       ├── handlePingTask.go
+│   │       └── other-task-handlers.go
+│   ├── server/
+│   │   ├── alertflow/
+│   │   │   └── handleAlert.go
+│   │   └── nettask/
+│   │       └── task-handlers.go
+│   ├── jsonParse/
+│   │   ├── parser.go
+│   │   └── task.go
 │   └── utils/
-│       ├── parser.go
-│       ├── udp.go
+│       ├── tcp.go
 │       └── utils.go
-├── configs/
-│   └── tasks.json
-├── docs/
-│   └── CC Enunciado TP2 24-25.pdf
-├── Users/
-│   └── eduardofaria/
-└── reminders.txt
+└── topology/
+    └── CC-Topologia.imn  # Core emulator topology file
+
 ```
 
+## Usage Instructions
+### 1. Installation
+Clone the repository and navigate to the project directory:
+```bash
+git clone git@github.com:2101dudu/Network-Monitoring-System.git
+cd Network-Monitoring-System
+```
 
-## Requirements
-- GO (or your chosen programming language)
-- CORE Network Emulator 7.5
-- Network utilities: `ping`, `iperf`
+### 2. Build and Run
+**Server**
+1. Build and run the server:
+```bash
+make server
+```
+1. Build and start the server in verbose mode for debugging:
+```bash
+make server-verbose
+```
 
-## Usage
-1. Configure your agents by editing the JSON task file.
-2. Run the NMS_Server to start receiving data.
-3. Deploy NMS_Agents on the network devices to monitor network health.
-4. Alerts will be triggered if critical thresholds are exceeded.
+**agent**
+1. Build and run the agent:
+```bash
+make agent
+```
+1. Build and start the agent in verbose mode for debugging:
+```bash
+make agent-verbose
+```
 
-## Installation
-1. Clone the repository:
-   ```bash
-   git clone git@github.com:2101dudu/Network-Monitoring-System.git
-   cd Network-Monitoring-System
-   ```
+### 3. Configuration
+Edit the `tasks.json` file in the `configs/` directory to define tasks, thresholds, and monitoring parameters.
 
-2. On one terminal, run:
-    ```bash
-    make server
-    ```
+## Testing
+- Use the **CORE Network Emulator** to simulate networks and validate the system.
+- Deploy multiple agents and simulate scenarios with packet loss and alerts.
+- Ensure agents register correctly, execute tasks, and report metrics.
 
-3. On the other terminal, run:
-    ```bash
-    make agent
-    ```
+## Sample Test Flow
+1. Start the server.
+1. Deploy agents across different simulated devices.
+1. Configure and load tasks using `tasks.json`.
+1. Observe metric collection and alert notifications.
 
 ## Group Members
 - [Edgar Ferreira](https://www.github.com/Edegare)
