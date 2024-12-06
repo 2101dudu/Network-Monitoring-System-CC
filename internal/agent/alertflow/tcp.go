@@ -7,7 +7,7 @@ import (
 
 func ConnectTCPAndSendAlert(serverTCPPort string, alert alertTcp.Alert) {
 
-	conn := utils.ResolveTCPAddrAndDial("localhost", serverTCPPort)
+	conn := utils.ResolveTCPAddrAndDial(utils.SERVERIP, serverTCPPort)
 	defer conn.Close()
 
 	alertTcp.EncodeAndSendAlert(conn, alert)

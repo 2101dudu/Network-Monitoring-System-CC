@@ -1,6 +1,7 @@
 package nettask
 
 import (
+	"fmt"
 	"log"
 	utils "nms/internal/utils"
 	"strconv"
@@ -10,11 +11,16 @@ import (
 func parseIperfOutput(bandwidth bool, jitter bool, packetLoss bool, jitterLimit float32, packetLossLimit float32, output string) (string, float32, float32) {
 	jitterHasExceeded := float32(0)
 	packetLossHasExceeded := float32(0)
+	fmt.Println(output)
+
+	if len(output) == 0 {
+		return "", jitterHasExceeded, packetLossHasExceeded
+	}
 
 	if bandwidth {
 		line := findInLines("sec", output)
 		separatedLine := strings.Fields(line)
-		return separatedLine[6] + " " + separatedLine[7], jitterHasExceeded, packetLossHasExceeded
+		return separatedLine[7] + " " + separatedLine[8], jitterHasExceeded, packetLossHasExceeded
 	} else {
 		line := findInLines("%", output)
 		separatedLine := strings.Fields(line)

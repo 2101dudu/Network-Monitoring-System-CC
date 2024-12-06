@@ -6,7 +6,7 @@ import (
 )
 
 func StartTCPServer(port string) {
-	listener := utils.ResolveTCPAddr("localhost", utils.SERVERTCP)
+	listener := utils.ResolveTCPAddr(utils.SERVERIP, utils.SERVERTCP)
 
 	for {
 		conn, err := listener.AcceptTCP()
