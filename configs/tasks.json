@@ -1,10 +1,10 @@
 [
     {
-        "task_id": 30, 
-        "frequency": 12,
+        "task_id": 1, 
+        "frequency": 30,
         "devices": [
             {
-                "device_id": 2,
+                "device_id": 3,
                 "device_metrics": {
                     "cpu_usage": true,
                     "ram_usage": true,
@@ -12,11 +12,11 @@
                 },
                 "link_metrics": {
                     "iperf_parameters": {
-                        "bandwidth": false,
-                        "jitter": true,
-                        "packet_loss": true,
+                        "bandwidth": true,
+                        "jitter": false,
+                        "packet_loss": false,
                         "is_server": true,
-                        "test_duration": 8
+                        "test_duration": 10
                     },
                     "ping_parameters": { 
                         "enabled": false,
@@ -34,7 +34,7 @@
                 }
             },
             {
-                "device_id": 3,
+                "device_id": 4,
                 "device_metrics": {
                     "cpu_usage": true,
                     "ram_usage": true,
@@ -42,11 +42,11 @@
                 },
                 "link_metrics": {
                     "iperf_parameters": {
-                        "bandwidth": false,
-                        "jitter": true,
-                        "packet_loss": true,
+                        "bandwidth": true,
+                        "jitter": false,
+                        "packet_loss": false,
                         "is_server": false,
-                        "test_duration": 8
+                        "test_duration": 10
                     },
                     "ping_parameters": { 
                         "enabled": false,
@@ -66,11 +66,11 @@
         ]
     },
     {
-        "task_id": 200, 
-        "frequency": 10,
+        "task_id": 2, 
+        "frequency": 30,
         "devices": [
             {
-                "device_id": 1,
+                "device_id": 3,
                 "device_metrics": {
                     "cpu_usage": true,
                     "ram_usage": true,
@@ -81,13 +81,13 @@
                         "bandwidth": false,
                         "jitter": false,
                         "packet_loss": false,
-                        "is_server": false,
-                        "test_duration": 3
+                        "is_server": true,
+                        "test_duration": 10
                     },
                     "ping_parameters": { 
                         "enabled": true,
-                        "destination": "pc3",
-                        "packet_count": 3,
+                        "destination": "pc2",
+                        "packet_count": 5,
                         "frequency": 1
                     }
                 },
@@ -102,11 +102,11 @@
         ]
     },
     {
-        "task_id": 201, 
-        "frequency": 10,
+        "task_id": 3, 
+        "frequency": 30,
         "devices": [
             {
-                "device_id": 1,
+                "device_id": 4,
                 "device_metrics": {
                     "cpu_usage": true,
                     "ram_usage": true,
@@ -117,13 +117,13 @@
                         "bandwidth": false,
                         "jitter": false,
                         "packet_loss": false,
-                        "is_server": false,
-                        "test_duration": 3
+                        "is_server": true,
+                        "test_duration": 10
                     },
                     "ping_parameters": { 
                         "enabled": true,
-                        "destination": "pc3",
-                        "packet_count": 3,
+                        "destination": "pc1",
+                        "packet_count": 5,
                         "frequency": 1
                     }
                 },
@@ -138,9 +138,39 @@
         ]
     },
     {
-        "task_id": 202, 
-        "frequency": 10,
+        "task_id": 4, 
+        "frequency": 20,
         "devices": [
+            {
+                "device_id": 2,
+                "device_metrics": {
+                    "cpu_usage": true,
+                    "ram_usage": true,
+                    "interface_stats": ["eth0", "eth1", "eth2"]
+                },
+                "link_metrics": {
+                    "iperf_parameters": {
+                        "bandwidth": false,
+                        "jitter": true,
+                        "packet_loss": true,
+                        "is_server": true,
+                        "test_duration": 10
+                    },
+                    "ping_parameters": { 
+                        "enabled": false,
+                        "destination": "pc3",
+                        "packet_count": 3,
+                        "frequency": 1
+                    }
+                },
+                "alertflow_conditions": {
+                    "cpu_usage": 70,
+                    "ram_usage": 30,
+                    "interface_stats": 2000,
+                    "packet_loss": 5,
+                    "jitter": 100
+                }
+            },
             {
                 "device_id": 1,
                 "device_metrics": {
@@ -151,24 +181,24 @@
                 "link_metrics": {
                     "iperf_parameters": {
                         "bandwidth": false,
-                        "jitter": false,
-                        "packet_loss": false,
+                        "jitter": true,
+                        "packet_loss": true,
                         "is_server": false,
-                        "test_duration": 3
+                        "test_duration": 10
                     },
                     "ping_parameters": { 
-                        "enabled": true,
+                        "enabled": false,
                         "destination": "pc3",
                         "packet_count": 3,
                         "frequency": 1
                     }
                 },
                 "alertflow_conditions": {
-                    "cpu_usage": 90,
-                    "ram_usage": 90,
-                    "interface_stats": 2000,
+                    "cpu_usage": 2,
+                    "ram_usage": 70,
+                    "interface_stats": 1500,
                     "packet_loss": 5,
-                    "jitter": 100
+                    "jitter": 55
                 }
             }
         ]
