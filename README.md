@@ -1,4 +1,5 @@
-# Distributed Network Monitoring System (NMS)
+<h1 align="center">Distributed Network Monitoring System (NMS)<img align="center" src="https://github.com/devicons/devicon/blob/master/icons/go/go-original-wordmark.svg" target="_blank" title="GO" alt="GO" width="50" height="50"/></h1>
+<h1 align="center">Final Grade: 17/20🌟</h1>
 
 This project implements a **Distributed Network Monitoring System** designed for monitoring and analyzing the state of network links and devices in a distributed environment. The system leverages custom-built application-layer protocols, `NetTask` (UDP-based) and `AlertFlow` (TCP-based), to achieve efficient communication between clients (agents) and the central server.
 
